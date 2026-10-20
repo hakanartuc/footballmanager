@@ -126,9 +126,10 @@ class EngineSession {
       if (!unreadOnly || !m.read) m,
   ];
 
-  /// Marks `world.inbox[inboxIndex]` read. [inboxIndex] indexes the stored
-  /// (oldest-first) list, not the newest-first list returned by [inbox].
-  void markRead(int inboxIndex) => _world.inbox[inboxIndex].read = true;
+  /// Marks [message] read. [inbox] returns the stored instances, so any
+  /// message it handed out can be passed here; positions in the stored
+  /// list are not stable (it is trimmed from the front daily).
+  void markRead(InboxMessage message) => message.read = true;
 
   /// Every invariant the world currently breaks.
   List<invariants.Violation> checkInvariants() =>

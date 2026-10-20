@@ -155,12 +155,33 @@ void main() {
 
       final all = s.inbox();
       expect(all, stored.reversed.toList());
+      expect(all.first, same(stored.last));
       expect(s.inbox(unreadOnly: true), all);
 
-      s.markRead(stored.length - 1);
+      s.markRead(all.first);
       expect(stored.last.read, isTrue);
       expect(s.inbox(unreadOnly: true), stored.reversed.skip(1).toList());
       expect(s.inbox(), all);
+    });
+
+    test('markRead survives the daily trim of the stored list', () {
+      final s = EngineSession.newGame(_spec(startClubId: club));
+      final w = s.world;
+      final newest = s.inbox().first;
+      w.inbox.insertAll(0, [
+        for (var i = 0; i < inboxLimit; i++)
+          InboxMessage(
+            date: w.date,
+            event: SeasonEnded(date: w.date, seasonYear: i),
+          ),
+      ]);
+      s.advanceDay(); // trims the oldest messages from the front
+      expect(w.inbox, hasLength(inboxLimit));
+      expect(w.inbox, contains(same(newest)));
+
+      s.markRead(newest);
+      expect(newest.read, isTrue);
+      expect(s.inbox(unreadOnly: true), isNot(contains(same(newest))));
     });
   });
 
