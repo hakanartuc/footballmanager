@@ -10,6 +10,7 @@ export 'src/core/rng.dart';
 export 'src/data/country_data.dart';
 export 'src/gen/club_generator.dart';
 export 'src/gen/player_generator.dart';
+export 'src/gen/world_generator.dart';
 export 'src/model/attributes.dart';
 export 'src/model/calendar.dart';
 export 'src/model/club.dart';
@@ -21,5 +22,6 @@ export 'src/model/json.dart';
 export 'src/model/manager.dart';
 export 'src/model/player.dart';
 export 'src/model/world.dart';
+export 'src/sim/new_game.dart';
 
 const engineVersion = '0.0.1';
