@@ -12,7 +12,7 @@ SlotInfo _meta(int slot, {String manager = 'Test Manager', int bytes = 3}) =>
       slot: slot,
       managerName: manager,
       clubName: slot.isEven ? 'Club $slot' : null,
-      date: GameDate.ymd(2026, 7, slot),
+      date: GameDate.ymd(2026, 7, 1).addDays(slot),
       seasonYear: 2026,
       savedAt: DateTime.utc(2026, 10, 20, 12, slot),
       bytes: bytes,
@@ -82,8 +82,15 @@ void runSaveStoreContract(SaveStore Function() make) {
   });
 
   test('rejects a non-positive slot or a meta for another slot', () async {
-    expect(() => store.write(0, _bytes([1]), _meta(0)), throwsArgumentError);
-    expect(() => store.write(1, _bytes([1]), _meta(2)), throwsArgumentError);
+    // Both stores report it through the returned future, not synchronously.
+    await expectLater(
+      store.write(0, _bytes([1]), _meta(0)),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.write(1, _bytes([1]), _meta(2)),
+      throwsArgumentError,
+    );
   });
 
   test('stores a real encoded world', () async {
@@ -129,7 +136,9 @@ void main() {
       expect(File('${root.path}/slot_3/world.bin').readAsBytesSync(), [7]);
       expect(File('${root.path}/slot_3/meta.json').existsSync(), isTrue);
       expect(
-        root.listSync(recursive: true).map((e) => e.path.split('/').last),
+        root
+            .listSync(recursive: true)
+            .map((e) => e.path.split(Platform.pathSeparator).last),
         unorderedEquals(['slot_3', 'world.bin', 'meta.json']),
       );
     });
@@ -145,6 +154,26 @@ void main() {
         expect((await store.list()).map((s) => s.slot), [2]);
       },
     );
+
+    for (final MapEntry(key: name, value: write)
+        in <String, void Function(File)>{
+          'not JSON': (f) => f.writeAsStringSync('{not json'),
+          'JSON of the wrong shape': (f) =>
+              f.writeAsStringSync('{"slot": "2"}'),
+          'not UTF-8': (f) => f.writeAsBytesSync([0xff, 0xfe, 0xfd]),
+        }.entries) {
+      test(
+        'list skips a slot whose meta.json is $name; read still works',
+        () async {
+          final store = FileSaveStore(root);
+          await store.write(1, _bytes([1]), _meta(1));
+          await store.write(2, _bytes([2, 2]), _meta(2));
+          write(File('${root.path}/slot_2/meta.json'));
+          expect((await store.list()).map((s) => s.slot), [1]);
+          expect(await store.read(2), [2, 2]);
+        },
+      );
+    }
 
     test('list of a missing root is empty', () async {
       final store = FileSaveStore(Directory('${root.path}/absent'));

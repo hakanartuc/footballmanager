@@ -129,8 +129,9 @@ class MemorySaveStore implements SaveStore {
 /// `<root>/slot_<n>/meta.json` (spec §18.3).
 ///
 /// `world.bin` is written to a temp file and renamed into place. A slot is
-/// listed only once its `meta.json` exists. IO failures throw [SaveError]
-/// `io`.
+/// listed only once its `meta.json` exists and parses; a slot with a
+/// malformed `meta.json` is left out of [list] but can still be [read].
+/// IO failures throw [SaveError] `io`.
 class FileSaveStore implements SaveStore {
   final Directory root;
 
@@ -156,19 +157,28 @@ class FileSaveStore implements SaveStore {
       if (await _metaFile(slot).exists()) slots.add(slot);
     }
     slots.sort();
-    return [
-      for (final slot in slots)
-        SlotInfo.fromJson(
-          jsonDecode(await _metaFile(slot).readAsString())
-              as Map<String, dynamic>,
-        ),
-    ];
+    final infos = <SlotInfo>[];
+    for (final slot in slots) {
+      final meta = await _metaFile(slot).readAsBytes();
+      try {
+        infos.add(
+          SlotInfo.fromJson(
+            jsonDecode(utf8.decode(meta)) as Map<String, dynamic>,
+          ),
+        );
+      } on FormatException {
+        continue; // Malformed meta.json: hide the slot, keep the others.
+      } on TypeError {
+        continue;
+      }
+    }
+    return infos;
   });
 
   @override
-  Future<void> write(int slot, Uint8List bytes, SlotInfo meta) {
+  Future<void> write(int slot, Uint8List bytes, SlotInfo meta) async {
     _checkWrite(slot, meta);
-    return _io(() async {
+    await _io(() async {
       await _dir(slot).create(recursive: true);
       final tmp = File('${_world(slot).path}.tmp');
       await tmp.writeAsBytes(bytes, flush: true);
