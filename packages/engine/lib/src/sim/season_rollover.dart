@@ -10,13 +10,14 @@ import '../core/rng.dart';
 import '../data/country_data.dart';
 import '../gen/player_generator.dart';
 import '../gen/world_generator.dart';
+import '../model/calendar.dart';
 import '../model/enums.dart';
 import '../model/events.dart';
 import '../model/player.dart';
 import '../model/world.dart';
 
 /// Senior squad bounds after the rollover: fillers are generated up to the
-/// floor, the lowest-rated seniors are released above the cap.
+/// floor; youth are promoted only while the squad is below the cap.
 const int seniorSquadFloor = 18;
 const int seniorSquadCap = 28;
 
@@ -35,13 +36,14 @@ const int retirementAge = 35;
 /// 4. retirement of every player aged [retirementAge] or more
 ///    (`PlayerRetired`);
 /// 5. youth intake of `3 + rng.nextInt(4)` sixteen-year-olds per club
-///    (`YouthIntake`), then youth aged 18 or more become seniors;
-/// 6. squad balance: fillers aged 19–24 until every senior squad has
-///    [seniorSquadFloor] players; above [seniorSquadCap] the lowest-CA
-///    seniors are released to free agency (`contract = null`);
-/// 7. contracts: every contract ending on or before today is extended to
-///    June 30 two years on. This AI auto-renew applies to the user's club
-///    too in Faz 0 (no negotiation yet);
+///    (`YouthIntake`), then youth aged 18 or more become seniors, lowest
+///    id first, only while the senior squad is below [seniorSquadCap];
+/// 6. squad floor: fillers aged 19–24 until every senior squad has
+///    [seniorSquadFloor] players;
+/// 7. contracts: every contract ending before the next season's
+///    `seasonStart` is extended to June 30 two years on. This AI
+///    auto-renew applies to the user's club too in Faz 0 (no negotiation
+///    yet);
 /// 8. the next season's calendar and fixtures (old fixtures are kept);
 /// 9. lineups cleared, `SeasonEnded` then `NewSeasonStarted`.
 ///
@@ -51,16 +53,17 @@ List<GameEvent> rolloverSeason(World w, SeededRng rng) {
   final oldYear = w.seasonYear;
   final data = CountryData.load();
   NamePool poolOf(CountryId c) => data.pools[w.countries[c]!.namePool]!;
+  final next = buildSeasonCalendar(w.seasonYear + 1);
 
   final tables = _archiveSeason(w, events);
   _promoteAndRelegate(w, tables, events);
   _recordCareers(w);
   _retirePlayers(w, events);
   _youthIntake(w, rng, poolOf, events);
-  _balanceSquads(w, rng, poolOf);
-  _renewContracts(w);
-  final nextYear = _scheduleNextSeason(w, rng);
-  _startNewSeason(w, events, oldYear: oldYear, nextYear: nextYear);
+  _fillSquads(w, rng, poolOf);
+  _renewContracts(w, next);
+  _scheduleNextSeason(w, rng, next);
+  _startNewSeason(w, events, oldYear: oldYear, nextYear: next.seasonYear);
   return events;
 }
 
@@ -154,7 +157,9 @@ void _retirePlayers(World w, List<GameEvent> events) {
 }
 
 /// Step 5. Each club draws from `rollover.fork('youth:<club>:<year>')`;
-/// positions are picked uniformly from the 24 [squadQuota] slots.
+/// positions are picked uniformly from the 24 [squadQuota] slots. Youth
+/// who miss out on promotion because of the cap stay in the youth squad
+/// for another season.
 void _youthIntake(
   World w,
   SeededRng rng,
@@ -187,24 +192,24 @@ void _youthIntake(
     }
     events.add(YouthIntake(date: w.date, clubId: club.id, playerIds: intake));
   }
-  for (final id in w.players.keys.toList()..sort()) {
-    final p = w.players[id]!;
-    if (p.isYouth && p.ageAt(w.date) >= 18) {
+  w.rebuildIndexes();
+  for (final id in w.clubs.keys.toList()..sort()) {
+    var seniors = w.squadOf(id).length;
+    for (final pid in w.youthOf(id)) {
+      if (seniors >= seniorSquadCap) break;
+      final p = w.players[pid]!;
+      if (p.ageAt(w.date) < 18) continue;
       p.isYouth = false;
       p.contract!.status = PlayerStatus.backup;
+      seniors++;
     }
   }
 }
 
 /// Step 6. Fillers come from `rollover.fork('fillers:<club>:<year>')`, each
 /// at the quota position with the fewest seniors (goalkeepers first until
-/// there are two). Excess seniors are released lowest CA first (ties by
-/// id).
-void _balanceSquads(
-  World w,
-  SeededRng rng,
-  NamePool Function(CountryId) poolOf,
-) {
+/// there are two).
+void _fillSquads(World w, SeededRng rng, NamePool Function(CountryId) poolOf) {
   w.rebuildIndexes();
   final outfield = [
     for (final p in squadQuota.keys)
@@ -213,17 +218,6 @@ void _balanceSquads(
   for (final id in w.clubs.keys.toList()..sort()) {
     final club = w.clubs[id]!;
     final squad = w.squadOf(club.id);
-    if (squad.length > seniorSquadCap) {
-      final byCa = [for (final pid in squad) w.players[pid]!]
-        ..sort((a, b) {
-          final c = a.ca.compareTo(b.ca);
-          return c != 0 ? c : a.id.compareTo(b.id);
-        });
-      for (final p in byCa.take(squad.length - seniorSquadCap)) {
-        p.contract = null;
-      }
-      continue;
-    }
     if (squad.length >= seniorSquadFloor) continue;
     final counts = {for (final p in squadQuota.keys) p: 0};
     for (final pid in squad) {
@@ -252,23 +246,23 @@ void _balanceSquads(
 }
 
 /// Step 7. See [rolloverSeason] for the auto-renew note.
-void _renewContracts(World w) {
+void _renewContracts(World w, SeasonCalendar next) {
   for (final id in w.players.keys.toList()..sort()) {
     final contract = w.players[id]!.contract;
-    if (contract != null && !contract.end.isAfter(w.date)) {
+    if (contract != null && contract.end.isBefore(next.seasonStart)) {
       contract.end = GameDate.ymd(w.date.year + 2, 6, 30);
     }
   }
 }
 
-/// Step 8. Returns the new season year.
-int _scheduleNextSeason(World w, SeededRng rng) {
-  final nextYear = w.seasonYear + 1;
-  w.calendar = buildSeasonCalendar(nextYear);
+/// Step 8.
+void _scheduleNextSeason(World w, SeededRng rng, SeasonCalendar next) {
+  final nextYear = next.seasonYear;
+  w.calendar = next;
   for (final id in w.leagues.keys.toList()..sort()) {
     final scheduled = scheduleLeagueFixtures(
       league: w.leagues[id]!,
-      calendar: w.calendar,
+      calendar: next,
       seasonYear: nextYear,
       ids: w.ids,
       rng: rng.fork('fixtures:$id:$nextYear'),
@@ -278,7 +272,6 @@ int _scheduleNextSeason(World w, SeededRng rng) {
     }
   }
   w.seasonYear = nextYear;
-  return nextYear;
 }
 
 /// Step 9.

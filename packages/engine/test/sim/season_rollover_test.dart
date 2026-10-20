@@ -54,11 +54,9 @@ class _SeasonRun {
       },
     );
     final seasonEnd = w.calendar.seasonEnd;
-    final watch = Stopwatch()..start();
     while (!w.date.isAfter(seasonEnd)) {
       runner.advanceDay(w, const []);
     }
-    elapsed = watch.elapsed;
     this.runner = runner;
   }
 
@@ -67,7 +65,6 @@ class _SeasonRun {
   late _Snapshot before;
   late List<GameEvent> events;
   late GameDate dateAfterHook;
-  late Duration elapsed;
 }
 
 void main() {
@@ -79,8 +76,6 @@ void main() {
     run = _SeasonRun(_world());
     w = run.w;
     before = run.before;
-    // ignore: avoid_print
-    print('full season (small world): ${run.elapsed.inMilliseconds} ms');
   });
 
   group('rolloverSeason', () {
@@ -219,17 +214,25 @@ void main() {
           expect(p.nationality, club.countryId);
           expect(p.ca, inInclusiveRange(10, 130));
         }
-        final promoted = before.youthOf[club.id]!.where(
-          (id) => before.ages[id]! >= 18,
-        );
-        for (final id in promoted) {
+        // Promotion mirrors the rule: lowest id first, only below 28.
+        var seniors = before.seniorsOf[club.id]!
+            .where((id) => before.ages[id]! < 35)
+            .length;
+        final promoted = <PlayerId>[];
+        for (final id in before.youthOf[club.id]!) {
+          if (before.ages[id]! < 18 || seniors >= 28) continue;
+          promoted.add(id);
+          seniors++;
+        }
+        for (final id in before.youthOf[club.id]!) {
           final p = w.players[id]!;
-          expect(p.isYouth, isFalse);
-          // A promoted youth may be released again by the 28 cap.
-          final c = p.contract;
-          if (c != null) {
-            expect(c.status, PlayerStatus.backup);
+          if (promoted.contains(id)) {
+            expect(p.isYouth, isFalse);
+            expect(p.contract!.status, PlayerStatus.backup);
             expect(w.squadOf(club.id), contains(id));
+          } else {
+            expect(p.isYouth, isTrue);
+            expect(p.contract!.status, PlayerStatus.youth);
           }
         }
         expect(
@@ -305,13 +308,16 @@ void main() {
     late Set<PlayerId> expiring;
     late PlayerId unexpired;
     late ClubId fullClub;
-    late Set<PlayerId> fullSeniors;
+    late List<PlayerId> fullYouth;
+    late GameDate nextStart;
 
     setUpAll(() {
       final tr = w.countries.values.firstWhere((c) => c.code == 'TR');
       userClub = before.tables[tr.tiers[0]]!.last.clubId;
       w2 = _world(startClubId: userClub);
       final seasonEnd = w2.calendar.seasonEnd;
+      nextStart = buildSeasonCalendar(w2.seasonYear + 1).seasonStart;
+      expect(nextStart.isAfter(seasonEnd), isTrue);
 
       agedClub = w2.clubs.values
           .firstWhere(
@@ -326,10 +332,14 @@ void main() {
       final seniors = w2.squadOf(userClub);
       expiring = {seniors[0], seniors[1], seniors[2]};
       w2.players[seniors[0]]!.contract!.end = seasonEnd;
-      w2.players[seniors[1]]!.contract!.end = seasonEnd.addDays(-10);
+      w2.players[seniors[1]]!.contract!.end = GameDate.ymd(
+        seasonEnd.year,
+        6,
+        30,
+      );
       w2.players[seniors[2]]!.contract!.end = seasonEnd.addDays(-200);
       unexpired = seniors[3];
-      w2.players[unexpired]!.contract!.end = seasonEnd.addDays(1);
+      w2.players[unexpired]!.contract!.end = nextStart;
 
       fullClub = w2.clubs.values
           .firstWhere(
@@ -345,7 +355,7 @@ void main() {
       for (final id in w2.youthOf(fullClub)) {
         w2.players[id]!.birth = GameDate.ymd(seasonEnd.year - 18, 1, 1);
       }
-      fullSeniors = {...w2.squadOf(fullClub), ...w2.youthOf(fullClub)};
+      fullYouth = List.of(w2.youthOf(fullClub));
 
       run2 = _SeasonRun(w2);
     });
@@ -414,29 +424,25 @@ void main() {
       }
     });
 
-    test('a squad over 28 releases its lowest-rated seniors', () {
+    test('youth promotion stops at 28 seniors, the rest stay youth', () {
       final squad = w2.squadOf(fullClub);
       expect(squad, hasLength(28));
-      expect(
-        w2.youthOf(fullClub),
-        hasLength(
-          run2.events
-              .whereType<YouthIntake>()
-              .singleWhere((e) => e.clubId == fullClub)
-              .playerIds
-              .length,
-        ),
-      );
-      final released = fullSeniors.difference(squad.toSet());
-      expect(released, hasLength(32 - 28));
-      final floor = squad
-          .map((id) => w2.players[id]!.ca)
-          .reduce((a, b) => a < b ? a : b);
-      for (final id in released) {
-        final p = w2.players[id]!;
-        expect(p.contract, isNull);
-        expect(p.isYouth, isFalse);
-        expect(p.ca, lessThanOrEqualTo(floor));
+      expect(fullYouth, hasLength(6));
+      final intake = run2.events
+          .whereType<YouthIntake>()
+          .singleWhere((e) => e.clubId == fullClub)
+          .playerIds;
+      final kept = fullYouth.sublist(2);
+      expect(w2.youthOf(fullClub), [...kept, ...intake]..sort());
+      for (final id in fullYouth.take(2)) {
+        expect(squad, contains(id));
+        expect(w2.players[id]!.isYouth, isFalse);
+        expect(w2.players[id]!.contract!.status, PlayerStatus.backup);
+      }
+      for (final id in kept) {
+        expect(w2.players[id]!.isYouth, isTrue);
+        expect(w2.players[id]!.contract!.status, PlayerStatus.youth);
+        expect(w2.players[id]!.ageAt(run2.before.date), 18);
       }
     });
 
@@ -446,10 +452,10 @@ void main() {
       for (final id in expiring) {
         expect(w2.players[id]!.contract!.end, renewed, reason: '$id');
       }
-      expect(w2.players[unexpired]!.contract!.end, seasonEnd.addDays(1));
+      expect(w2.players[unexpired]!.contract!.end, nextStart);
+      expect(w2.calendar.seasonStart, nextStart);
       for (final p in w2.players.values) {
-        final c = p.contract;
-        if (c != null) expect(c.end.isAfter(seasonEnd), isTrue);
+        expect(p.contract!.end.isBefore(nextStart), isFalse, reason: '${p.id}');
       }
     });
   });
