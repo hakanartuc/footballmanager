@@ -25,7 +25,7 @@ All gates are real assertions. Thresholds are Faz 0 bounds; the spec's
 | Test | World | Gate |
 | --- | --- | --- |
 | `test/determinism_test.dart` (fast) | small, seed 7, user at the first TR tier-1 club, `SetLineup` on day 3, 120 days | Two sessions give byte-identical `jsonEncode(worldToJson(world))`; the same run inside `Isolate.run` gives the same JSON; a session restored from a save taken on day 60 ends identical to the uninterrupted one. |
-| `test/slow/long_sim_test.dart` | small, seed 11, 5 seasons, `advanceDay` loop | `checkInvariants()` after every day: zero violations (this covers senior squads 18..28 daily). Per season: goals/match in 2.5..3.0, home wins 43..47 %, every archived champion equals both the first row of the archived `finalOrder` and the table computed on the morning of `seasonEnd`; youth squad per club ≤ 21 at every season end. At season 5: total player count within ±10 % of season 2; age buckets 16–20 / 21–25 / 26–30 / 31+ within ±8 points of season 3. |
+| `test/slow/long_sim_test.dart` | small, seed 11, 5 seasons, `advanceDay` loop | `checkInvariants()` after every day: zero violations (this covers senior squads 18..28 daily). Per season: goals/match in 2.5..3.0, home wins 43..47 %, every archived champion equals both the first row of the archived `finalOrder` and the table computed on the morning of `seasonEnd`; youth squad per club ≤ 21 and senior goalkeepers per club ≥ 2 at every season end. At season 5: total player count within ±10 % of season 2; age buckets 16–20 / 21–25 / 26–30 / 31+ within ±8 points of season 3. |
 | `test/slow/perf_test.dart` | large, seed 1, 400 days | Generation < 8 s; match-day `summary.elapsed` p95 < 300 ms and non-match-day p95 < 50 ms (nearest-rank percentile; the first 5 match days are JIT warm-up and are left out); `save()` < 15 MB and < 2 s; `EngineSession.fromBytes` < 2 s. Peak RSS is not measured here (Faz 0B measures on device). |
 | `test/slow/world_generator_perf_test.dart` | large, seed 1 | Generation < 8 s. |
 | `test/slow/invariants_perf_test.dart` | large, seed 1 | One `checkInvariants` pass < 50 ms. |
@@ -60,6 +60,14 @@ daily invariant checks: ~6 s.
   Outflow comes from retirement at 35 and the release of youth who are
   still unpromoted at 19 (`YouthReleased`, players deleted; Faz 3 turns
   this into free agency). The spec's 30-season ±10 % gate arrives in Faz 4.
+- **Goalkeepers ≥ 2 per senior squad** at every season end. Youth
+  promotion is position-aware: goalkeeper youth are promoted first while
+  the squad has fewer than two, the id-order promotion leaves room for the
+  goalkeepers still missing, and the rollover's fillers add goalkeepers up
+  to two even when the squad is above the 18 floor (never above the 28
+  cap). Without this the position-blind rule starved squads once every
+  club sat at the cap: on seed 11 the fewest goalkeepers at any club were
+  2, 2, 1, 1, 0 over seasons 1–5.
 
 ## Match model (Faz 0 placeholder)
 

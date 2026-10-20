@@ -21,6 +21,10 @@ import '../model/world.dart';
 const int seniorSquadFloor = 18;
 const int seniorSquadCap = 28;
 
+/// Every senior squad leaves the rollover with at least this many
+/// goalkeepers (youth goalkeepers are promoted first, then fillers).
+const int minSeniorGoalkeepers = 2;
+
 /// Players aged this or more on the season's last day retire.
 const int retirementAge = 35;
 
@@ -39,12 +43,16 @@ const int youthReleaseAge = 19;
 /// 4. retirement of every player aged [retirementAge] or more
 ///    (`PlayerRetired`);
 /// 5. youth intake of `3 + rng.nextInt(4)` sixteen-year-olds per club
-///    (`YouthIntake`), then youth aged 18 or more become seniors, lowest
-///    id first, only while the senior squad is below [seniorSquadCap];
-///    youth aged [youthReleaseAge] or more who are still not promoted are
-///    released (`YouthReleased`) and removed from the world;
+///    (`YouthIntake`), then youth aged 18 or more become seniors: first
+///    goalkeepers, lowest id first, while the squad has fewer than
+///    [minSeniorGoalkeepers]; then the rest, lowest id first, only while
+///    the senior squad is below [seniorSquadCap] minus the goalkeepers
+///    still missing (so step 6 can add them); youth aged
+///    [youthReleaseAge] or more who are still not promoted are released
+///    (`YouthReleased`) and removed from the world;
 /// 6. squad floor: fillers aged 19–24 until every senior squad has
-///    [seniorSquadFloor] players;
+///    [seniorSquadFloor] players, then goalkeeper fillers until it has
+///    [minSeniorGoalkeepers] goalkeepers (while below [seniorSquadCap]);
 /// 7. contracts: every contract ending before the next season's
 ///    `seasonStart` is extended to June 30 two years on. This AI
 ///    auto-renew applies to the user's club too in Faz 0 (no negotiation
@@ -203,13 +211,27 @@ void _youthIntake(
   w.rebuildIndexes();
   for (final id in w.clubs.keys.toList()..sort()) {
     var seniors = w.squadOf(id).length;
-    for (final pid in w.youthOf(id)) {
-      if (seniors >= seniorSquadCap) break;
-      final p = w.players[pid]!;
-      if (p.ageAt(w.date) < 18) continue;
+    var gks = _goalkeepers(w, id);
+    final eligible = [
+      for (final pid in w.youthOf(id))
+        if (w.players[pid]!.ageAt(w.date) >= 18) w.players[pid]!,
+    ];
+    void promote(Player p) {
       p.isYouth = false;
       p.contract!.status = PlayerStatus.backup;
       seniors++;
+      if (p.mainPosition == Position.gk) gks++;
+    }
+
+    for (final p in eligible) {
+      if (gks >= minSeniorGoalkeepers || seniors >= seniorSquadCap) break;
+      if (p.mainPosition == Position.gk) promote(p);
+    }
+    for (final p in eligible) {
+      if (!p.isYouth) continue;
+      final missingGks = math.max(0, minSeniorGoalkeepers - gks);
+      if (seniors + missingGks >= seniorSquadCap) break;
+      promote(p);
     }
     final released = <PlayerId>[];
     for (final pid in w.youthOf(id)) {
@@ -228,7 +250,9 @@ void _youthIntake(
 
 /// Step 6. Fillers come from `rollover.fork('fillers:<club>:<year>')`, each
 /// at the quota position with the fewest seniors (goalkeepers first until
-/// there are two).
+/// there are [minSeniorGoalkeepers]). A squad at or above the floor still
+/// gets goalkeeper fillers while it has fewer than [minSeniorGoalkeepers]
+/// and is below [seniorSquadCap].
 void _fillSquads(World w, SeededRng rng, NamePool Function(CountryId) poolOf) {
   w.rebuildIndexes();
   final outfield = [
@@ -238,16 +262,23 @@ void _fillSquads(World w, SeededRng rng, NamePool Function(CountryId) poolOf) {
   for (final id in w.clubs.keys.toList()..sort()) {
     final club = w.clubs[id]!;
     final squad = w.squadOf(club.id);
-    if (squad.length >= seniorSquadFloor) continue;
     final counts = {for (final p in squadQuota.keys) p: 0};
     for (final pid in squad) {
       final pos = w.players[pid]!.mainPosition;
       if (counts.containsKey(pos)) counts[pos] = counts[pos]! + 1;
     }
+    final target = math.min(
+      seniorSquadCap,
+      math.max(
+        seniorSquadFloor,
+        squad.length + minSeniorGoalkeepers - counts[Position.gk]!,
+      ),
+    );
+    if (squad.length >= target) continue;
     final fork = rng.fork('fillers:${club.id}:${w.seasonYear}');
     final gen = PlayerGenerator(poolOf(club.countryId), fork, w.ids);
-    for (var n = squad.length; n < seniorSquadFloor; n++) {
-      final position = counts[Position.gk]! < 2
+    for (var n = squad.length; n < target; n++) {
+      final position = counts[Position.gk]! < minSeniorGoalkeepers
           ? Position.gk
           : outfield.reduce((a, b) => counts[b]! < counts[a]! ? b : a);
       final p = gen.generateForTier(
@@ -264,6 +295,12 @@ void _fillSquads(World w, SeededRng rng, NamePool Function(CountryId) poolOf) {
     }
   }
 }
+
+/// Senior goalkeepers of club [c] (index must be current).
+int _goalkeepers(World w, ClubId c) => w
+    .squadOf(c)
+    .where((id) => w.players[id]!.mainPosition == Position.gk)
+    .length;
 
 /// Step 7. See [rolloverSeason] for the auto-renew note.
 void _renewContracts(World w, SeasonCalendar next) {

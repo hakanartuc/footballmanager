@@ -214,10 +214,18 @@ void main() {
           expect(p.nationality, club.countryId);
           expect(p.ca, inInclusiveRange(10, 130));
         }
-        // Promotion mirrors the rule: lowest id first, only below 28.
-        var seniors = before.seniorsOf[club.id]!
-            .where((id) => before.ages[id]! < 35)
-            .length;
+        // Promotion mirrors the rule: lowest id first, only below 28. The
+        // goalkeeper-first branch does not fire here: every club keeps at
+        // least two senior goalkeepers through the retirements.
+        final survivors = before.seniorsOf[club.id]!.where(
+          (id) => before.ages[id]! < 35,
+        );
+        expect(
+          survivors.where((id) => w.players[id]!.mainPosition == Position.gk),
+          hasLength(greaterThanOrEqualTo(2)),
+          reason: club.name,
+        );
+        var seniors = survivors.length;
         final promoted = <PlayerId>[];
         for (final id in before.youthOf[club.id]!) {
           if (before.ages[id]! < 18 || seniors >= 28) continue;
@@ -477,6 +485,180 @@ void main() {
       for (final p in w2.players.values) {
         expect(p.contract!.end.isBefore(nextStart), isFalse, reason: '${p.id}');
       }
+    });
+  });
+
+  group('goalkeeper replenishment', () {
+    late World w3;
+    late _SeasonRun run3;
+    late GameDate seasonEnd;
+    late ClubId capClub, noGkClub, trapClub;
+    late PlayerId gkYouth;
+    late List<PlayerId> capYouth, trapYouth;
+
+    int gks(ClubId c) => w3
+        .squadOf(c)
+        .where((id) => w3.players[id]!.mainPosition == Position.gk)
+        .length;
+
+    void setAge(PlayerId id, int years) {
+      w3.players[id]!.birth = GameDate.ymd(seasonEnd.year - years, 1, 1);
+    }
+
+    void setPosition(PlayerId id, Position pos) {
+      w3.players[id]!
+        ..mainPosition = pos
+        ..familiarity = {pos: 20};
+    }
+
+    /// Moves a youth into the senior squad as a 25-year-old midfielder.
+    void promote(PlayerId id) {
+      w3.players[id]!
+        ..isYouth = false
+        ..contract!.status = PlayerStatus.backup;
+      setPosition(id, Position.mc);
+      setAge(id, 25);
+    }
+
+    /// A non-TR club with [size] seniors whose seniors are all 25 and
+    /// whose goalkeepers are all turned into centre-backs except [keepGks].
+    ClubId prepare(int size, {required int keepGks}) {
+      final tr = w3.countries.values.firstWhere((c) => c.code == 'TR');
+      final club = w3.clubs.values
+          .firstWhere(
+            (c) =>
+                c.countryId != tr.id &&
+                w3.squadOf(c.id).length == size &&
+                ![capClub, noGkClub, trapClub].contains(c.id),
+          )
+          .id;
+      var kept = 0;
+      for (final id in w3.squadOf(club)) {
+        setAge(id, 25);
+        final p = w3.players[id]!;
+        if (p.mainPosition == Position.gk && kept++ >= keepGks) {
+          setPosition(id, Position.dc);
+        }
+      }
+      return club;
+    }
+
+    setUpAll(() {
+      w3 = _world();
+      seasonEnd = w3.calendar.seasonEnd;
+      capClub = noGkClub = trapClub = -1;
+
+      // 28 seniors with one goalkeeper, one of the outfielders about to
+      // retire; the youth squad holds an 18-year-old goalkeeper with the
+      // highest id behind two 18-year-old midfielders.
+      capClub = prepare(26, keepGks: 1);
+      capYouth = List.of(w3.youthOf(capClub));
+      expect(capYouth, hasLength(6));
+      promote(capYouth[0]);
+      promote(capYouth[1]);
+      setAge(
+        w3
+            .squadOf(capClub)
+            .firstWhere(
+              (id) =>
+                  id != capYouth[0] &&
+                  id != capYouth[1] &&
+                  w3.players[id]!.mainPosition != Position.gk,
+            ),
+        36,
+      );
+      gkYouth = capYouth[5];
+      setPosition(gkYouth, Position.gk);
+      setAge(gkYouth, 18);
+      for (final id in capYouth.sublist(2, 4)) {
+        setPosition(id, Position.mc);
+        setAge(id, 18);
+      }
+      setPosition(capYouth[4], Position.mc);
+      setAge(capYouth[4], 16);
+
+      // 20 seniors and no goalkeeper at all; the youth are all 16.
+      noGkClub = prepare(24, keepGks: 0);
+      for (final id in w3.squadOf(noGkClub).skip(20)) {
+        w3.players.remove(id);
+      }
+      for (final id in w3.youthOf(noGkClub)) {
+        setPosition(id, Position.mc);
+        setAge(id, 16);
+      }
+
+      // 27 seniors with one goalkeeper and only outfield youth: the cap
+      // must leave room for a goalkeeper filler.
+      trapClub = prepare(26, keepGks: 1);
+      trapYouth = List.of(w3.youthOf(trapClub));
+      promote(trapYouth[0]);
+      for (final id in trapYouth.sublist(1)) {
+        setPosition(id, Position.mc);
+        setAge(id, 18);
+      }
+
+      w3.rebuildIndexes();
+      expect(w3.squadOf(capClub), hasLength(28));
+      expect(gks(capClub), 1);
+      expect(w3.squadOf(noGkClub), hasLength(20));
+      expect(gks(noGkClub), 0);
+      expect(w3.squadOf(trapClub), hasLength(27));
+      expect(gks(trapClub), 1);
+      run3 = _SeasonRun(w3);
+    });
+
+    test('a goalkeeper youth is promoted first when the squad has one', () {
+      final squad = w3.squadOf(capClub);
+      expect(squad, hasLength(28));
+      expect(squad, contains(gkYouth));
+      expect(w3.players[gkYouth]!.isYouth, isFalse);
+      expect(w3.players[gkYouth]!.contract!.status, PlayerStatus.backup);
+      expect(gks(capClub), 2);
+      // The cap is reached, so the lower-id outfield youth stay.
+      for (final id in capYouth.sublist(2, 5)) {
+        expect(w3.players[id]!.isYouth, isTrue, reason: '$id');
+        expect(squad, isNot(contains(id)));
+      }
+      expect(
+        run3.events.whereType<YouthReleased>().where(
+          (e) => e.clubId == capClub,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('a squad without goalkeepers gets two goalkeeper fillers', () {
+      expect(gks(noGkClub), 2);
+      final squad = w3.squadOf(noGkClub);
+      expect(squad, hasLength(22));
+      final fillers = squad.where(
+        (id) => !run3.before.seniorsOf[noGkClub]!.contains(id),
+      );
+      expect(fillers, hasLength(2));
+      for (final id in fillers) {
+        final p = w3.players[id]!;
+        expect(p.mainPosition, Position.gk);
+        expect(p.contract!.status, PlayerStatus.backup);
+        expect(p.ageAt(run3.before.date), inInclusiveRange(19, 24));
+        expect(p.isYouth, isFalse);
+      }
+      for (final id in w3.youthOf(noGkClub)) {
+        expect(w3.players[id]!.isYouth, isTrue);
+      }
+    });
+
+    test('outfield promotion leaves room for the missing goalkeeper', () {
+      expect(gks(trapClub), 2);
+      final squad = w3.squadOf(trapClub);
+      expect(squad, hasLength(28));
+      for (final id in trapYouth.sublist(1)) {
+        expect(w3.players[id]!.isYouth, isTrue, reason: '$id');
+      }
+      final fillers = squad.where(
+        (id) => !run3.before.seniorsOf[trapClub]!.contains(id),
+      );
+      expect(fillers, hasLength(1));
+      expect(w3.players[fillers.single]!.mainPosition, Position.gk);
     });
   });
 

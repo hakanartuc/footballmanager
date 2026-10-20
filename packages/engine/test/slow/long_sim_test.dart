@@ -31,7 +31,19 @@ class _Season {
   int players = 0;
   late _Buckets ages;
   int maxYouth = 0;
+
+  /// Fewest senior goalkeepers at any club after the rollover.
+  int minGks = 0;
 }
+
+int _minGoalkeepers(World w) => w.clubs.keys
+    .map(
+      (c) => w
+          .squadOf(c)
+          .where((id) => w.players[id]!.mainPosition == Position.gk)
+          .length,
+    )
+    .reduce((a, b) => a < b ? a : b);
 
 _Buckets _ageBuckets(World w) {
   var u20 = 0, u25 = 0, u30 = 0, over30 = 0;
@@ -134,6 +146,7 @@ void main() {
       s.maxYouth = w.clubs.keys
           .map((c) => w.youthOf(c).length)
           .reduce((a, b) => a > b ? a : b);
+      s.minGks = _minGoalkeepers(w);
       seasons.add(s);
       print(
         'season ${s.year}: ${s.matches} matches, '
@@ -142,7 +155,7 @@ void main() {
         'players ${s.players}, ages '
         '${s.ages.u20.toStringAsFixed(1)}/${s.ages.u25.toStringAsFixed(1)}/'
         '${s.ages.u30.toStringAsFixed(1)}/${s.ages.over30.toStringAsFixed(1)}, '
-        'max youth ${s.maxYouth}, '
+        'max youth ${s.maxYouth}, min gks ${s.minGks}, '
         'retired ${s.retired}, intake ${s.intake}, released ${s.released}',
       );
     }
@@ -216,6 +229,15 @@ void main() {
       ('31+', s.ages.over30, base.over30),
     ]) {
       expect(a, closeTo(b, 8), reason: 'bucket $name');
+    }
+  });
+
+  // Goalkeeper replenishment is position-aware (youth goalkeepers are
+  // promoted first, fillers add goalkeepers up to two); without it the
+  // first squad with no senior goalkeeper appeared at season 5.
+  test('every club has at least 2 senior goalkeepers at every season end', () {
+    for (final s in seasons) {
+      expect(s.minGks, greaterThanOrEqualTo(2), reason: 'season ${s.year}');
     }
   });
 
