@@ -12,6 +12,7 @@ export 'src/data/country_data.dart';
 export 'src/gen/club_generator.dart';
 export 'src/gen/player_generator.dart';
 export 'src/gen/world_generator.dart';
+export 'src/invariants/invariants.dart';
 export 'src/model/attributes.dart';
 export 'src/model/calendar.dart';
 export 'src/model/club.dart';
