@@ -2,6 +2,7 @@
 library;
 
 export 'src/competition/fixtures.dart';
+export 'src/competition/promotion.dart';
 export 'src/competition/season_calendar_builder.dart';
 export 'src/competition/standings.dart';
 export 'src/core/game_date.dart';
@@ -28,5 +29,6 @@ export 'src/sim/lineup.dart';
 export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
 export 'src/sim/poisson_match.dart';
+export 'src/sim/season_rollover.dart';
 
 const engineVersion = '0.0.1';

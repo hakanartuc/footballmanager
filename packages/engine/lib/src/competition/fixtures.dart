@@ -1,5 +1,9 @@
 import '../core/ids.dart';
 import '../core/rng.dart';
+import '../model/calendar.dart';
+import '../model/country.dart';
+import '../model/fixture.dart';
+import 'season_calendar_builder.dart';
 
 /// Sentinel opponent for odd club counts; its pairing is dropped (a bye).
 const ClubId _bye = -1;
@@ -48,5 +52,32 @@ List<List<(ClubId, ClubId)>> doubleRoundRobin(
   return [
     ...firstHalf,
     for (final round in firstHalf) [for (final (h, a) in round) (a, h)],
+  ];
+}
+
+/// [league]'s fixtures for [seasonYear]: `doubleRoundRobin(league.clubIds,
+/// rng)` placed round by round on `leagueMatchdays(calendar, rounds)`, with
+/// ids drawn from [ids] (`'fixture'`) in round-major, pair order.
+List<Fixture> scheduleLeagueFixtures({
+  required League league,
+  required SeasonCalendar calendar,
+  required int seasonYear,
+  required IdAllocator ids,
+  required SeededRng rng,
+}) {
+  final rounds = doubleRoundRobin(league.clubIds, rng);
+  final dates = leagueMatchdays(calendar, rounds.length);
+  return [
+    for (var r = 0; r < rounds.length; r++)
+      for (final (home, away) in rounds[r])
+        Fixture(
+          id: ids.next('fixture'),
+          leagueId: league.id,
+          seasonYear: seasonYear,
+          round: r + 1,
+          date: dates[r],
+          homeId: home,
+          awayId: away,
+        ),
   ];
 }

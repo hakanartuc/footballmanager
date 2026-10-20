@@ -25,8 +25,9 @@ enum WorldSize {
   final int countryCount;
 }
 
-/// Senior squad template: 24 players by main position.
-const Map<Position, int> _squadQuota = {
+/// Senior squad template: 24 players by main position. The season
+/// rollover's youth intake draws positions from the same quota.
+const Map<Position, int> squadQuota = {
   Position.gk: 3,
   Position.dc: 4,
   Position.dl: 2,
@@ -141,24 +142,15 @@ World generateWorld({
   }
 
   for (final league in leagues.values) {
-    final rounds = doubleRoundRobin(
-      league.clubIds,
-      rng.fork('fixtures:${league.id}'),
+    final scheduled = scheduleLeagueFixtures(
+      league: league,
+      calendar: calendar,
+      seasonYear: seasonYear,
+      ids: ids,
+      rng: rng.fork('fixtures:${league.id}'),
     );
-    final dates = leagueMatchdays(calendar, rounds.length);
-    for (var r = 0; r < rounds.length; r++) {
-      for (final (home, away) in rounds[r]) {
-        final f = Fixture(
-          id: ids.next('fixture'),
-          leagueId: league.id,
-          seasonYear: seasonYear,
-          round: r + 1,
-          date: dates[r],
-          homeId: home,
-          awayId: away,
-        );
-        fixtures[f.id] = f;
-      }
+    for (final f in scheduled) {
+      fixtures[f.id] = f;
     }
   }
 
@@ -199,11 +191,11 @@ List<Player> _buildSquad(
       : natRng.pick(others);
 
   final positions = [
-    for (final MapEntry(key: p, value: n) in _squadQuota.entries)
+    for (final MapEntry(key: p, value: n) in squadQuota.entries)
       for (var i = 0; i < n; i++) p,
   ];
   final outfield = [
-    for (final p in _squadQuota.keys)
+    for (final p in squadQuota.keys)
       if (p != Position.gk) p,
   ];
   final squadSize = 22 + rng.nextInt(5);
@@ -234,8 +226,8 @@ List<Player> _buildSquad(
     };
   }
 
-  final quotaPositions = _squadQuota.keys.toList();
-  final quotaWeights = [for (final n in _squadQuota.values) n.toDouble()];
+  final quotaPositions = squadQuota.keys.toList();
+  final quotaWeights = [for (final n in squadQuota.values) n.toDouble()];
   final youthBase = (club.reputation * 0.6 + 20).round();
   final youth = [
     for (var i = 0; i < 6; i++)
