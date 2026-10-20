@@ -26,18 +26,19 @@ class TableRow {
   }
 }
 
-/// The table of league [l] in [seasonYear], computed from played fixtures.
+/// The table of league [l] in [seasonYear], computed from played fixtures
+/// (read through [World.fixturesOfLeagueSeason], so the world's indexes
+/// must be current).
 ///
 /// Has a row for every club in the league, including clubs yet to play.
 /// Ordered by points, goal difference and goals for (all descending), then
 /// club name and club id (ascending).
 List<TableRow> computeTable(World w, LeagueId l, int seasonYear) {
   final rows = {for (final c in w.leagues[l]!.clubIds) c: TableRow(c)};
-  final ids = w.fixtures.keys.toList()..sort();
-  for (final id in ids) {
+  for (final id in w.fixturesOfLeagueSeason(l, seasonYear)) {
     final f = w.fixtures[id]!;
     final r = f.result;
-    if (f.leagueId != l || f.seasonYear != seasonYear || r == null) continue;
+    if (r == null) continue;
     rows[f.homeId]!._record(r.homeGoals, r.awayGoals);
     rows[f.awayId]!._record(r.awayGoals, r.homeGoals);
   }

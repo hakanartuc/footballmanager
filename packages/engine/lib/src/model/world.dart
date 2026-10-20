@@ -49,6 +49,7 @@ class World {
   Map<ClubId, List<PlayerId>> _youthByClub = {};
   Map<int, List<FixtureId>> _fixturesByDate = {};
   Map<(ClubId, int), List<FixtureId>> _fixturesByClubSeason = {};
+  Map<(LeagueId, int), List<FixtureId>> _fixturesByLeagueSeason = {};
 
   World({
     required this.schemaVersion,
@@ -97,11 +98,21 @@ class World {
         byClubSeason.putIfAbsent((c, f.seasonYear), () => []).add(f.id);
       }
     }
+    final byLeagueSeason = <(LeagueId, int), List<FixtureId>>{};
+    for (final f in fixtures.values) {
+      byLeagueSeason
+          .putIfAbsent((f.leagueId, f.seasonYear), () => [])
+          .add(f.id);
+    }
+    for (final list in byLeagueSeason.values) {
+      list.sort();
+    }
 
     _squadByClub = squad;
     _youthByClub = youth;
     _fixturesByDate = byDate;
     _fixturesByClubSeason = byClubSeason;
+    _fixturesByLeagueSeason = byLeagueSeason;
   }
 
   /// Senior players contracted to [c], sorted by id.
@@ -116,6 +127,10 @@ class World {
   /// [c]'s fixtures in [seasonYear], sorted by date then id.
   List<FixtureId> fixturesOfClub(ClubId c, int seasonYear) =>
       _view(_fixturesByClubSeason[(c, seasonYear)]);
+
+  /// League [l]'s fixtures in [seasonYear], sorted by id.
+  List<FixtureId> fixturesOfLeagueSeason(LeagueId l, int seasonYear) =>
+      _view(_fixturesByLeagueSeason[(l, seasonYear)]);
 
   /// The user's club; null when the user manager is unemployed.
   Club? get userClub {

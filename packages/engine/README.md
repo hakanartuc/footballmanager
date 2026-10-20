@@ -69,6 +69,17 @@ daily invariant checks: ~6 s.
   club sat at the cap: on seed 11 the fewest goalkeepers at any club were
   2, 2, 1, 1, 0 over seasons 1–5.
 
+## Known Faz 0 limitations
+
+### Data growth
+
+Old-season fixtures are kept in `world.fixtures` until Faz 4 archiving.
+Measured on the large world: the gzip save grows by about 0.53 MB per
+season (uncompressed JSON about 5 MB per season) and `save()` takes about
+100 ms longer per season on desktop. The daily cost is flat: the day loop
+and `computeTable` read the per-season indexes (`fixturesOn`,
+`fixturesOfClub`, `fixturesOfLeagueSeason`), never the whole fixture map.
+
 ## Match model (Faz 0 placeholder)
 
 `lib/src/sim/poisson_match.dart`: independent Poisson goal counts with

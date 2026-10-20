@@ -150,6 +150,70 @@ void main() {
     });
   });
 
+  group('after a simulated season', () {
+    test('every table equals a brute-force pass over all fixtures', () {
+      final w = createNewGame(
+        NewGameSpec(
+          seed: 1,
+          size: WorldSize.small,
+          managerFirstName: 'Test',
+          managerLastName: 'Manager',
+          managerCountryCode: 'TR',
+          startClubId: null,
+        ),
+      );
+      final runner = DayRunner(const PoissonMatchSimulator());
+      final seasonEnd = w.calendar.seasonEnd;
+      while (!w.date.isAfter(seasonEnd)) {
+        runner.advanceDay(w, const []);
+      }
+      var played = 0;
+      for (final league in w.leagues.values) {
+        final rows = {
+          for (final c in league.clubIds) c: [0, 0, 0, 0, 0, 0, 0],
+        };
+        for (final f in w.fixtures.values) {
+          final r = f.result;
+          if (f.leagueId != league.id || f.seasonYear != w.seasonYear) continue;
+          if (r == null) continue;
+          played++;
+          for (final (club, gf, ga) in [
+            (f.homeId, r.homeGoals, r.awayGoals),
+            (f.awayId, r.awayGoals, r.homeGoals),
+          ]) {
+            final row = rows[club]!;
+            row[0]++;
+            row[4] += gf;
+            row[5] += ga;
+            if (gf > ga) {
+              row[1]++;
+              row[6] += 3;
+            } else if (gf == ga) {
+              row[2]++;
+              row[6] += 1;
+            } else {
+              row[3]++;
+            }
+          }
+        }
+        final table = computeTable(w, league.id, w.seasonYear);
+        expect(table, hasLength(league.clubIds.length));
+        for (final r in table) {
+          expect(_row(r).sublist(1), rows[r.clubId], reason: '${r.clubId}');
+        }
+        for (var i = 1; i < table.length; i++) {
+          final a = table[i - 1], b = table[i];
+          final inOrder =
+              a.points > b.points ||
+              a.points == b.points &&
+                  (a.gd > b.gd || a.gd == b.gd && a.gf >= b.gf);
+          expect(inOrder, isTrue, reason: 'rows ${i - 1}, $i of ${league.id}');
+        }
+      }
+      expect(played, w.fixtures.length);
+    });
+  });
+
   group('tie-breaks', () {
     test('points decide before goal difference', () {
       // Club 1: 3 pts, gd -4. Club 2: 1 pt, gd 0.

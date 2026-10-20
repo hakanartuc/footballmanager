@@ -191,6 +191,31 @@ void main() {
     expect(w.fixturesOfClub(1, 2027), isEmpty);
   });
 
+  test('fixturesOfLeagueSeason returns fixtures sorted by id', () {
+    final w = _world()..rebuildIndexes();
+    expect(w.fixturesOfLeagueSeason(1, 2026), [1, 2]);
+    expect(w.fixturesOfLeagueSeason(1, 2027), isEmpty);
+    expect(w.fixturesOfLeagueSeason(2, 2026), isEmpty);
+
+    // A structural change is visible only after rebuildIndexes.
+    w.fixtures[3] = Fixture(
+      id: 3,
+      leagueId: 1,
+      seasonYear: 2027,
+      round: 1,
+      date: GameDate.ymd(2027, 8, 7),
+      homeId: 1,
+      awayId: 2,
+    );
+    expect(w.fixturesOfLeagueSeason(1, 2027), isEmpty);
+    w.rebuildIndexes();
+    expect(w.fixturesOfLeagueSeason(1, 2027), [3]);
+    expect(
+      () => w.fixturesOfLeagueSeason(1, 2026).add(9),
+      throwsUnsupportedError,
+    );
+  });
+
   test('userClub is null when the user manager is unemployed', () {
     expect(_world().userClub, isNull);
     expect(_world(userClubId: 1).userClub?.id, 1);
