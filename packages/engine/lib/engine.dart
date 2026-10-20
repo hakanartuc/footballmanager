@@ -24,6 +24,8 @@ export 'src/model/player.dart';
 export 'src/model/world.dart';
 export 'src/sim/commands.dart';
 export 'src/sim/lineup.dart';
+export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
+export 'src/sim/poisson_match.dart';
 
 const engineVersion = '0.0.1';
