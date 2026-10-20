@@ -8,6 +8,8 @@ export 'src/core/game_date.dart';
 export 'src/core/ids.dart';
 export 'src/core/rng.dart';
 export 'src/data/country_data.dart';
+export 'src/gen/club_generator.dart';
+export 'src/gen/player_generator.dart';
 export 'src/model/attributes.dart';
 export 'src/model/calendar.dart';
 export 'src/model/club.dart';

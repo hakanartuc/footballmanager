@@ -86,6 +86,9 @@ const Map<PositionGroup, Map<Attr, int>> _caWeights = {
   },
 };
 
+/// The CA weight table of [g]; attributes absent from it do not count.
+Map<Attr, int> caWeightsFor(PositionGroup g) => _caWeights[g]!;
+
 /// Current ability (1..200): the weighted mean of [p]'s group attributes × 10.
 int computeCa(Attributes a, Position p) {
   final weights = _caWeights[p.group]!;
