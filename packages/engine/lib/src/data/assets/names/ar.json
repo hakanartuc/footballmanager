@@ -1,0 +1,42 @@
+{
+  "firstNames": [
+    "Juan", "Martín", "Santiago", "Matías", "Nicolás", "Facundo", "Lautaro", "Agustín", "Joaquín",
+    "Tomás", "Franco", "Gonzalo", "Federico", "Leandro", "Lucas", "Maximiliano", "Ezequiel",
+    "Emiliano", "Gastón", "Rodrigo", "Pablo", "Diego", "Sebastián", "Mauricio", "Germán", "Hernán",
+    "Cristian", "Ramiro", "Alejandro", "Ángel", "Enzo", "Thiago", "Valentín", "Bautista",
+    "Benjamín", "Mateo", "Julián", "Exequiel", "Nahuel", "Iván", "Leonel", "Marcos", "Fernando",
+    "Gabriel", "Ricardo", "Sergio", "Claudio", "Walter", "Darío", "Ariel", "Esteban", "Fabricio",
+    "Guido", "Lisandro", "Nehuén", "Alexis", "Brian", "Ignacio", "Luciano", "Mariano", "Javier",
+    "Gustavo", "Rubén", "Hugo"
+  ],
+  "lastNames": [
+    "González", "Rodríguez", "Gómez", "Fernández", "López", "Díaz", "Martínez", "Pérez", "García",
+    "Sánchez", "Romero", "Sosa", "Álvarez", "Torres", "Ruiz", "Ramírez", "Flores", "Acosta",
+    "Benítez", "Medina", "Suárez", "Herrera", "Aguirre", "Pereyra", "Gutiérrez", "Giménez",
+    "Molina", "Silva", "Castro", "Rojas", "Ortiz", "Núñez", "Luna", "Juárez", "Cabrera", "Ríos",
+    "Ferreyra", "Godoy", "Morales", "Domínguez", "Moreno", "Peralta", "Vega", "Carrizo", "Quiroga",
+    "Castillo", "Ledesma", "Muñoz", "Ojeda", "Ponce", "Vera", "Vázquez", "Villalba", "Cardozo",
+    "Navarro", "Coronel", "Paz", "Figueroa", "Correa", "Cáceres", "Vargas", "Mansilla", "Maidana",
+    "Barrios", "Insaurralde", "Bustos", "Palacios", "Zárate", "Funes", "Chávez", "Lucero", "Arias",
+    "Bianchi", "Rossi", "Lombardi", "Galván", "Toledo", "Ibarra", "Paredes", "Campos", "Montenegro",
+    "Escobar", "Andrada", "Sotelo", "Bruno"
+  ],
+  "cityNames": [
+    "Puerto Malacara", "Villa Carancho", "San Ciriaco", "Cerro Ventoso", "Paso del Ñandú",
+    "Colonia Bellamar", "Laguna del Tero", "Arroyo Calandria", "Pampa Serena", "Villa Algarrobal",
+    "Los Talares", "Médanos Altos", "Estancia Vieja", "Bajo Calmo", "Isla Benteveo",
+    "Santa Eulalia del Sur", "Ombú Solo", "Pozo del Zorro", "Cañada Mansa", "Loma Hornera",
+    "Villa Jacarandá", "Puerto Cardenal", "Río Chañar", "Los Ceibales", "Sierra Quebracho",
+    "Aguada Fría", "Cuatro Vientos", "Villa Tordillo", "Rincón del Hornero", "Campo Alegría",
+    "Mar del Sauce", "Pueblo Viscacha", "Cerro Cóndor", "Salinas del Viento", "Valle Calchaquito",
+    "Bahía Lechuza", "Paso de las Garzas", "Tala Grande", "Monte Ñire", "Villa Peregrina",
+    "Cruz del Espinillo", "Chacras del Lago"
+  ],
+  "clubSuffixes": [
+    "Club Atlético {City}", "{City} Juniors", "Deportivo {City}", "Sportivo {City}", "Unión {City}",
+    "Atlético {City}"
+  ],
+  "stadiumPatterns": [
+    "Estadio {City}", "Estadio Municipal de {City}", "Estadio Ciudad de {City}"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "Daan", "Sem", "Lucas", "Levi", "Finn", "Milan", "Bram", "Thijs", "Jesse", "Ruben", "Lars",
+    "Tim", "Thomas", "Sven", "Niels", "Joris", "Jasper", "Stijn", "Bas", "Rick", "Kevin", "Jeroen",
+    "Wouter", "Mark", "Dennis", "Ryan", "Jordy", "Sander", "Wesley", "Rafael", "Robin", "Dirk",
+    "Joost", "Koen", "Pieter", "Maarten", "Gijs", "Teun", "Luuk", "Tijn", "Joep", "Jelle", "Hidde",
+    "Siem", "Jurriën", "Quinten", "Mees", "Noah", "Julian", "Calvin", "Quincy", "Jairo", "Denzel",
+    "Ibrahim", "Mohamed", "Anwar", "Owen", "Stefan", "Erik", "Jan", "Hans", "Kees", "Wim", "Bart",
+    "Floris"
+  ],
+  "lastNames": [
+    "de Jong", "Jansen", "de Vries", "van den Berg", "van Dijk", "Bakker", "Janssen", "Visser",
+    "Smit", "Meijer", "de Boer", "Mulder", "de Groot", "Bos", "Vos", "Peters", "Hendriks",
+    "van Leeuwen", "Dekker", "Brouwer", "de Wit", "Dijkstra", "Smits", "de Graaf", "van der Meer",
+    "van der Linden", "Kok", "Jacobs", "de Haan", "Vermeulen", "van den Heuvel", "van der Veen",
+    "van den Broek", "de Bruijn", "van der Heijden", "Schouten", "van Beek", "Willems", "van Vliet",
+    "van de Ven", "Hoekstra", "Maas", "Verhoeven", "Koster", "van Dam", "van der Wal", "Prins",
+    "Blom", "Huisman", "Peeters", "de Lange", "Kuipers", "van Wijk", "Post", "Kuiper", "Veenstra",
+    "Kramer", "van den Brink", "Scholten", "Martens", "Vink", "de Ruiter", "Timmermans", "Groen",
+    "Gerritsen", "Jonker", "van Loon", "Boersma", "Verbeek", "Hermans", "Koning", "Vonk", "Hofman",
+    "Sanders", "Hoogendoorn", "Bosman", "Martina", "Tahiri", "El Amrani", "Pinas", "Wijers",
+    "Brinkman"
+  ],
+  "cityNames": [
+    "Kraaiendam", "Lindehoven", "Zeemarke", "Brakenhorst", "Waterveld", "Oudewaard", "Nieuwervaart",
+    "Eikenhoven", "Berkelwijk", "Hoogmeer", "Molenveen", "Westerzand", "Sloterhove", "Dijkhaven",
+    "Rietmonde", "Valkenhorst", "Ganzewijk", "Duinmonde", "Heidedam", "Lisseveen", "Maaskerke",
+    "Zwanendijk", "Beverhoven", "Haverdam", "Kievitswaard", "Ooievaart", "Hazelveen", "Wilgendam",
+    "Polderhaven", "Sterrendijk", "Klaverhorst", "Ruigendam", "Vossenwaard", "Turfhaven",
+    "Grevelwijk", "Vlietmonde", "Koudeveen", "Ellewoude", "Boschmonde", "Zandmeer", "Brugwijk"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "SC {City}", "VV {City}", "{City} Boys", "RKSV {City}"
+  ],
+  "stadiumPatterns": [
+    "Sportpark {City}", "Stadion {City}", "{City} Arena"
+  ]
+}

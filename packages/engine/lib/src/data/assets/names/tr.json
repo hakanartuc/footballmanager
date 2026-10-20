@@ -1,0 +1,37 @@
+{
+  "firstNames": [
+    "Ahmet", "Mehmet", "Mustafa", "Ali", "Hüseyin", "Hasan", "İbrahim", "İsmail", "Osman", "Yusuf",
+    "Murat", "Ömer", "Emre", "Burak", "Serkan", "Volkan", "Cengiz", "Hakan", "Arda", "Kerem",
+    "Oğuz", "Uğur", "Tolga", "Barış", "Cem", "Caner", "Selçuk", "Gökhan", "Okan", "Onur", "Ozan",
+    "Tuncay", "Emirhan", "Berkay", "Yunus", "Çağlar", "Doğan", "Efe", "Enes", "Eren", "Furkan",
+    "Göktuğ", "Halil", "İlkay", "Kaan", "Kenan", "Mert", "Metin", "Necati", "Orkun", "Ramazan",
+    "Rıdvan", "Salih", "Semih", "Sinan", "Şükrü", "Taylan", "Umut", "Yasin", "Zeki", "Ufuk",
+    "Batuhan", "Alper", "Bülent", "Ferhat"
+  ],
+  "lastNames": [
+    "Yılmaz", "Kaya", "Demir", "Şahin", "Çelik", "Yıldız", "Yıldırım", "Öztürk", "Aydın", "Özdemir",
+    "Arslan", "Doğru", "Kılıç", "Aslan", "Çetin", "Kara", "Koç", "Kurt", "Özkan", "Şimşek", "Polat",
+    "Korkmaz", "Karataş", "Erdem", "Güneş", "Akın", "Bulut", "Keskin", "Ünal", "Aksoy", "Taş",
+    "Özer", "Tekin", "Sarı", "Uçar", "Acar", "Güler", "Avcı", "Bozkurt", "Kalkan", "Ateş", "Coşkun",
+    "Tunç", "Akgül", "Karakaya", "Toprak", "Altun", "Gündüz", "Bayram", "Duman", "Akbulut", "Sevim",
+    "Durmaz", "Işık", "Çakır", "Ekinci", "Başaran", "Yüksel", "Kocabaş", "Karaca", "Uysal",
+    "Taşkın", "Gök", "Ercan", "Özbek", "Çınar", "Kahraman", "Yavuz", "Dinç", "Aktaş", "Sönmez",
+    "Altıntaş", "Karakuş", "Cansız", "Önal", "Yalçın", "Akdağ", "Uzun", "Soylu", "Esen", "Başar",
+    "Ergün", "Kaplan", "Tuna", "Oral"
+  ],
+  "cityNames": [
+    "Akçabel", "Demirkaya", "Gökçeören", "Yeşilyamaç", "Karaçamlı", "Taşlıdere", "Ilıcaköy",
+    "Kumbelen", "Sarıçayır", "Değirmenyaka", "Kuşadalı", "Çamlıyaka", "Altınoba", "Bozyazılı",
+    "Ergeneli", "Kayalıdere", "Ortaçeşme", "Yeniçamlık", "Akyakalı", "Suçıkan", "Kırkpınarlı",
+    "Ballıyamaç", "Esenbayır", "Göksuyu", "Tepecikli", "Kocaçınar", "Dumanlıdağ", "Yazıbaşı",
+    "Narlıbağ", "Gümüşyaka", "Kartalpınar", "Çınarlık", "Mercanköy", "Saraybeli", "Demirçayır",
+    "Akçaburun", "Güzelbelen", "Karaoğlak", "Yıldızkaya", "Sütpınar", "Erikbelen", "Bağyaka",
+    "Kestanelik"
+  ],
+  "clubSuffixes": [
+    "{City}spor", "{City} FK", "{City} Gençlerbirliği", "{City} Belediyespor", "{City} İdmanyurdu"
+  ],
+  "stadiumPatterns": [
+    "{City} Stadyumu", "{City} Arena", "{City} Şehir Stadı"
+  ]
+}

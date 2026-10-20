@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "João", "Pedro", "Tiago", "Diogo", "Rúben", "Bruno", "André", "Gonçalo", "Rafael", "Miguel",
+    "Francisco", "Bernardo", "Rodrigo", "Duarte", "Nuno", "Rui", "Ricardo", "Hugo", "Luís", "Paulo",
+    "Sérgio", "Vítor", "Fábio", "Hélder", "Daniel", "Martim", "Tomás", "Afonso", "Simão", "Filipe",
+    "Jorge", "Carlos", "Manuel", "António", "José", "Fernando", "Gil", "Henrique", "Vasco",
+    "Leonardo", "Gustavo", "Renato", "Samuel", "Telmo", "Joaquim", "Alexandre", "Marco", "Mário",
+    "Nélson", "Ivo", "Leandro", "Eduardo", "Domingos", "Armando", "Abel", "Xavier", "Valter",
+    "Wilson", "Danilo", "Silvestre", "Edgar", "Jaime", "Otávio"
+  ],
+  "lastNames": [
+    "Silva", "Santos", "Ferreira", "Pereira", "Oliveira", "Costa", "Rodrigues", "Martins", "Jesus",
+    "Sousa", "Fernandes", "Gonçalves", "Gomes", "Lopes", "Marques", "Alves", "Almeida", "Ribeiro",
+    "Pinto", "Carvalho", "Teixeira", "Moreira", "Correia", "Mendes", "Nunes", "Soares", "Vieira",
+    "Monteiro", "Cardoso", "Rocha", "Raposo", "Neves", "Coelho", "Cruz", "Cunha", "Pires", "Ramos",
+    "Reis", "Simões", "Antunes", "Matos", "Fonseca", "Machado", "Araújo", "Barbosa", "Tavares",
+    "Lourenço", "Castro", "Figueiredo", "Azevedo", "Freitas", "Henriques", "Barros", "Batista",
+    "Guerreiro", "Esteves", "Brito", "Domingues", "Nogueira", "Leite", "Campos", "Faria", "Vaz",
+    "Morais", "Loureiro", "Miranda", "Magalhães", "Serrano", "Valente", "Mota", "Sá", "Amaral",
+    "Franco", "Pacheco", "Gaspar", "Moura", "Viana", "Brandão", "Dias", "Paiva", "Sequeira",
+    "Trindade", "Seixas", "Carneiro", "Calado", "Bastos"
+  ],
+  "cityNames": [
+    "Vale do Corvo", "Pedrafonte", "Aldeia Clara", "Torre das Ervas", "Fontemar", "Serra Alva",
+    "Alcoreira", "Porto Calmo", "Vila Serena", "Montalvar", "Ribaclara", "Castelmar", "Sobral Alto",
+    "Carvalhal Novo", "Pinhal Dourado", "Alverde", "Azenhas do Rio", "Barrolinda", "Quinta Branca",
+    "Ponte da Luz", "Santa Aurélia", "Moinhos Altos", "Corvaceira", "Outeiro Verde",
+    "Lameiras do Sol", "Mirafonte", "Belmirante", "Areias Negras", "Vale Sereno", "Penaclara",
+    "Cabeço do Lobo", "Terramar", "São Gervásio", "Água Serena", "Fragadouro", "Lagoa Turva",
+    "Castanheiro Velho", "Rocha Negra", "Figueira Alta", "Murtosal", "Algarvinha", "Seixalvo"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "SC {City}", "CD {City}", "União de {City}", "Académico de {City}", "GD {City}"
+  ],
+  "stadiumPatterns": [
+    "Estádio Municipal de {City}", "Estádio de {City}", "Estádio da Cidade de {City}"
+  ]
+}

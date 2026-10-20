@@ -1,0 +1,40 @@
+{
+  "firstNames": [
+    "Alessandro", "Andrea", "Francesco", "Lorenzo", "Matteo", "Leonardo", "Gabriele", "Riccardo",
+    "Tommaso", "Davide", "Federico", "Marco", "Luca", "Simone", "Stefano", "Giuseppe", "Giovanni",
+    "Antonio", "Roberto", "Paolo", "Fabio", "Daniele", "Nicolò", "Mattia", "Filippo", "Giacomo",
+    "Emanuele", "Christian", "Alberto", "Claudio", "Domenico", "Enrico", "Fabrizio", "Gianluca",
+    "Massimo", "Michele", "Pietro", "Raffaele", "Salvatore", "Sandro", "Sergio", "Valerio",
+    "Vincenzo", "Edoardo", "Manuel", "Samuele", "Diego", "Alessio", "Angelo", "Carlo", "Dario",
+    "Ettore", "Franco", "Gianmarco", "Ivan", "Jacopo", "Mirko", "Nicola", "Ciro", "Rocco",
+    "Gennaro", "Aldo", "Bruno"
+  ],
+  "lastNames": [
+    "Rossi", "Russo", "Ferrari", "Esposito", "Bianchi", "Romano", "Colombo", "Ricci", "Marino",
+    "Greco", "Bruno", "Gallo", "Conti", "De Luca", "Mancini", "Costa", "Giordano", "Rizzo",
+    "Lombardi", "Moretti", "Barbieri", "Fontana", "Santoro", "Mariani", "Rinaldi", "Caruso",
+    "Ferrara", "Galli", "Martini", "Leone", "Longo", "Gentile", "Martinelli", "Vitale", "Lombardo",
+    "Serra", "Coppola", "De Santis", "D'Angelo", "Marchetti", "Parisi", "Villa", "Ferraro", "Ferri",
+    "Fabbri", "Bianco", "Marini", "Grasso", "Valentini", "Sala", "De Angelis", "Gatti",
+    "Pellegrini", "Palumbo", "Sanna", "Farina", "Rizzi", "Monti", "Cattaneo", "Morelli", "Amato",
+    "Silvestri", "Mazza", "Testa", "Grassi", "Pellegrino", "Carbone", "Giuliani", "Benedetti",
+    "Barone", "Rossetti", "Caputo", "Montanari", "Guerra", "Palmieri", "Bernardi", "Martino",
+    "Fiore", "De Rosa", "Ferretti", "Bellini", "Basile", "Riva", "Donati", "Piras", "Battaglia",
+    "Sartori", "Neri", "Pagano", "Ruggiero", "Sorrentino"
+  ],
+  "cityNames": [
+    "Montefosco", "Castelrovere", "Valdirosa", "Borgochiaro", "Rocca Serena", "Pietrascura",
+    "Acquabella", "Fontanaluce", "Poggiolargo", "Torrevalle", "Colleoliva", "Sassoferro",
+    "Villabruna", "Campoalto", "Marisolea", "Castelnebbia", "Lagobruno", "Ponteselva", "Serrascura",
+    "Monteviola", "Belcolle", "Valfiorita", "San Gervasio del Mare", "Querciola", "Roccaferma",
+    "Altopietra", "Portosereno", "Boscoverde", "Felicetta", "Ripalba", "Castellunga", "Vignalonga",
+    "Olmedoro", "Cervaria", "Mulinello", "Ginestrella", "Lucimara", "Spigalta", "Torrenera",
+    "Montecervo", "Gualdorosso", "Salvamonte"
+  ],
+  "clubSuffixes": [
+    "AC {City}", "US {City}", "{City} Calcio", "AS {City}", "Sporting {City}", "Virtus {City}"
+  ],
+  "stadiumPatterns": [
+    "Stadio {City}", "Stadio Comunale di {City}", "Arena {City}"
+  ]
+}

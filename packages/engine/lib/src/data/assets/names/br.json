@@ -1,0 +1,41 @@
+{
+  "firstNames": [
+    "Gabriel", "Lucas", "Matheus", "Pedro", "Guilherme", "Rafael", "Felipe", "Bruno", "Thiago",
+    "Vinícius", "Gustavo", "Leonardo", "Rodrigo", "Diego", "Eduardo", "Caio", "Henrique", "João",
+    "Igor", "Luan", "Marcos", "Paulo", "Ricardo", "Renan", "Wellington", "Willian", "Everton",
+    "Anderson", "Alisson", "Danilo", "Douglas", "Rogério", "Cléber", "Márcio", "Sávio", "Emerson",
+    "Jefferson", "Robson", "Wesley", "Kaio", "Breno", "Arthur", "Davi", "Enzo", "Heitor", "Murilo",
+    "Nathan", "Otávio", "Raul", "Samuel", "Talles", "Vitor", "Yuri", "Alex", "André", "Carlos",
+    "Fábio", "Júlio", "Luiz", "Maicon", "Tiago", "Wagner", "Weverton", "Adriano", "Cristian",
+    "Denílson", "Elias", "Gérson", "Reinaldo", "Juninho"
+  ],
+  "lastNames": [
+    "Silva", "Santos", "Oliveira", "Souza", "Lima", "Pereira", "Ferreira", "Costa", "Rodrigues",
+    "Almeida", "Nascimento", "Alves", "Carvalho", "Araújo", "Ribeiro", "Gomes", "Martins", "Rocha",
+    "Barbosa", "Melo", "Barros", "Cardoso", "Teixeira", "Correia", "Dias", "Moreira", "Cavalcanti",
+    "Monteiro", "Mendes", "Freitas", "Vieira", "Nunes", "Moura", "Batista", "Campos", "Pinto",
+    "Ramos", "Castro", "Andrade", "Machado", "Soares", "Fernandes", "Lopes", "Marques", "Azevedo",
+    "Cunha", "Farias", "Bezerra", "Fonseca", "Duarte", "Medeiros", "Brito", "Sales", "Reis",
+    "Siqueira", "Xavier", "Queiroz", "Tavares", "Prado", "Coelho", "Peixoto", "Rezende", "Brandão",
+    "Aragão", "Diniz", "Guimarães", "Leite", "Magalhães", "Viana", "Paiva", "Holanda", "Lacerda",
+    "Bastos", "Pacheco", "Sampaio", "Mesquita", "Assis", "Borges", "Cruz", "Pires", "Neves",
+    "Matos", "Toledo", "Bittencourt", "Moraes"
+  ],
+  "cityNames": [
+    "Serra Morena", "Vale Encantado", "Ribeirão Sereno", "Lagoa Esmeralda", "Porto Amanhecer",
+    "São Gervásio do Norte", "Itajubaíra", "Jacarandá Alto", "Cachoeira Azul", "Monte Celeste",
+    "Pedra Lisa", "Campo Ameno", "Nova Ventura", "Bom Remanso", "Águas Mansas", "Palmeiral",
+    "Araucanópolis", "Coqueiro Alto", "Santa Lúcia do Mar", "Morro Vermelho", "Mangabal Novo",
+    "Ipê Amarelo", "Riacho Manso", "Jequitibá Grande", "Juriti do Sul", "Seriema", "Buriti Velho",
+    "Sabiá dos Campos", "Taquaruçu Novo", "Cajuína Velha", "Guaramirá", "Ilha Serena",
+    "Barra Clara", "Tabuleiro Alto", "Vereda Grande", "Piratinga Nova", "Capim Dourado",
+    "Cerrado Alto", "Aroeiral", "Itaçaíba", "Ubiraquara"
+  ],
+  "clubSuffixes": [
+    "{City} FC", "EC {City}", "Atlético {City}", "Grêmio {City}", "AA {City}",
+    "{City} Esporte Clube"
+  ],
+  "stadiumPatterns": [
+    "Estádio Municipal de {City}", "Arena {City}", "Estádio {City}"
+  ]
+}
