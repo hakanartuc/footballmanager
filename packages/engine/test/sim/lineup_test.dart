@@ -107,6 +107,22 @@ void main() {
       );
     });
 
+    test('fit players always outrank unavailable ones', () {
+      final seniors = w.squadOf(c);
+      final youth = w.youthOf(c);
+      final fit = {...seniors.take(8), ...youth.take(2)};
+      for (final id in clubPlayers().difference(fit)) {
+        p(id).state.injury = InjuryStub(daysLeft: 10, type: 'knock');
+      }
+      final star = seniors.last;
+      p(star).ca = 200;
+
+      final l = autoLineup(w, c);
+      expect(l.starters, hasLength(11));
+      expect(l.starters.toSet().containsAll(fit), isTrue);
+      expect(l.starters.toSet().difference(fit), {star});
+    });
+
     test('falls back to unavailable players rather than fielding < 11', () {
       for (final id in clubPlayers()) {
         p(id).state.injury = InjuryStub(daysLeft: 10, type: 'knock');

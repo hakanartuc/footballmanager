@@ -24,7 +24,8 @@ int Function(Player, Player) _byDesc(num Function(Player) key) => (a, b) {
 /// Each slot in turn takes the unused candidate with the highest
 /// `ca × familiarity / 20 × conditionFactor`. Candidates are the available
 /// (not injured or suspended) seniors; when fewer than 11, available youth
-/// join, then any remaining club player. The bench is the next up to 7
+/// join, then any remaining club player; a fit candidate always beats an
+/// unavailable one. The bench is the next up to 7
 /// available candidates by CA, with the best unused goalkeeper swapped in
 /// for the last place when none made it.
 Lineup autoLineup(World w, ClubId c, {Formation? formation}) {
@@ -40,7 +41,9 @@ Lineup autoLineup(World w, ClubId c, {Formation? formation}) {
 
   final starters = <PlayerId>[];
   for (final slot in formationSlots(f)) {
-    final ranked = pool.where((p) => !starters.contains(p.id)).toList()
+    final unused = pool.where((p) => !starters.contains(p.id));
+    final fit = unused.where(_available);
+    final ranked = (fit.isNotEmpty ? fit : unused).toList()
       ..sort(
         _byDesc(
           (p) =>
