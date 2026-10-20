@@ -1,0 +1,174 @@
+{
+  "countries": [
+    {
+      "code": "TR",
+      "name": "Türkiye",
+      "continent": "europe",
+      "namePool": "tr",
+      "reputation": 70,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "ENG",
+      "name": "England",
+      "continent": "europe",
+      "namePool": "eng",
+      "reputation": 95,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 24, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "continent": "europe",
+      "namePool": "es",
+      "reputation": 92,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 22, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "DE",
+      "name": "Germany",
+      "continent": "europe",
+      "namePool": "de",
+      "reputation": 88,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "IT",
+      "name": "Italy",
+      "continent": "europe",
+      "namePool": "it",
+      "reputation": 87,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "FR",
+      "name": "France",
+      "continent": "europe",
+      "namePool": "fr",
+      "reputation": 82,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "NL",
+      "name": "Netherlands",
+      "continent": "europe",
+      "namePool": "nl",
+      "reputation": 70,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "PT",
+      "name": "Portugal",
+      "continent": "europe",
+      "namePool": "pt",
+      "reputation": 72,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "BR",
+      "name": "Brazil",
+      "continent": "southAmerica",
+      "namePool": "br",
+      "reputation": 78,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "AR",
+      "name": "Argentina",
+      "continent": "southAmerica",
+      "namePool": "ar",
+      "reputation": 70,
+      "tiers": [
+        {"clubs": 28, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    },
+    {
+      "code": "US",
+      "name": "United States",
+      "continent": "northAmerica",
+      "namePool": "us",
+      "reputation": 60,
+      "tiers": [
+        {"clubs": 24, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    },
+    {
+      "code": "MX",
+      "name": "Mexico",
+      "continent": "northAmerica",
+      "namePool": "mx",
+      "reputation": 62,
+      "tiers": [
+        {"clubs": 18, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    },
+    {
+      "code": "JP",
+      "name": "Japan",
+      "continent": "asia",
+      "namePool": "jp",
+      "reputation": 60,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
+        {"clubs": 22, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
+      ]
+    },
+    {
+      "code": "KR",
+      "name": "South Korea",
+      "continent": "asia",
+      "namePool": "kr",
+      "reputation": 52,
+      "tiers": [
+        {"clubs": 12, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    },
+    {
+      "code": "NG",
+      "name": "Nigeria",
+      "continent": "africa",
+      "namePool": "ng",
+      "reputation": 45,
+      "tiers": [
+        {"clubs": 20, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    },
+    {
+      "code": "AU",
+      "name": "Australia",
+      "continent": "oceania",
+      "namePool": "au",
+      "reputation": 48,
+      "tiers": [
+        {"clubs": 12, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
+      ]
+    }
+  ]
+}

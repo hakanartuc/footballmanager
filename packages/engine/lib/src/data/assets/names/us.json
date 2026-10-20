@@ -1,0 +1,39 @@
+{
+  "firstNames": [
+    "Michael", "Christopher", "Matthew", "Joshua", "Andrew", "Daniel", "Tyler", "Brandon", "Ryan",
+    "Jacob", "Ethan", "Logan", "Mason", "Caleb", "Austin", "Cody", "Dylan", "Hunter", "Wyatt",
+    "Cameron", "Chase", "Brady", "Colton", "Jalen", "DeAndre", "Darius", "Malik", "Jamal",
+    "Terrell", "Tre", "Marcus", "Isaiah", "Jordan", "Elijah", "Xavier", "Carlos", "José", "Luis",
+    "Miguel", "Diego", "Alejandro", "Christian", "Kevin", "Jason", "Eric", "Nathan", "Aaron",
+    "Zachary", "Kyle", "Sean", "Patrick", "Connor", "Brian", "Derek", "Trevor", "Gavin", "Bryce",
+    "Jackson", "Owen", "Weston", "Kenji", "Samuel", "Ahmed", "Wei", "Mateo"
+  ],
+  "lastNames": [
+    "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez",
+    "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore",
+    "Jackson", "Martin", "Lee", "Perez", "Thompson", "White", "Harris", "Sanchez", "Clark",
+    "Ramirez", "Lewis", "Robinson", "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres",
+    "Nguyen", "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera", "Campbell",
+    "Mitchell", "Carter", "Roberts", "Gomez", "Phillips", "Evans", "Turner", "Diaz", "Parker",
+    "Cruz", "Edwards", "Collins", "Reyes", "Stewart", "Morris", "Morales", "Murphy", "Cook",
+    "Rogers", "Gutierrez", "Ortiz", "Morgan", "Cooper", "Peterson", "Bailey", "Reed", "Kelly",
+    "Howard", "Kim", "Cox", "Ward", "Richardson", "Watson", "Brooks", "Bennett", "Gray", "Mendoza",
+    "Washington", "Okafor", "Schultz", "Novak"
+  ],
+  "cityNames": [
+    "Cedar Hollow", "Copper Bluff", "Redstone Falls", "Pine Harbor", "Elk Prairie", "Silver Mesa",
+    "Bridgewater Bay", "Ironwood Heights", "Lakeport Junction", "Granite Springs", "Willow Bend",
+    "Hawk Ridge", "Coyote Flats", "Blue Heron", "Port Calloway", "Fort Ashland", "Sandstone Hills",
+    "Riverton Falls", "Magnolia Point", "Bison Creek", "Harlow Bay", "Clearwater Bluffs",
+    "North Larkin", "Sutter Grove", "Eagle Hollow", "Crescent Bay", "Juniper Valley", "Stonebridge",
+    "Owl Creek", "Bayside Landing", "Prairie Rose", "Kettle Ridge", "Lone Cypress", "Mesa Dorada",
+    "Thunder Lake", "Cobalt Springs", "Marigold", "Fox Hollow", "Hollinsport", "Briar Glen",
+    "New Halcyon", "Westmarch"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "{City} FC", "{City} SC", "{City} United", "Sporting {City}"
+  ],
+  "stadiumPatterns": [
+    "{City} Stadium", "{City} Park", "{City} Field"
+  ]
+}

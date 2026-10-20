@@ -1,0 +1,35 @@
+{
+  "firstNames": [
+    "Min-jun", "Seo-jun", "Ji-ho", "Do-yun", "Ha-jun", "Joon-ho", "Sung-yong", "Jae-sung",
+    "Hyun-woo", "Dong-hyun", "Woo-young", "Young-gwon", "Tae-hwan", "Jin-su", "Seung-ho",
+    "Chang-hoon", "Jae-won", "Sang-woo", "Kyung-won", "Hyeon-gyu", "Jun-ho", "Ji-hoon", "Sung-min",
+    "Dong-jin", "Jae-hyun", "Min-ho", "Seung-woo", "Tae-yang", "Woo-jin", "Yong-jun", "Eun-sung",
+    "Hae-won", "Jeong-ho", "Ki-hyun", "Kyu-ho", "Myung-jae", "Sang-min", "Se-hun", "Si-woo",
+    "Su-hyeon", "Tae-min", "Won-jun", "Yeon-woo", "Yoon-seok", "Chan-young", "Dae-hyun", "Do-hyun",
+    "Geon-woo", "Han-gyeol", "Hyun-jun", "Jin-young", "Joon-young", "Kwang-min", "Min-seok",
+    "Seong-jin", "Byung-chul", "Il-woo", "Ho-jin", "Sang-hyeok", "Jae-hoon", "Chul-soo", "Young-ho",
+    "Gi-tae"
+  ],
+  "lastNames": [
+    "Kim", "Lee", "Park", "Choi", "Jung", "Kang", "Cho", "Yoon", "Jang", "Lim", "Han", "Oh", "Seo",
+    "Shin", "Kwon", "Hwang", "Ahn", "Song", "Jeon", "Hong", "Yoo", "Ko", "Moon", "Yang", "Son",
+    "Bae", "Baek", "Heo", "Nam", "Shim", "Noh", "Ha", "Kwak", "Sung", "Cha", "Joo", "Woo", "Koo",
+    "Min", "Ryu", "Na", "Jin", "Ji", "Um", "Chae", "Won", "Chun", "Bang", "Gong", "Hyun", "Ham",
+    "Byun", "Yeom", "Yeo", "Choo", "Do", "So", "Seok", "Sun", "Seol", "Ma", "Gil", "Pyo", "Myung",
+    "Ki", "Ban", "Wang", "Geum", "Ok", "Yook", "In", "Maeng", "Je", "Mo", "Tak", "Kook", "Yeon",
+    "Bong", "Jegal", "Namgung", "Hwangbo", "Seonu", "Dokgo", "Sa"
+  ],
+  "cityNames": [
+    "Hanbit", "Saebyeok", "Dalgaram", "Haneul", "Byeolbit", "Solmae", "Narae", "Gaon", "Purun",
+    "Sanmaru", "Baramgol", "Dasol", "Haeul", "Noeul", "Eunbit", "Bitgaram", "Gureum", "Mirinae",
+    "Seoryeong", "Arin", "Nuri", "Doran", "Hyanggi", "Maru", "Samnamu", "Soraeul", "Yeoul", "Sinbi",
+    "Chorong", "Danbi", "Hwaran", "Gangsaem", "Moraeul", "Dolmaru", "Haesol", "Onnuri", "Saeron",
+    "Hamaru", "Bomnae", "Garam", "Cheongsol", "Geumbit"
+  ],
+  "clubSuffixes": [
+    "{City} FC", "FC {City}", "{City} Citizen", "{City} United"
+  ],
+  "stadiumPatterns": [
+    "{City} Stadium", "{City} Sports Complex", "{City} Football Park"
+  ]
+}

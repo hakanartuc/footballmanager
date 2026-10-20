@@ -1,0 +1,37 @@
+{
+  "firstNames": [
+    "Hiroshi", "Takashi", "Kenta", "Shota", "Yuto", "Daiki", "Ryota", "Kazuki", "Takumi", "Yuki",
+    "Sho", "Kaito", "Haruto", "Sota", "Ren", "Riku", "Hayato", "Tsubasa", "Kenji", "Makoto",
+    "Naoki", "Shinji", "Keisuke", "Junya", "Koji", "Masato", "Ryo", "Shun", "Taichi", "Takuma",
+    "Tomoya", "Wataru", "Yosuke", "Yusuke", "Akira", "Atsushi", "Daisuke", "Genki", "Hideki",
+    "Hiroki", "Hikaru", "Itsuki", "Jun", "Kazuya", "Kohei", "Kosuke", "Masaya", "Mitsuki", "Naoto",
+    "Ryuji", "Satoshi", "Shinya", "Shuto", "Sosuke", "Takeshi", "Tatsuya", "Tomoki", "Yamato",
+    "Yoshiki", "Yuma", "Yuya", "Ayumu", "Kaoru", "Reo", "Ao"
+  ],
+  "lastNames": [
+    "Sato", "Suzuki", "Takahashi", "Tanaka", "Watanabe", "Ito", "Yamamoto", "Nakamura", "Kobayashi",
+    "Kato", "Yoshida", "Yamada", "Sasaki", "Yamaguchi", "Matsumoto", "Inoue", "Kimura", "Hayashi",
+    "Shimizu", "Yamazaki", "Mori", "Abe", "Ikeda", "Hashimoto", "Yamashita", "Ishikawa", "Nakajima",
+    "Maeda", "Fujita", "Ogawa", "Goto", "Okada", "Hasegawa", "Murakami", "Kondo", "Ishii", "Saito",
+    "Sakamoto", "Endo", "Aoki", "Fujii", "Nishimura", "Fukuda", "Ota", "Miura", "Fujiwara",
+    "Okamoto", "Matsuda", "Nakagawa", "Nakano", "Harada", "Ono", "Tamura", "Takeuchi", "Kaneko",
+    "Wada", "Nakayama", "Ishida", "Ueda", "Morita", "Hara", "Shibata", "Sakai", "Kudo", "Yokoyama",
+    "Miyazaki", "Miyamoto", "Uchida", "Takagi", "Ando", "Taniguchi", "Maruyama", "Imai", "Takada",
+    "Fujimoto", "Takeda", "Murata", "Ueno", "Sugiyama", "Masuda", "Sugawara", "Hirano", "Otsuka",
+    "Kubo", "Iwasaki", "Sakurai", "Kinoshita", "Noguchi"
+  ],
+  "cityNames": [
+    "Kumohara", "Shiranagi", "Tsukimizawa", "Akebonohama", "Kazehaya", "Hoshizora", "Minamikaze",
+    "Asagirino", "Isonami", "Kiridani", "Hotarugawa", "Sakuramori", "Yukishiro", "Takanoha",
+    "Mizukaze", "Shiokaze", "Momijino", "Kurogane", "Tsurunami", "Kamoshiro", "Aomidori",
+    "Hanabusa", "Nagisano", "Iwakaze", "Fujinami", "Midorizaka", "Hibarino", "Usagidaira", "Ginrei",
+    "Kiriyama", "Shinomizu", "Amagumo", "Kotonoura", "Takamizu", "Seiryu", "Hinatagawa",
+    "Yamabukino", "Umikaze", "Kasumino", "Akatsuki", "Koganehama", "Tachibanaka"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "{City} FC", "{City} SC", "{City} United"
+  ],
+  "stadiumPatterns": [
+    "{City} Stadium", "{City} Sports Park", "{City} Athletic Stadium"
+  ]
+}

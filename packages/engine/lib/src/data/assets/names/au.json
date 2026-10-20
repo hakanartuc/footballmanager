@@ -1,0 +1,39 @@
+{
+  "firstNames": [
+    "Jack", "Mitchell", "Josh", "Liam", "Lachlan", "Riley", "Cooper", "Harrison", "Tom", "Ben",
+    "James", "Daniel", "Nathan", "Luke", "Ryan", "Jackson", "Kyle", "Jamie", "Aaron", "Brad",
+    "Matthew", "Tim", "Mark", "Craig", "Scott", "Brett", "Shane", "Darren", "Jason", "Adam", "Alex",
+    "Andrew", "Connor", "Dylan", "Ethan", "Hamish", "Angus", "Callum", "Fraser", "Jordan", "Lucas",
+    "Marco", "Nikola", "Stefan", "Aleksandar", "Milos", "Dimitri", "Nick", "Kosta", "Antonio",
+    "Massimo", "Patrick", "Sam", "Toby", "Will", "Zac", "Archie", "Oscar", "Tyson", "Jai", "Bailey",
+    "Garang", "Deng", "Thomas", "Ajdin", "Keanu", "Minh"
+  ],
+  "lastNames": [
+    "Smith", "Jones", "Williams", "Brown", "Wilson", "Taylor", "Johnson", "White", "Martin",
+    "Anderson", "Thompson", "Nguyen", "Thomas", "Walker", "Harris", "Lee", "Ryan", "Robinson",
+    "Kelly", "King", "Davis", "Wright", "Evans", "Roberts", "Green", "Hall", "Wood", "Jackson",
+    "Clarke", "Patel", "Khan", "Lewis", "James", "Phillips", "Mitchell", "Murphy", "O'Brien",
+    "O'Connor", "McDonald", "Campbell", "Stewart", "Murray", "Scott", "Young", "Morris", "Ward",
+    "Turner", "Cooper", "Hughes", "Edwards", "Bennett", "Bell", "Hill", "Russell", "Kennedy",
+    "Graham", "Cameron", "Hamilton", "Fraser", "Watson", "Gray", "Chapman", "Carroll", "Doyle",
+    "Popovic", "Petrovic", "Jovanovic", "Nikolic", "Kovac", "Markovic", "Papadopoulos", "Georgiou",
+    "Nikolaidis", "Rossi", "Esposito", "Bianchi", "Costa", "Tran", "Pham", "Wong", "Chen", "Singh",
+    "Sullivan", "Byrne", "Quinn", "Fitzgerald", "Brennan", "Hayes"
+  ],
+  "cityNames": [
+    "Wattle Bend", "Bottlebrush Bay", "Kookaburra Flat", "Redgum Valley", "Banksia Heads",
+    "Coral Point", "Saltbush Creek", "Port Delamere", "Mount Ashgrove", "Ironbark Ridge",
+    "Bluewater Heads", "Lyrebird Gully", "Jacaranda Springs", "Sandpiper Bay", "Mallee Downs",
+    "Port Halloran", "Silver Gum", "Stringybark", "Galah Plains", "Cockatoo Hill", "Brolga Lakes",
+    "Mangrove Point", "Wombat Crossing", "Kestrel Bay", "Waratah Heights", "Spinifex", "Coolwater",
+    "Tea Tree Flat", "Pelican Reach", "Grevillea Hills", "Copper Creek", "Granite Ridge",
+    "New Kingsford", "Fairharbour", "Barramundi Bay", "Dingo Flat", "Gumtree Junction",
+    "Opal Springs", "Rosella Vale", "Bilby Downs", "Echidna Point", "Southwind"
+  ],
+  "clubSuffixes": [
+    "{City} FC", "{City} United", "{City} City", "{City} Wanderers", "{City} Strikers"
+  ],
+  "stadiumPatterns": [
+    "{City} Oval", "{City} Stadium", "{City} Park"
+  ]
+}

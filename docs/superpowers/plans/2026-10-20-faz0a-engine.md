@@ -609,3 +609,20 @@ test('all ops stay within 32-bit', ...)         // after 1e5 ops every word fits
 - Spec coverage for Faz 0 (Spec §11 row 0): data model incl. placeholders (Tasks 4–5), world generator with kits/logos (10–12), new game spec incl. unemployed (12, 19), save slots + schema versioning (18), day loop (15), fixtures + table (7–9), Poisson placeholder (14), performance measurement (20–21), basic youth/retirement (16), symmetry (15 tests), determinism incl. isolate (21). Minimal UI, entitlement stub, i18n, responsive rule and storage-on-web belong to Faz 0B.
 - Names used across tasks: `World`, `GameDate`, `SeededRng.fork`, `Lineup`, `MatchResult`, `TableRow`, `computeTable`, `DaySummary`, `rolloverSeason`, `checkInvariants`, `SaveCodec`, `SaveStore`, `EngineSession` — consistent above.
 - Review Focus items pinned: 1 → Task 7; 2 → Tasks 15, 16; 3 → Tasks 13, 16; 4 → Task 18; 5 → Tasks 3, 8.
+
+---
+
+## Results (Task 22 acceptance, 2026-10-20)
+
+- `tool/check.sh --slow` from a clean checkout: format 0 changed, analyze clean, 318 fast + 15 slow tests green (slow suite 14.8 s wall).
+- `cm simulate --seed 3 --size medium --seasons 3 --invariants` → exit 0, 0 violations:
+
+| Season | Matches | Goals/match | Home % | Draw % | Away % | Days | ms |
+|---|---|---|---|---|---|---|---|
+| 2026 | 5742 | 2.892 | 46.8 | 21.3 | 31.9 | 316 | 2066 |
+| 2027 | 5742 | 2.846 | 46.1 | 23.0 | 30.9 | 364 | 2525 |
+| 2028 | 5742 | 2.845 | 44.7 | 22.8 | 32.5 | 364 | 2758 |
+
+- Long sim (small, seed 11, 5 seasons, 1779 days): 0 invariant violations; goals 2.83–2.93; home 44.6–46.1 %; population season 5 vs 2 +6.6 %; max youth squad 21; retired 26→214, intake ~700, released 0→543 per season.
+- Perf (large, seed 1): generation 117 ms; match-day p95 2.97 ms (budget 300); other-day p95 1.11 ms (budget 50); save 1.97 MB in 391 ms (budget 15 MB / 2 s); load 324 ms.
+- Draw % runs below the spec band (24–28) once real strength spread exists — expected for the Poisson placeholder; the Faz 1a engine owns the full result-split calibration.

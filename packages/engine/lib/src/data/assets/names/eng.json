@@ -1,0 +1,39 @@
+{
+  "firstNames": [
+    "Harry", "Jack", "James", "Oliver", "George", "Thomas", "William", "Charlie", "Joe", "Daniel",
+    "Ben", "Sam", "Luke", "Ryan", "Jamie", "Tom", "Alfie", "Callum", "Connor", "Kieran", "Jordan",
+    "Lewis", "Mason", "Reece", "Declan", "Jake", "Josh", "Liam", "Nathan", "Aaron", "Adam", "Alex",
+    "Billy", "Bradley", "Danny", "Dominic", "Elliot", "Ethan", "Freddie", "Gareth", "Henry",
+    "Isaac", "Jacob", "Kyle", "Leon", "Marcus", "Matt", "Max", "Michael", "Nick", "Owen", "Paul",
+    "Phil", "Rhys", "Rob", "Scott", "Stuart", "Tyler", "Zak", "Ashley", "Craig", "Ross", "Kofi",
+    "Tariq", "Jaden"
+  ],
+  "lastNames": [
+    "Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Davies", "Robinson",
+    "Wright", "Thompson", "Evans", "Walker", "White", "Roberts", "Green", "Hall", "Wood", "Jackson",
+    "Clarke", "Patel", "Hughes", "Edwards", "Turner", "Hill", "Moore", "Cooper", "Ward", "Morris",
+    "King", "Watson", "Harrison", "Morgan", "Baker", "Allen", "Lee", "Martin", "Young", "Clark",
+    "Phillips", "Mitchell", "Bennett", "Carter", "Shaw", "Cook", "Richardson", "Bailey", "Parker",
+    "Collins", "Bell", "Marshall", "Webb", "Price", "Murray", "Cox", "Barnes", "Holmes", "Stevens",
+    "Pearson", "Fletcher", "Lloyd", "Gibson", "Ellis", "Simpson", "Mills", "Chapman", "Hunt",
+    "Hudson", "Foster", "Kelly", "Barker", "Atkinson", "Dixon", "Spencer", "Knight", "Holland",
+    "Butler", "Payne", "Lambert", "Ashworth", "Thornton", "Hargreaves", "Whitehead", "Sutton",
+    "Pritchard", "Rowley", "Mensah", "Okoro"
+  ],
+  "cityNames": [
+    "Ashcombe", "Wexford Vale", "Thornbury Cross", "Kingsmere", "Haverleigh", "Brackenford",
+    "Stowbridge", "Millhaven", "Eastmoor", "Redcastle", "Hollinsby", "Ravenholme", "Coldbrook",
+    "Pennridge", "Ellesby", "Hartmoor", "Oakhallow", "Blackmere", "Fenholme", "Greysdale",
+    "Stanmoor", "Westerby", "Northcastle", "Dunmere", "Cranmoor", "Lowestead", "Burnstow",
+    "Copperfield", "Ironhurst", "Sedgecombe", "Marrowby", "Wychford", "Ambleford", "Larkwell",
+    "Silverholme", "Foxbridge", "Hadmoor", "Whitcliffe", "Calderbrook", "Elmbury", "Rookwood",
+    "Tamsford", "Hollowmere", "Brindlehurst", "Kesterton", "Ludbury"
+  ],
+  "clubSuffixes": [
+    "{City} United", "{City} City", "{City} Town", "{City} Athletic", "{City} Rovers",
+    "{City} Wanderers", "{City} Albion"
+  ],
+  "stadiumPatterns": [
+    "{City} Park", "The {City} Ground", "{City} Stadium", "{City} Road"
+  ]
+}

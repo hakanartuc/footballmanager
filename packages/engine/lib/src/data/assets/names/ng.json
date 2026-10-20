@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "Chinedu", "Emeka", "Obinna", "Chukwuemeka", "Ikechukwu", "Uche", "Nnamdi", "Chidi", "Kelechi",
+    "Chibuike", "Ifeanyi", "Chukwudi", "Oluwaseun", "Ayodele", "Babatunde", "Olumide", "Adebayo",
+    "Tunde", "Femi", "Kunle", "Segun", "Tobi", "Damilare", "Ademola", "Gbenga", "Taiwo", "Kehinde",
+    "Ibrahim", "Abubakar", "Musa", "Sani", "Umar", "Yusuf", "Aminu", "Garba", "Haruna", "Ahmed",
+    "Shehu", "Usman", "Victor", "Samuel", "Daniel", "Emmanuel", "John", "Peter", "Joseph", "Godwin",
+    "Sunday", "Moses", "Paul", "Kenneth", "Michael", "Stanley", "Henry", "Kingsley", "Sadiq",
+    "Jamilu", "Nasiru", "Bashir", "Chima", "Ebuka", "Osita", "Azubuike", "Okechukwu", "Olamide",
+    "Kayode", "Bolaji", "Jide"
+  ],
+  "lastNames": [
+    "Okafor", "Okonkwo", "Eze", "Nwankwo", "Okeke", "Obi", "Nwosu", "Okoro", "Chukwu", "Ibe",
+    "Onyeka", "Ugwu", "Nnaji", "Ezeh", "Anyanwu", "Okoye", "Igwe", "Udeh", "Agu", "Nwachukwu",
+    "Okpara", "Ihejirika", "Onuoha", "Mbah", "Ogbonna", "Akpan", "Etim", "Bassey", "Ekpo", "Udo",
+    "Effiong", "Adeyemi", "Ogunleye", "Olawale", "Oyelaran", "Bakare", "Afolabi", "Adeleke",
+    "Ogunbiyi", "Akinola", "Balogun", "Oladipo", "Ajayi", "Oyewole", "Adewale", "Ojo", "Akande",
+    "Salami", "Lawal", "Oyebanji", "Olaniyan", "Abdullahi", "Mohammed", "Bello", "Aliyu", "Danjuma",
+    "Yakubu", "Abdulkadir", "Suleiman", "Idris", "Lawan", "Dikko", "Tanko", "Jibrin", "Gambo",
+    "Sambo", "Okon", "Edet", "Essien", "Okpe", "Omoruyi", "Igbinedion", "Osagie", "Erhabor",
+    "Ekwueme", "Uzoma", "Nwafor", "Chikwe", "Obiora", "Ezenwa", "Onwuachi", "Amadi", "Oduya",
+    "Nwaneri"
+  ],
+  "cityNames": [
+    "Okeluwa", "Isale-Ewa", "Oke-Imole", "Umuchima", "Amanwozu", "Ogbodi", "Ilerin-Odo", "Iyanu",
+    "Itaogun", "Ode-Irawo", "Odo-Ayo", "Ilu-Oyin", "Agbaledo", "Nkwo-Ugwu", "Eke-Nnaji", "Ndi-Oha",
+    "Ugwuoji", "Ezioha", "Ofemmiri", "Okpuoma", "Dutsen Zinariya", "Kogin Ruwa", "Garin Tsuntsu",
+    "Birnin Haske", "Tudun Kurmi", "Kurmin Dawa", "Rafin Zaki", "Gidan Wuta", "Bakin Kogi",
+    "Yandaji", "Kauyen Zuma", "Fadaman Gari", "Port Ikemba", "New Ozala", "Ekpene Oku", "Esuk Odu",
+    "Mbat Oku", "Isiokwe", "Gbemiga", "Ayedun-Odo", "Ilaseyi", "Omisanjo"
+  ],
+  "clubSuffixes": [
+    "{City} United", "{City} Stars", "{City} FC", "{City} Warriors", "{City} Tornadoes"
+  ],
+  "stadiumPatterns": [
+    "{City} Township Stadium", "{City} Stadium", "{City} Sports Complex"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "firstNames": [
+    "José", "Juan", "Luis", "Carlos", "Jesús", "Miguel", "Alejandro", "Jorge", "Fernando",
+    "Ricardo", "Eduardo", "Francisco", "Javier", "Roberto", "Héctor", "Raúl", "Diego", "Santiago",
+    "Andrés", "Rodrigo", "Uriel", "Érick", "Edson", "Jonathan", "Brayan", "Ulises", "Óscar", "Omar",
+    "Israel", "Rafael", "Gerardo", "Alan", "Alexis", "Emilio", "Iván", "Julio", "Marco", "Mauricio",
+    "Pablo", "Ramón", "Rubén", "Salvador", "Sergio", "Víctor", "Arturo", "Alfredo", "Armando",
+    "Efraín", "Gilberto", "Gustavo", "Hugo", "Ismael", "Joel", "Leonardo", "Manuel", "Martín",
+    "Nicolás", "Obed", "César", "Daniel", "Antonio", "Adrián", "Aldo", "Fidel", "Rogelio"
+  ],
+  "lastNames": [
+    "Hernández", "García", "Martínez", "López", "González", "Pérez", "Rodríguez", "Sánchez",
+    "Ramírez", "Cruz", "Flores", "Gómez", "Morales", "Vázquez", "Reyes", "Jiménez", "Torres",
+    "Díaz", "Gutiérrez", "Ruiz", "Mendoza", "Aguilar", "Ortiz", "Moreno", "Castillo", "Romero",
+    "Álvarez", "Méndez", "Chávez", "Rivera", "Juárez", "Ramos", "Domínguez", "Herrera", "Medina",
+    "Castro", "Vargas", "Guzmán", "Velázquez", "Muñoz", "Rojas", "Contreras", "Salazar", "Luna",
+    "Ortega", "Guerrero", "Estrada", "Bautista", "Cortés", "Soto", "Alvarado", "Espinoza", "Lara",
+    "Ávila", "Ríos", "Cervantes", "Silva", "Delgado", "Vega", "Márquez", "Sandoval", "Fuentes",
+    "Carrillo", "León", "Ayala", "Robles", "Solís", "Campos", "Navarro", "Cabrera", "Zúñiga",
+    "Ibarra", "Trejo", "Valdez", "Pineda", "Montes", "Acosta", "Esquivel", "Orozco", "Peña",
+    "Rangel", "Villalobos", "Becerra", "Salinas", "Tapia", "Galindo", "Zamora"
+  ],
+  "cityNames": [
+    "Puerto Ceniza", "Valle de Ixcaltepec", "Santa Brígida del Valle", "Cerro del Jaguar",
+    "Villa Nopalera", "Ixtlacomulco", "Tecomitlán", "San Gaspar de las Flores", "Aguas del Colibrí",
+    "Ciudad Magueyal", "Real de Cobre", "Mezquitero", "Huizachera", "Ocotlancillo", "Xochimayo",
+    "Laguna de Garzas", "Cañón del Halcón", "Bahía Tortuga", "Sierra Ocelote", "Pueblo Agave",
+    "Villa Quetzal", "Llano Colorado", "Río Tecolote", "Ciudad Obsidiana",
+    "San Lázaro del Desierto", "Presa Azul", "Mina del Sol", "Altavista del Norte", "Tierra Dorada",
+    "Barranca Honda", "Ciénega de Lirios", "Paso del Venado", "Hacienda Coyol", "Playa Cardenal",
+    "Monte Iguana", "Ciudad Jacaranda", "Teocalli Nuevo", "Arroyo Cantor", "Villa Pitahaya",
+    "Real del Cerro", "Copal Viejo", "Santa Mónica del Lago"
+  ],
+  "clubSuffixes": [
+    "Club {City}", "Atlético {City}", "Deportivo {City}", "Real {City}", "{City} FC"
+  ],
+  "stadiumPatterns": [
+    "Estadio {City}", "Estadio Municipal de {City}", "Estadio Ciudad de {City}"
+  ]
+}

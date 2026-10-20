@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "Lucas", "Hugo", "Louis", "Gabriel", "Arthur", "Jules", "Théo", "Nathan", "Mathis", "Raphaël",
+    "Enzo", "Tom", "Léo", "Maxime", "Antoine", "Alexandre", "Thomas", "Nicolas", "Julien", "Romain",
+    "Pierre", "Kévin", "Clément", "Florian", "Benjamin", "Adrien", "Baptiste", "Bastien", "Cédric",
+    "Damien", "Étienne", "Fabien", "Guillaume", "Jérémy", "Jonathan", "Loïc", "Mathieu", "Olivier",
+    "Quentin", "Rémi", "Sébastien", "Valentin", "Vincent", "Yann", "Yohan", "Mehdi", "Karim",
+    "Moussa", "Ibrahima", "Ousmane", "Amadou", "Youssouf", "Samir", "Bilal", "Rayan", "Dylan",
+    "Axel", "Noah", "Paul", "Jordan", "Anthony", "Mamadou", "Wissam", "Aurélien", "Benoît"
+  ],
+  "lastNames": [
+    "Martin", "Bernard", "Thomas", "Petit", "Robert", "Richard", "Durand", "Dubois", "Moreau",
+    "Laurent", "Simon", "Michel", "Lefebvre", "Leroy", "Roux", "David", "Bertrand", "Morel",
+    "Fournier", "Girard", "Bonnet", "Dupont", "Lambert", "Fontaine", "Rousseau", "Vincent",
+    "Muller", "Lefèvre", "Faure", "André", "Mercier", "Blanc", "Guérin", "Boyer", "Garnier",
+    "Chevalier", "François", "Legrand", "Gauthier", "Garcia", "Perrin", "Robin", "Clément", "Morin",
+    "Nicolas", "Roussel", "Mathieu", "Masson", "Marchand", "Duval", "Denis", "Dumont", "Lemaire",
+    "Noël", "Meyer", "Dufour", "Meunier", "Brun", "Blanchard", "Giraud", "Joly", "Rivière", "Lucas",
+    "Brunet", "Gaillard", "Barbier", "Arnaud", "Martinez", "Gérard", "Roche", "Renard", "Schmitt",
+    "Roy", "Leroux", "Colin", "Vidal", "Caron", "Picard", "Diallo", "Traoré", "Koné", "Camara",
+    "Diarra", "Cissé", "Benali", "Haddad", "Mendy", "Sissoko"
+  ],
+  "cityNames": [
+    "Valmorin", "Beaurivage", "Montclairac", "Rochebelle", "Fontbelle", "Clairevigne",
+    "Saint-Florent-sur-Brume", "Bellemarche", "Morvignac", "Pontvallon", "Châteaubrume",
+    "Vauxmorel", "Lussevalle", "Mirebois", "Sainte-Aurore", "Grandmoulin", "Bois-Joli",
+    "Ferrevilliers", "Tourvelle", "Crêtemont", "Villefleurie", "Saint-Léonce", "Montbrisac",
+    "Port-Sablon", "Corbinval", "Bramelac", "Ferrandine", "Lavaudière", "Marvignac", "Pierreclaire",
+    "Chênerolles", "Beaumirail", "Rivedor", "Combelune", "Sauvelande", "Vérignac", "Gardebrune",
+    "Tessonval", "Montaurel", "Givrenoy", "Lantemoure", "Cassemont"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "AS {City}", "US {City}", "SC {City}", "Olympique {City}", "Stade {City}"
+  ],
+  "stadiumPatterns": [
+    "Stade de {City}", "Stade Municipal de {City}", "Parc des Sports de {City}"
+  ]
+}

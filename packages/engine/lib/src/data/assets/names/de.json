@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "Lukas", "Leon", "Jonas", "Felix", "Maximilian", "Paul", "Tim", "Niklas", "Julian", "Jan",
+    "Florian", "Tobias", "Sebastian", "Philipp", "Kevin", "Marco", "Mario", "Thomas", "Stefan",
+    "Michael", "Andreas", "Christian", "Daniel", "Dennis", "Fabian", "Jannik", "Kai", "Lars",
+    "Marcel", "Matthias", "Moritz", "Nico", "Patrick", "Robin", "Sven", "Timo", "Benedikt",
+    "Dominik", "Erik", "Finn", "Jakob", "Jonathan", "Kilian", "Lennart", "Luca", "Malte", "Marvin",
+    "Mats", "Nils", "Oliver", "Pascal", "René", "Sascha", "Tom", "Torsten", "Uwe", "Vincent",
+    "Yannick", "Emre", "Deniz", "Arne", "Bastian", "Björn", "Hannes", "Jens"
+  ],
+  "lastNames": [
+    "Müller", "Schmidt", "Schneider", "Fischer", "Weber", "Meyer", "Wagner", "Becker", "Schulz",
+    "Hoffmann", "Schäfer", "Koch", "Bauer", "Richter", "Klein", "Wolf", "Schröder", "Neumann",
+    "Schwarz", "Zimmermann", "Braun", "Krüger", "Hartmann", "Lange", "Schmitt", "Werner", "Schmitz",
+    "Krause", "Meier", "Lehmann", "Schmid", "Schulze", "Maier", "Köhler", "Herrmann", "König",
+    "Walter", "Huber", "Kaiser", "Fuchs", "Peters", "Lang", "Scholz", "Möller", "Weiß", "Jung",
+    "Hahn", "Schubert", "Vogel", "Friedrich", "Keller", "Günther", "Frank", "Berger", "Winkler",
+    "Roth", "Beck", "Lorenz", "Baumann", "Franke", "Albrecht", "Schuster", "Ludwig", "Böhm",
+    "Winter", "Kraus", "Schumacher", "Krämer", "Vogt", "Stein", "Jäger", "Sommer", "Groß", "Seidel",
+    "Brandt", "Haas", "Schreiber", "Graf", "Dietrich", "Ziegler", "Kühn", "Pohl", "Engel", "Horn",
+    "Busch", "Bergmann", "Voigt", "Sauer", "Arnold", "Pfeiffer", "Yıldırım", "Kaya"
+  ],
+  "cityNames": [
+    "Kesselbrück", "Hohenmarkt", "Lindenfeld", "Eichenrode", "Steinwalde", "Rabenstedt",
+    "Falkenhorst", "Grünwiesen", "Bergstetten", "Wolfsau", "Ellerbach", "Tannrode", "Mühlhain",
+    "Schwanbrück", "Birkenfelde", "Osterfelde", "Kronsfelde", "Rotenmoor", "Altbrunnen",
+    "Hirschwald", "Lerchenstedt", "Sonnenhain", "Weidenbrunn", "Fichtenrode", "Adlersheim",
+    "Brückenhain", "Kalkweiler", "Moosfelden", "Sandhagen", "Uhlenbrook", "Westerheide",
+    "Dornhausen", "Waldrode", "Ahrensbrück", "Löwenstedt", "Quellingen", "Haselbrunn", "Erlenhof",
+    "Felsenburg", "Ulmenrode", "Marschhagen", "Störwalde"
+  ],
+  "clubSuffixes": [
+    "FC {City}", "SV {City}", "{City} 04", "VfB {City}", "TSV {City}", "Eintracht {City}"
+  ],
+  "stadiumPatterns": [
+    "Stadion {City}", "{City} Arena", "Sportpark {City}", "Waldstadion {City}"
+  ]
+}

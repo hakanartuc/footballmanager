@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    prefer_final_locals: error
+    unawaited_futures: error
+
+linter:
+  rules:
+    - prefer_final_locals
+    - unawaited_futures

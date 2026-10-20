@@ -1,0 +1,38 @@
+{
+  "firstNames": [
+    "Alejandro", "Álvaro", "Pablo", "Sergio", "David", "Javier", "Daniel", "Adrián", "Diego",
+    "Carlos", "Jorge", "Mario", "Raúl", "Iván", "Rubén", "Marcos", "Hugo", "Iker", "Unai", "Aitor",
+    "Asier", "Íñigo", "Mikel", "Jon", "Gorka", "Óscar", "Fernando", "Francisco", "Antonio", "José",
+    "Manuel", "Miguel", "Ángel", "Jesús", "Luis", "Juan", "Pedro", "Rafael", "Santiago", "Gonzalo",
+    "Nacho", "Borja", "Dani", "Álex", "Joan", "Jordi", "Marc", "Pau", "Oriol", "Gerard", "Víctor",
+    "Alberto", "Rodrigo", "Samuel", "Saúl", "Nicolás", "Martín", "Lucas", "Enrique", "Ignacio",
+    "Guillermo", "Héctor", "Andrés", "Joaquín"
+  ],
+  "lastNames": [
+    "García", "Rodríguez", "González", "Fernández", "López", "Martínez", "Sánchez", "Pérez",
+    "Gómez", "Martín", "Jiménez", "Ruiz", "Hernández", "Díaz", "Moreno", "Muñoz", "Álvarez",
+    "Romero", "Alonso", "Gutiérrez", "Navarro", "Torres", "Domínguez", "Vázquez", "Ramos", "Gil",
+    "Ramírez", "Serrano", "Blanco", "Molina", "Morales", "Suárez", "Ortega", "Delgado", "Castro",
+    "Ortiz", "Rubio", "Marín", "Sanz", "Núñez", "Iglesias", "Medina", "Garrido", "Cortés",
+    "Castillo", "Santos", "Lozano", "Guerrero", "Cano", "Prieto", "Méndez", "Cruz", "Calvo",
+    "Gallego", "Vidal", "León", "Márquez", "Herrera", "Peña", "Flores", "Cabrera", "Campos", "Vega",
+    "Fuentes", "Carrasco", "Díez", "Caballero", "Reyes", "Nieto", "Aguilar", "Pascual", "Herrero",
+    "Lorenzo", "Montero", "Hidalgo", "Ibáñez", "Ferrer", "Durán", "Benítez", "Mora", "Arias",
+    "Crespo", "Pastor", "Soler", "Etxeberria", "Urrutia", "Goikoetxea", "Puig", "Casals", "Roca"
+  ],
+  "cityNames": [
+    "Valdeorcas", "Torremarina", "Castrollano", "Peñaserena", "Fuenteclara", "Monteluz",
+    "Villacerrada", "Robledal", "Altomar", "Navalcierva", "Riolargo", "Almenzar", "Casarrubia",
+    "Arenales del Sur", "Puertoalto", "Sierraverde", "Benamira", "Alcaraván", "Torrequinta",
+    "Lagunarrosa", "Villacelada", "Olivarejo", "Pinarblanco", "Ribadeluz", "Campoclaro",
+    "Valdecruz", "San Telmo del Mar", "Montecastillo", "Costamar", "Brezales", "Encinalta",
+    "Albarrada", "Higueral", "Cerrolobo", "Fuentelaguna", "Villaescura", "Tierranueva", "Rocaverde",
+    "Almazuela", "Castelfrío", "Miraluz", "Peñalisa"
+  ],
+  "clubSuffixes": [
+    "Real {City}", "{City} CF", "Atlético {City}", "UD {City}", "CD {City}", "Racing {City}"
+  ],
+  "stadiumPatterns": [
+    "Estadio Municipal de {City}", "Estadio {City}", "Campo de {City}"
+  ]
+}
