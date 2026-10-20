@@ -27,6 +27,7 @@ export 'src/model/world.dart';
 export 'src/persistence/migrations.dart';
 export 'src/persistence/save_codec.dart';
 export 'src/persistence/save_store.dart';
+export 'src/session/engine_session.dart';
 export 'src/sim/commands.dart';
 export 'src/sim/day_loop.dart';
 export 'src/sim/lineup.dart';
