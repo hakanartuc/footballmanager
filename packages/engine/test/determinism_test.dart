@@ -23,12 +23,6 @@ EngineSession _newSession() {
   return EngineSession.newGame(spec(club));
 }
 
-Lineup _copy(Lineup l) => Lineup(
-  formation: l.formation,
-  starters: [...l.starters],
-  bench: [...l.bench],
-);
-
 /// Advances [s] by [days] days, applying `SetLineup(lineup)` for the user
 /// club on day [_lineupDay]. A null [lineup] is picked by [autoLineup]
 /// from [s]'s own world that morning; the lineup used is returned.
@@ -37,7 +31,7 @@ Lineup _advance(EngineSession s, int days, [Lineup? lineup]) {
   for (var day = 0; day < days; day++) {
     if (day == _lineupDay) {
       lineup ??= autoLineup(s.world, club);
-      s.advanceDay([SetLineup(clubId: club, lineup: _copy(lineup))]);
+      s.advanceDay([SetLineup(clubId: club, lineup: lineup)]);
     } else {
       s.advanceDay();
     }

@@ -84,6 +84,23 @@ void main() {
       expect(w.players[auto.starters[10]]!.season.apps, 0);
     });
 
+    test('SetLineup stores a copy, not the caller\'s object', () {
+      final c = _firstTrClub();
+      final w = _world(startClubId: c);
+      final custom = autoLineup(w, c);
+      final starters = List.of(custom.starters);
+      final bench = List.of(custom.bench);
+
+      runner.advanceDay(w, [SetLineup(clubId: c, lineup: custom)]);
+      final stored = w.clubs[c]!.lineup!;
+      expect(stored, isNot(same(custom)));
+
+      custom.starters[0] = custom.bench[0];
+      custom.bench.clear();
+      expect(stored.starters, starters);
+      expect(stored.bench, bench);
+    });
+
     test('an invalid SetLineup is ignored and an auto lineup is used', () {
       final c = _firstTrClub();
       final w = _world(startClubId: c);

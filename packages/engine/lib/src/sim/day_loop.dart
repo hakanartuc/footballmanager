@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../core/game_date.dart';
 import '../core/ids.dart';
 import '../core/rng.dart';
+import '../model/club.dart';
 import '../model/events.dart';
 import '../model/world.dart';
 import 'commands.dart';
@@ -48,15 +49,20 @@ class DayRunner {
   final List<GameEvent> Function(World w, SeededRng rng)? rollover;
 
   /// Applies [commands] in order (an invalid `SetLineup` is ignored
-  /// silently), recovers every player's condition, then gives each club
-  /// with a fixture today a valid lineup, picking one automatically when
-  /// the stored one is missing or no longer valid.
+  /// silently; a valid one is stored as a copy, so the caller's `Lineup`
+  /// stays its own), recovers every player's condition, then gives each
+  /// club with a fixture today a valid lineup, picking one automatically
+  /// when the stored one is missing or no longer valid.
   void startOfDay(World w, List<Command> commands) {
     for (final cmd in commands) {
       switch (cmd) {
         case SetLineup(:final clubId, :final lineup):
           if (validateLineup(w, clubId, lineup).isEmpty) {
-            w.clubs[clubId]!.lineup = lineup;
+            w.clubs[clubId]!.lineup = Lineup(
+              formation: lineup.formation,
+              starters: List.of(lineup.starters),
+              bench: List.of(lineup.bench),
+            );
           }
         case ClearLineup(:final clubId):
           w.clubs[clubId]?.lineup = null;
