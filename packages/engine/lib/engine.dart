@@ -11,6 +11,7 @@ export 'src/model/country.dart';
 export 'src/model/enums.dart';
 export 'src/model/events.dart';
 export 'src/model/fixture.dart';
+export 'src/model/json.dart';
 export 'src/model/manager.dart';
 export 'src/model/player.dart';
 export 'src/model/world.dart';
