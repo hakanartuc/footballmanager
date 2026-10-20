@@ -395,6 +395,19 @@ void main() {
       expect(w2.fixturesOfClub(userClub, w2.seasonYear), isNotEmpty);
     });
 
+    test('the inbox gets the champion of the league the user played in', () {
+      final tr = w2.countries.values.firstWhere((c) => c.code == 'TR');
+      final champions = w2.inbox
+          .map((m) => m.event)
+          .whereType<LeagueChampion>()
+          .toList();
+      expect(champions.map((e) => e.leagueId), [tr.tiers[0]]);
+      expect(
+        champions.single.clubId,
+        run2.before.tables[tr.tiers[0]]!.first.clubId,
+      );
+    });
+
     test('a squad of 36-year-olds is refilled to exactly 18 seniors', () {
       final retired = run2.events.whereType<PlayerRetired>().where(
         (e) => e.clubId == agedClub,

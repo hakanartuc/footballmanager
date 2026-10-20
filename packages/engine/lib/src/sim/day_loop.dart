@@ -128,14 +128,19 @@ class DayRunner {
   /// events of the day ([dayEvents] plus the rollover's) to the inbox,
   /// trims it to [inboxLimit], and moves the world to the next day.
   /// Returns the rollover events.
+  ///
+  /// Relevance is judged against the league the user's club was in before
+  /// the rollover, so a promoted or relegated user gets the champion of
+  /// the league the club actually played in.
   List<GameEvent> endOfDay(World w, {List<GameEvent> dayEvents = const []}) {
+    final userLeagueId = w.userClub?.leagueId;
     final hook = rollover;
     final rolled = hook != null && w.date == w.calendar.seasonEnd
         ? hook(w, SeededRng(w.seed).fork('rollover:${w.seasonYear}'))
         : <GameEvent>[];
 
     for (final e in [...dayEvents, ...rolled]) {
-      if (isUserRelevant(w, e)) {
+      if (isUserRelevant(w, e, userLeagueId: userLeagueId)) {
         w.inbox.add(InboxMessage(date: w.date, event: e));
       }
     }
@@ -168,9 +173,10 @@ class DayRunner {
 
 /// Whether [e] belongs in the user's inbox: season-level events always;
 /// otherwise only events involving the user's club (or, for
-/// [LeagueChampion], the user's league). An unemployed user sees only
-/// season-level events.
-bool isUserRelevant(World w, GameEvent e) {
+/// [LeagueChampion], the user's league: [userLeagueId], defaulting to the
+/// club's current league). An unemployed user sees only season-level
+/// events.
+bool isUserRelevant(World w, GameEvent e, {LeagueId? userLeagueId}) {
   final club = w.userClub;
   return switch (e) {
     SeasonEnded() || NewSeasonStarted() => true,
@@ -179,7 +185,7 @@ bool isUserRelevant(World w, GameEvent e) {
       w.fixtures[fixtureId]!.homeId == club.id ||
           w.fixtures[fixtureId]!.awayId == club.id,
     LeagueChampion(:final leagueId, :final clubId) =>
-      clubId == club.id || leagueId == club.leagueId,
+      clubId == club.id || leagueId == (userLeagueId ?? club.leagueId),
     Promoted(:final clubId) => clubId == club.id,
     Relegated(:final clubId) => clubId == club.id,
     PlayerRetired(:final clubId) => clubId == club.id,

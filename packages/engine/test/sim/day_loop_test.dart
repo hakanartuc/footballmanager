@@ -263,6 +263,23 @@ void main() {
         ),
         isFalse,
       );
+      // The league the user played in can be passed explicitly.
+      expect(
+        isUserRelevant(
+          w,
+          LeagueChampion(date: d, leagueId: other.leagueId, clubId: other.id),
+          userLeagueId: other.leagueId,
+        ),
+        isTrue,
+      );
+      expect(
+        isUserRelevant(
+          w,
+          LeagueChampion(date: d, leagueId: league, clubId: rival.id),
+          userLeagueId: other.leagueId,
+        ),
+        isFalse,
+      );
       expect(
         isUserRelevant(w, PlayerRetired(date: d, playerId: 1, clubId: c)),
         isTrue,
