@@ -216,7 +216,11 @@ List<Player> _buildSquad(
         clubId: club.id,
       ),
   ];
-  final byCa = List.of(squad)..sort((a, b) => b.ca.compareTo(a.ca));
+  final byCa = List.of(squad)
+    ..sort((a, b) {
+      final c = b.ca.compareTo(a.ca);
+      return c != 0 ? c : a.id.compareTo(b.id);
+    });
   for (var i = 0; i < byCa.length; i++) {
     byCa[i].contract!.status = switch (i) {
       < 4 => PlayerStatus.keyPlayer,

@@ -88,6 +88,18 @@ void main() {
         expect(statuses.sublist(4, 14), everyElement(PlayerStatus.firstTeam));
         expect(statuses.sublist(14, 20), everyElement(PlayerStatus.rotation));
         expect(statuses.sublist(20), everyElement(PlayerStatus.backup));
+        // Higher CA never ranks below lower CA; equal CA ranks by id.
+        for (final a in squad) {
+          for (final b in squad) {
+            if (a.ca > b.ca || a.ca == b.ca && a.id < b.id) {
+              expect(
+                a.contract!.status.index,
+                lessThanOrEqualTo(b.contract!.status.index),
+                reason: '${a.id} (ca ${a.ca}) vs ${b.id} (ca ${b.ca})',
+              );
+            }
+          }
+        }
 
         final youth = small.youthOf(club.id).map((id) => small.players[id]!);
         expect(youth, hasLength(6));

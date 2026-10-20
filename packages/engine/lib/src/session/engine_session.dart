@@ -66,8 +66,11 @@ class EngineSession {
   /// lineup can still be set; the caller plays it with [advanceDay]) and
   /// right after the day whose summary contains a [SeasonEnded].
   ///
-  /// [commands] apply to the first processed day only. Returns the
-  /// summaries of the days processed, in order.
+  /// [commands] apply to the first processed day only. When the loop stops
+  /// before processing any day (today is already a user match day, or
+  /// [date] is not after today) it returns an empty list and [commands]
+  /// are dropped without being applied; pass them to [advanceDay] instead.
+  /// Returns the summaries of the days processed, in order.
   List<DaySummary> advanceUntil(
     GameDate date, {
     List<Command> commands = const [],
