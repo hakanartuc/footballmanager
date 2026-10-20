@@ -80,6 +80,19 @@ final class YouthIntake extends GameEvent {
   });
 }
 
+/// Youth aged 19 or more who were not promoted at the rollover. The players
+/// are removed from the world.
+final class YouthReleased extends GameEvent {
+  ClubId clubId;
+  List<PlayerId> playerIds;
+
+  YouthReleased({
+    required super.date,
+    required this.clubId,
+    required this.playerIds,
+  });
+}
+
 final class NewSeasonStarted extends GameEvent {
   int seasonYear;
 

@@ -311,7 +311,8 @@ void _checkFixtures(World w, List<Violation> out) {
   }
 }
 
-/// `inbox.size`, `inbox.refs`.
+/// `inbox.size`, `inbox.refs` (clubs, leagues and fixtures; player ids are
+/// exempt because players leave the world).
 void _checkInbox(World w, List<Violation> out) {
   if (w.inbox.length > inboxLimit) {
     out.add(Violation('inbox.size', '${w.inbox.length} messages'));
@@ -359,18 +360,11 @@ void _checkInbox(World w, List<Violation> out) {
         league(toLeagueId);
       case PlayerRetired(:final clubId):
         club(clubId);
-      case YouthIntake(:final clubId, :final playerIds):
+      // Player ids are not checked: the players may have retired or been
+      // released since the message was written.
+      case YouthIntake(:final clubId):
+      case YouthReleased(:final clubId):
         club(clubId);
-        for (final id in playerIds) {
-          if (!w.players.containsKey(id)) {
-            out.add(
-              Violation(
-                'inbox.refs',
-                'YouthIntake on ${m.date.iso}: player $id missing',
-              ),
-            );
-          }
-        }
       case SeasonEnded() || NewSeasonStarted():
         break;
     }

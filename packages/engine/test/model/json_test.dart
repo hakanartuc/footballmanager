@@ -293,6 +293,7 @@ List<GameEvent> _allEvents() => [
   Relegated(date: _d, clubId: 4, fromLeagueId: 1, toLeagueId: 2),
   PlayerRetired(date: _d, playerId: 9, clubId: 1),
   YouthIntake(date: _d, clubId: 2, playerIds: [41, 42, 43]),
+  YouthReleased(date: _d, clubId: 2, playerIds: [44]),
   NewSeasonStarted(date: _d, seasonYear: 2027),
 ];
 
@@ -360,7 +361,7 @@ void main() {
   group('event json', () {
     test('every GameEvent subtype round-trips', () {
       final events = _allEvents();
-      expect(events.map((e) => e.runtimeType).toSet(), hasLength(8));
+      expect(events.map((e) => e.runtimeType).toSet(), hasLength(9));
       for (final e in events) {
         final j = eventToJson(e);
         expect(j['t'], e.runtimeType.toString());

@@ -262,6 +262,17 @@ void main() {
         isFalse,
       );
       expect(
+        isUserRelevant(w, YouthReleased(date: d, clubId: c, playerIds: [1])),
+        isTrue,
+      );
+      expect(
+        isUserRelevant(
+          w,
+          YouthReleased(date: d, clubId: rival.id, playerIds: [1]),
+        ),
+        isFalse,
+      );
+      expect(
         isUserRelevant(
           w,
           Promoted(

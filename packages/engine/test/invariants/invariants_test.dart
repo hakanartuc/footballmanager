@@ -238,16 +238,29 @@ void main() {
       expect(_rules(w), contains('inbox.refs'));
     });
 
-    test('a missing youth intake player', () {
+    test('youth intake and release player ids are exempt', () {
+      // The players may have been released or retired since.
+      final w = _world();
+      final club = _firstClub(w).id;
+      w.inbox.addAll([
+        InboxMessage(
+          date: w.date,
+          event: YouthIntake(date: w.date, clubId: club, playerIds: [999999]),
+        ),
+        InboxMessage(
+          date: w.date,
+          event: YouthReleased(date: w.date, clubId: club, playerIds: [999998]),
+        ),
+      ]);
+      expect(_rules(w), isNot(contains('inbox.refs')));
+    });
+
+    test('a youth release at a missing club', () {
       final w = _world();
       w.inbox.add(
         InboxMessage(
           date: w.date,
-          event: YouthIntake(
-            date: w.date,
-            clubId: _firstClub(w).id,
-            playerIds: [999999],
-          ),
+          event: YouthReleased(date: w.date, clubId: 999999, playerIds: []),
         ),
       );
       expect(_rules(w), contains('inbox.refs'));

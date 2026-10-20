@@ -24,6 +24,9 @@ const int seniorSquadCap = 28;
 /// Players aged this or more on the season's last day retire.
 const int retirementAge = 35;
 
+/// Youth aged this or more who miss promotion at the rollover are released.
+const int youthReleaseAge = 19;
+
 /// Ends season `w.seasonYear` on `w.date` (the calendar's `seasonEnd`) and
 /// sets up the next one. The day loop calls it from `endOfDay`, with
 /// `SeededRng(seed).fork('rollover:<seasonYear>')` as [rng].
@@ -38,6 +41,8 @@ const int retirementAge = 35;
 /// 5. youth intake of `3 + rng.nextInt(4)` sixteen-year-olds per club
 ///    (`YouthIntake`), then youth aged 18 or more become seniors, lowest
 ///    id first, only while the senior squad is below [seniorSquadCap];
+///    youth aged [youthReleaseAge] or more who are still not promoted are
+///    released (`YouthReleased`) and removed from the world;
 /// 6. squad floor: fillers aged 19–24 until every senior squad has
 ///    [seniorSquadFloor] players;
 /// 7. contracts: every contract ending before the next season's
@@ -159,7 +164,10 @@ void _retirePlayers(World w, List<GameEvent> events) {
 /// Step 5. Each club draws from `rollover.fork('youth:<club>:<year>')`;
 /// positions are picked uniformly from the 24 [squadQuota] slots. Youth
 /// who miss out on promotion because of the cap stay in the youth squad
-/// for another season.
+/// for another season, until they are [youthReleaseAge]: then they are
+/// released and deleted from `players` (Faz 0 simplification; Faz 3 turns
+/// this into free agency / a drop to a lower league). Without this outflow
+/// the population grows about 10 % per season.
 void _youthIntake(
   World w,
   SeededRng rng,
@@ -203,7 +211,19 @@ void _youthIntake(
       p.contract!.status = PlayerStatus.backup;
       seniors++;
     }
+    final released = <PlayerId>[];
+    for (final pid in w.youthOf(id)) {
+      final p = w.players[pid]!;
+      if (p.isYouth && p.ageAt(w.date) >= youthReleaseAge) {
+        w.players.remove(pid);
+        released.add(pid);
+      }
+    }
+    if (released.isNotEmpty) {
+      events.add(YouthReleased(date: w.date, clubId: id, playerIds: released));
+    }
   }
+  w.rebuildIndexes();
 }
 
 /// Step 6. Fillers come from `rollover.fork('fillers:<club>:<year>')`, each

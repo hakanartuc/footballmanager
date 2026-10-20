@@ -356,6 +356,9 @@ void main() {
         w2.players[id]!.birth = GameDate.ymd(seasonEnd.year - 18, 1, 1);
       }
       fullYouth = List.of(w2.youthOf(fullClub));
+      // The third-lowest id misses promotion (the cap is reached after two)
+      // and is 19, so it must be released; the 18-year-olds behind it stay.
+      w2.players[fullYouth[2]]!.birth = GameDate.ymd(seasonEnd.year - 19, 1, 1);
 
       run2 = _SeasonRun(w2);
     });
@@ -432,7 +435,7 @@ void main() {
           .whereType<YouthIntake>()
           .singleWhere((e) => e.clubId == fullClub)
           .playerIds;
-      final kept = fullYouth.sublist(2);
+      final kept = fullYouth.sublist(3);
       expect(w2.youthOf(fullClub), [...kept, ...intake]..sort());
       for (final id in fullYouth.take(2)) {
         expect(squad, contains(id));
@@ -444,6 +447,23 @@ void main() {
         expect(w2.players[id]!.contract!.status, PlayerStatus.youth);
         expect(w2.players[id]!.ageAt(run2.before.date), 18);
       }
+    });
+
+    test('unpromoted youth aged 19 are released and removed', () {
+      final released = fullYouth[2];
+      expect(w2.players.containsKey(released), isFalse);
+      expect(w2.youthOf(fullClub), isNot(contains(released)));
+      expect(w2.squadOf(fullClub), isNot(contains(released)));
+      final event = run2.events.whereType<YouthReleased>().singleWhere(
+        (e) => e.clubId == fullClub,
+      );
+      expect(event.playerIds, [released]);
+      expect(event.date, run2.before.date);
+      expect(run2.events.whereType<YouthReleased>(), isNotEmpty);
+      expect(
+        run2.events.sublist(run2.events.length - 2).map((e) => e.runtimeType),
+        [SeasonEnded, NewSeasonStarted],
+      );
     });
 
     test('expired contracts are extended by two years', () {

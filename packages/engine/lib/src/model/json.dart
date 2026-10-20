@@ -507,6 +507,7 @@ Map<String, dynamic> eventToJson(GameEvent e) => {
     Relegated() => 'Relegated',
     PlayerRetired() => 'PlayerRetired',
     YouthIntake() => 'YouthIntake',
+    YouthReleased() => 'YouthReleased',
     NewSeasonStarted() => 'NewSeasonStarted',
   },
   'date': e.date.dayIndex,
@@ -526,6 +527,7 @@ Map<String, dynamic> eventToJson(GameEvent e) => {
     },
     PlayerRetired() => {'playerId': e.playerId, 'clubId': e.clubId},
     YouthIntake() => {'clubId': e.clubId, 'playerIds': List.of(e.playerIds)},
+    YouthReleased() => {'clubId': e.clubId, 'playerIds': List.of(e.playerIds)},
     NewSeasonStarted() => {'seasonYear': e.seasonYear},
   },
 };
@@ -561,6 +563,11 @@ GameEvent eventFromJson(Map<String, dynamic> j) {
       clubId: j['clubId'] as int?,
     ),
     'YouthIntake' => YouthIntake(
+      date: date,
+      clubId: j['clubId'] as int,
+      playerIds: _ints(j['playerIds']),
+    ),
+    'YouthReleased' => YouthReleased(
       date: date,
       clubId: j['clubId'] as int,
       playerIds: _ints(j['playerIds']),

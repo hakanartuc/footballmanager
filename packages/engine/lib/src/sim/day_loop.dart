@@ -178,5 +178,6 @@ bool isUserRelevant(World w, GameEvent e) {
     Relegated(:final clubId) => clubId == club.id,
     PlayerRetired(:final clubId) => clubId == club.id,
     YouthIntake(:final clubId) => clubId == club.id,
+    YouthReleased(:final clubId) => clubId == club.id,
   };
 }
