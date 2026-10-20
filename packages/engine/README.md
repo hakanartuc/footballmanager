@@ -80,6 +80,25 @@ season (uncompressed JSON about 5 MB per season) and `save()` takes about
 and `computeTable` read the per-season indexes (`fixturesOn`,
 `fixturesOfClub`, `fixturesOfLeagueSeason`), never the whole fixture map.
 
+### Quality decay (no development model)
+
+Faz 0 has no player development: youth arrive at CA ≈ `reputation × 0.6
++ 20` (about 60) and never improve, while the generated seniors retire.
+On the small world (seed 11) the mean best-XI CA falls from 119 at the
+start to 100 at season 10 and 84 at season 12. Player development in Faz
+2/4 resolves this. Do not tune the match model against a world that has
+decayed past season 5: the strength spread it produces is an artefact
+of the missing development, not a calibration target.
+
+### Cross-platform determinism
+
+The JSON produced by `worldToJson` is the determinism oracle, but a
+comparison between native and web (dart2js) output must be structural
+(decoded values), not byte-wise: dart2js encodes integral doubles such as
+`50.0` as `50`. Faz 0B's CI should pin determinism on the browser too,
+with `dart test -p chrome test/determinism_test.dart` run alongside the
+VM suite.
+
 ## Match model (Faz 0 placeholder)
 
 `lib/src/sim/poisson_match.dart`: independent Poisson goal counts with
