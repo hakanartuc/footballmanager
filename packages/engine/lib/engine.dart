@@ -2,6 +2,7 @@
 library;
 
 export 'src/competition/fixtures.dart';
+export 'src/competition/season_calendar_builder.dart';
 export 'src/core/game_date.dart';
 export 'src/core/ids.dart';
 export 'src/core/rng.dart';
