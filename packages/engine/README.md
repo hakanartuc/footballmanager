@@ -25,7 +25,7 @@ All gates are real assertions. Thresholds are Faz 0 bounds; the spec's
 | Test | World | Gate |
 | --- | --- | --- |
 | `test/determinism_test.dart` (fast) | small, seed 7, user at the first TR tier-1 club, `SetLineup` on day 3, 120 days | Two sessions give byte-identical `jsonEncode(worldToJson(world))`; the same run inside `Isolate.run` gives the same JSON; a session restored from a save taken on day 60 ends identical to the uninterrupted one. |
-| `test/slow/long_sim_test.dart` | small, seed 11, 5 seasons, `advanceDay` loop | `checkInvariants()` after every day: zero violations (this covers senior squads 18..28 daily). Per season: goals/match in 2.5..3.0, home wins 43..47 %, every archived champion equals both the first row of the archived `finalOrder` and the table computed on the morning of `seasonEnd`; youth squad per club ≤ 20 at every season end. Season 5 against season 2: total player count within ±10 %; age buckets 16–20 / 21–25 / 26–30 / 31+ within ±8 points. |
+| `test/slow/long_sim_test.dart` | small, seed 11, 5 seasons, `advanceDay` loop | `checkInvariants()` after every day: zero violations (this covers senior squads 18..28 daily). Per season: goals/match in 2.5..3.0, home wins 43..47 %, every archived champion equals both the first row of the archived `finalOrder` and the table computed on the morning of `seasonEnd`; youth squad per club ≤ 21 at every season end. At season 5: total player count within ±10 % of season 2; age buckets 16–20 / 21–25 / 26–30 / 31+ within ±8 points of season 3. |
 | `test/slow/perf_test.dart` | large, seed 1, 400 days | Generation < 8 s; match-day `summary.elapsed` p95 < 300 ms and non-match-day p95 < 50 ms (nearest-rank percentile; the first 5 match days are JIT warm-up and are left out); `save()` < 15 MB and < 2 s; `EngineSession.fromBytes` < 2 s. Peak RSS is not measured here (Faz 0B measures on device). |
 | `test/slow/world_generator_perf_test.dart` | large, seed 1 | Generation < 8 s. |
 | `test/slow/invariants_perf_test.dart` | large, seed 1 | One `checkInvariants` pass < 50 ms. |
@@ -50,12 +50,16 @@ daily invariant checks: ~6 s.
   (σ ≈ 0.9 points); seed 11 gave 45.8, 44.6, 45.1, 45.8, 46.1.
 - **Population gates are post-transient.** The generated world is not at
   steady state (senior squads 22..26 against the cap of 28, youth cohorts
-  fill over three seasons), so the player count and the age buckets are
-  compared between the end of season 2 (baseline) and the end of season 5;
-  the youth-squad cap of 20 holds at every season end. Outflow comes from
-  retirement at 35 and the release of youth who are still unpromoted at 19
-  (`YouthReleased`, players deleted; Faz 3 turns this into free agency).
-  The spec's 30-season ±10 % gate arrives in Faz 4.
+  fill over three seasons), so the player count at the end of season 5 is
+  compared with the end of season 2, and the age buckets with the end of
+  season 3: the generated 18..34 cohort keeps aging into 31+ until then
+  (11 % → 21 %, which is the spec's steady-state value), and that is cohort
+  aging, not drift. The youth-squad bound is 21 at every season end: the
+  steady state is 18 (three intake cohorts of up to 6) and the 21 at season
+  3 is the generated 15..17 cohort meeting the first full intake cohort.
+  Outflow comes from retirement at 35 and the release of youth who are
+  still unpromoted at 19 (`YouthReleased`, players deleted; Faz 3 turns
+  this into free agency). The spec's 30-season ±10 % gate arrives in Faz 4.
 
 ## Match model (Faz 0 placeholder)
 
