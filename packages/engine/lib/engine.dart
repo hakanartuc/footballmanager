@@ -1,6 +1,7 @@
 /// Pure-Dart football manager game engine.
 library;
 
+export 'src/competition/fixtures.dart';
 export 'src/core/game_date.dart';
 export 'src/core/ids.dart';
 export 'src/core/rng.dart';
