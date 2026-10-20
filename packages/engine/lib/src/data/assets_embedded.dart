@@ -494,8 +494,8 @@ const Map<String, String> embeddedAssets = {
   "cityNames": [
     "Montefosco", "Castelrovere", "Valdirosa", "Borgochiaro", "Rocca Serena", "Pietrascura",
     "Acquabella", "Fontanaluce", "Poggiolargo", "Torrevalle", "Colleoliva", "Sassoferro",
-    "Villabruna", "Campoalto", "Marisolea", "Castelnebbia", "Lagobruno", "Ponteselva", "Serrascura",
-    "Monteviola", "Belcolle", "Valfiorita", "San Gervasio del Mare", "Querciola", "Roccaferma",
+    "Villacandida", "Campoalto", "Marisolea", "Castelnebbia", "Lagobruno", "Ponteselva", "Serrascura",
+    "Monteviola", "Collebrina", "Valfiorita", "San Gervasio del Mare", "Querciola", "Roccaferma",
     "Altopietra", "Portosereno", "Boscoverde", "Felicetta", "Ripalba", "Castellunga", "Vignalonga",
     "Olmedoro", "Cervaria", "Mulinello", "Ginestrella", "Lucimara", "Spigalta", "Torrenera",
     "Montecervo", "Gualdorosso", "Salvamonte"
@@ -731,7 +731,7 @@ const Map<String, String> embeddedAssets = {
   ],
   "cityNames": [
     "Vale do Corvo", "Pedrafonte", "Aldeia Clara", "Torre das Ervas", "Fontemar", "Serra Alva",
-    "Alcoreira", "Porto Calmo", "Vila Serena", "Montalvar", "Ribaclara", "Castelmar", "Sobral Alto",
+    "Alcoreira", "Enseada Calma", "Vila Serena", "Montalvar", "Ribaclara", "Castelmar", "Sobral Alto",
     "Carvalhal Novo", "Pinhal Dourado", "Alverde", "Azenhas do Rio", "Barrolinda", "Quinta Branca",
     "Ponte da Luz", "Santa Aurélia", "Moinhos Altos", "Corvaceira", "Outeiro Verde",
     "Lameiras do Sol", "Mirafonte", "Belmirante", "Areias Negras", "Vale Sereno", "Penaclara",
@@ -769,10 +769,10 @@ const Map<String, String> embeddedAssets = {
     "Ergün", "Kaplan", "Tuna", "Oral"
   ],
   "cityNames": [
-    "Akçabel", "Demirkaya", "Gökçeören", "Yeşilyamaç", "Karaçamlı", "Taşlıdere", "Ilıcaköy",
-    "Kumbelen", "Sarıçayır", "Değirmenyaka", "Kuşadalı", "Çamlıyaka", "Altınoba", "Bozyazılı",
-    "Ergeneli", "Kayalıdere", "Ortaçeşme", "Yeniçamlık", "Akyakalı", "Suçıkan", "Kırkpınarlı",
-    "Ballıyamaç", "Esenbayır", "Göksuyu", "Tepecikli", "Kocaçınar", "Dumanlıdağ", "Yazıbaşı",
+    "Akçabel", "Demirkaya", "Gökçeören", "Yeşilyamaç", "Karaçamtepe", "Taşlıdere", "Ilıcaköy",
+    "Kumbelen", "Sarıçayır", "Değirmenyaka", "Martıbelen", "Çamlıyaka", "Altınoba", "Bozdoruk",
+    "Çaltıbel", "Kayalıdere", "Ortaçeşme", "Yeniçamlık", "Ardıçyaka", "Suçıkan", "Kırkçınar",
+    "Ballıyamaç", "Esenbayır", "Göksuyu", "Tepeyamaç", "Kocaçınar", "Dumanlıdağ", "Yazıbaşı",
     "Narlıbağ", "Gümüşyaka", "Kartalpınar", "Çınarlık", "Mercanköy", "Saraybeli", "Demirçayır",
     "Akçaburun", "Güzelbelen", "Karaoğlak", "Yıldızkaya", "Sütpınar", "Erikbelen", "Bağyaka",
     "Kestanelik"
