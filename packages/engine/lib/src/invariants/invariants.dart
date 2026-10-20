@@ -205,15 +205,13 @@ void _checkPlayers(
   }
 }
 
-/// `league.fixtures`, `table.goals`, `calendar.noDoubleBooking`,
+/// `league.fixtures`, `fixture.goals`, `calendar.noDoubleBooking`,
 /// `fixture.result`, all for the current season.
 void _checkFixtures(World w, List<Violation> out) {
   final members = {for (final l in w.leagues.values) l.id: l.clubIds.toSet()};
   final pairs = {
     for (final l in w.leagues.values) l.id: <(ClubId, ClubId), int>{},
   };
-  final gf = {for (final l in w.leagues.values) l.id: 0};
-  final ga = {for (final l in w.leagues.values) l.id: 0};
   final booked = <(ClubId, int)>{};
 
   for (final f in w.fixtures.values) {
@@ -251,13 +249,36 @@ void _checkFixtures(World w, List<Violation> out) {
 
     final r = f.result;
     if (r != null) {
-      if (clubs.contains(f.homeId)) {
-        gf[f.leagueId] = gf[f.leagueId]! + r.homeGoals;
-        ga[f.leagueId] = ga[f.leagueId]! + r.awayGoals;
+      var home = 0, away = 0;
+      for (final g in r.goals) {
+        if (g.clubId == f.homeId) {
+          home++;
+        } else if (g.clubId == f.awayId) {
+          away++;
+        } else {
+          out.add(
+            Violation(
+              'fixture.goals',
+              'fixture ${f.id}: goal by club ${g.clubId} not in the fixture',
+            ),
+          );
+        }
+        if (!w.players.containsKey(g.scorerId)) {
+          out.add(
+            Violation(
+              'fixture.goals',
+              'fixture ${f.id}: scorer ${g.scorerId} missing',
+            ),
+          );
+        }
       }
-      if (clubs.contains(f.awayId)) {
-        gf[f.leagueId] = gf[f.leagueId]! + r.awayGoals;
-        ga[f.leagueId] = ga[f.leagueId]! + r.homeGoals;
+      if (home != r.homeGoals || away != r.awayGoals) {
+        out.add(
+          Violation(
+            'fixture.goals',
+            'fixture ${f.id}: goal events $home-$away, result ${r.homeGoals}-${r.awayGoals}',
+          ),
+        );
       }
     }
     final played = r != null;
@@ -273,7 +294,6 @@ void _checkFixtures(World w, List<Violation> out) {
 
   for (final l in w.leagues.values) {
     final counts = pairs[l.id]!;
-    if (counts.isEmpty) continue;
     for (final a in l.clubIds) {
       for (final b in l.clubIds) {
         if (a == b) continue;
@@ -287,14 +307,6 @@ void _checkFixtures(World w, List<Violation> out) {
           );
         }
       }
-    }
-    if (gf[l.id] != ga[l.id]) {
-      out.add(
-        Violation(
-          'table.goals',
-          'league ${l.id}: gf ${gf[l.id]} != ga ${ga[l.id]}',
-        ),
-      );
     }
   }
 }
@@ -347,18 +359,30 @@ void _checkInbox(World w, List<Violation> out) {
         league(toLeagueId);
       case PlayerRetired(:final clubId):
         club(clubId);
-      case YouthIntake(:final clubId):
+      case YouthIntake(:final clubId, :final playerIds):
         club(clubId);
+        for (final id in playerIds) {
+          if (!w.players.containsKey(id)) {
+            out.add(
+              Violation(
+                'inbox.refs',
+                'YouthIntake on ${m.date.iso}: player $id missing',
+              ),
+            );
+          }
+        }
       case SeasonEnded() || NewSeasonStarted():
         break;
     }
   }
 }
 
-/// `history.champion`.
+/// `history.champion`: every league in either map has a champion equal to
+/// the first of its final order.
 void _checkHistory(World w, List<Violation> out) {
   for (final a in w.history) {
-    for (final MapEntry(key: l, value: champion) in a.champions.entries) {
+    for (final l in {...a.champions.keys, ...a.finalOrder.keys}) {
+      final champion = a.champions[l];
       final first = a.finalOrder[l]?.firstOrNull;
       if (first != champion) {
         out.add(
