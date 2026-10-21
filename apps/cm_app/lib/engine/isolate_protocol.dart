@@ -113,8 +113,9 @@ final class OkRes extends EngineResponse {
 
 /// The [GatewayError] the request failed with.
 final class FailRes extends EngineResponse {
-  const FailRes(super.id, this.kind, this.message);
+  const FailRes(super.id, this.kind, this.message, {this.saveKind});
 
   final GatewayErrorKind kind;
   final String message;
+  final SaveErrorKind? saveKind;
 }

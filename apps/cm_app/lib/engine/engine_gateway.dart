@@ -17,10 +17,13 @@ enum GatewayErrorKind {
 
 /// The only exception a gateway method's future fails with.
 class GatewayError implements Exception {
-  const GatewayError(this.kind, this.message);
+  const GatewayError(this.kind, this.message, {this.saveKind});
 
   final GatewayErrorKind kind;
   final String message;
+
+  /// The engine `SaveError`'s kind when [kind] is [GatewayErrorKind.save].
+  final SaveErrorKind? saveKind;
 
   @override
   String toString() => 'GatewayError(${kind.name}): $message';

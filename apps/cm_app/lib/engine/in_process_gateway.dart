@@ -24,7 +24,7 @@ class InProcessGateway implements EngineGateway {
     } on GatewayError {
       rethrow;
     } on SaveError catch (e) {
-      throw GatewayError(GatewayErrorKind.save, e.message);
+      throw GatewayError(GatewayErrorKind.save, e.message, saveKind: e.kind);
     } on StateError catch (e) {
       if (e.message == 'no game') {
         throw GatewayError(GatewayErrorKind.noGame, e.message);

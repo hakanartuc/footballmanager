@@ -67,7 +67,7 @@ void main() {
     expect(find.text(l.continueGame), findsOneWidget);
     expect(find.text(l.newGame), findsOneWidget);
     expect(find.text(l.noSavedGame), findsOneWidget);
-    expect(find.text(l.loadGame), findsNothing, reason: 'no onLoadGame yet');
+    expect(find.text(l.loadGame), findsOneWidget);
     expect(_continueButton(t, l).onPressed, isNull);
   });
 

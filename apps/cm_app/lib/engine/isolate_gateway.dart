@@ -28,7 +28,7 @@ Future<EngineResponse> _serve(InProcessGateway g, EngineRequest req) async {
   try {
     return OkRes(req.id, await _dispatch(g, req));
   } on GatewayError catch (e) {
-    return FailRes(req.id, e.kind, e.message);
+    return FailRes(req.id, e.kind, e.message, saveKind: e.saveKind);
   } catch (e, stack) {
     return FailRes(req.id, GatewayErrorKind.engine, '$e\n$stack');
   }
@@ -147,8 +147,10 @@ class IsolateGateway implements EngineGateway {
             GatewayError(GatewayErrorKind.engine, 'bad response type: $e'),
           );
         }
-      case FailRes(:final kind, :final message):
-        completer.completeError(GatewayError(kind, message));
+      case FailRes(:final kind, :final message, :final saveKind):
+        completer.completeError(
+          GatewayError(kind, message, saveKind: saveKind),
+        );
     }
   }
 

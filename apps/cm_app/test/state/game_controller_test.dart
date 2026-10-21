@@ -102,7 +102,19 @@ void main() {
     await c.loadSlot(3);
     final failed = c.state as Failed;
     expect(failed.error.kind, GatewayErrorKind.save);
+    expect(failed.error.saveKind, SaveErrorKind.missingSlot);
     expect(failed.previous, isA<NoGame>());
+  });
+
+  test('manualSlots, autosaves and deleteSlot pass through', () async {
+    await c.newGame(anySpec); // autosave in slot 6
+    await c.saveToSlot(2);
+    expect((await c.manualSlots()).map((s) => s.slot), [2]);
+    expect((await c.autosaves()).map((s) => s.slot), [6]);
+    states.clear();
+    await c.deleteSlot(2);
+    expect(await c.manualSlots(), isEmpty);
+    expect(states, isEmpty, reason: 'deleteSlot is not a game action');
   });
 
   test('retry re-runs the last action', () async {

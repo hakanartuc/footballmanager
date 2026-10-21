@@ -165,6 +165,11 @@ class GameController extends ChangeNotifier {
   Future<List<InboxItem>> inbox() => _gateway.inbox();
   Future<WorldRefs> refs() => _gateway.refs();
   Future<SlotInfo?> newestAutosave() => _repo.newestAutosave();
+  Future<List<SlotInfo>> manualSlots() => _repo.manualSlots();
+  Future<List<SlotInfo>> autosaves() => _repo.autosaves();
+
+  /// Empties [slot]; not a game action, so [state] does not change.
+  Future<void> deleteSlot(int slot) => _repo.deleteSlot(slot);
 
   /// [state] without a [Failed] wrapper.
   GameState get _settled => switch (_state) {
@@ -220,7 +225,12 @@ class GameController extends ChangeNotifier {
     } on GatewayError catch (e) {
       _set(Failed(e, reached()));
     } on SaveError catch (e) {
-      _set(Failed(GatewayError(GatewayErrorKind.save, e.message), reached()));
+      _set(
+        Failed(
+          GatewayError(GatewayErrorKind.save, e.message, saveKind: e.kind),
+          reached(),
+        ),
+      );
     } catch (e) {
       _set(Failed(GatewayError(GatewayErrorKind.engine, '$e'), reached()));
       rethrow;

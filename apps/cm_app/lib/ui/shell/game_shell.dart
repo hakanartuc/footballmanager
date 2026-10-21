@@ -4,6 +4,7 @@ import '../../engine/snapshots.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../home/home_screen.dart';
 import '../inbox/inbox_screen.dart';
+import '../saves/saves_screen.dart';
 import '../league/league_screen.dart';
 import '../squad/lineup_screen.dart';
 import '../squad/squad_screen.dart';
@@ -29,6 +30,17 @@ class _GameShellState extends State<GameShell> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.home.clubName ?? widget.home.managerName),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save_outlined),
+            tooltip: l.manualSaves,
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SavesScreen(canSave: true),
+              ),
+            ),
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _tab,

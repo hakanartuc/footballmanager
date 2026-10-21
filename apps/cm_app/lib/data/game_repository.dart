@@ -37,6 +37,10 @@ class GameRepository {
     return newest;
   }
 
+  /// The occupied autosave slots, newest first.
+  Future<List<SlotInfo>> autosaves() async =>
+      (await _autosaves())..sort((a, b) => b.savedAt.compareTo(a.savedAt));
+
   /// Saves the game to manual [slot].
   Future<void> saveToSlot(int slot) async {
     if (!_isManual(slot)) {

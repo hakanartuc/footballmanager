@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cm_app/engine/engine_gateway.dart';
@@ -404,6 +406,31 @@ void runGatewayContract(Future<EngineGateway> Function() make) {
             'kind',
             GatewayErrorKind.save,
           ),
+        ),
+      );
+    },
+  );
+
+  test(
+    'load() of a newer-schema save is a save error of kind newerSchema',
+    () async {
+      final envelope =
+          jsonDecode(
+                utf8.decode(
+                  gzip.decode(const JsonGzipSaveCodec().encode(reference)),
+                ),
+              )
+              as Map<String, dynamic>;
+      envelope['schemaVersion'] = 99;
+      final bytes = Uint8List.fromList(
+        gzip.encode(utf8.encode(jsonEncode(envelope))),
+      );
+      await expectLater(
+        g.load(bytes),
+        throwsA(
+          isA<GatewayError>()
+              .having((e) => e.kind, 'kind', GatewayErrorKind.save)
+              .having((e) => e.saveKind, 'saveKind', SaveErrorKind.newerSchema),
         ),
       );
     },

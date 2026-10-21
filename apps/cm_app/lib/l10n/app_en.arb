@@ -389,6 +389,9 @@
   "deleteConfirm": "Delete this save?",
   "loadError": "The save could not be loaded.",
   "newerSaveError": "This save was made with a newer version of the game.",
+  "manualSaves": "Saves",
+  "autosaves": "Autosaves",
+  "saved": "Saved",
   "language": "Language",
   "turkish": "Türkçe",
   "@turkish": {

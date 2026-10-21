@@ -83,6 +83,14 @@ void main() {
     expect((await repo.newestAutosave())!.slot, 7);
   });
 
+  test('autosaves lists the occupied autosave slots newest first', () async {
+    await repo.newGame(_spec()); // slot 6
+    await advanceDay();
+    await repo.autosave(); // slot 7
+    await repo.saveToSlot(1);
+    expect((await repo.autosaves()).map((s) => s.slot), [7, 6]);
+  });
+
   test('newestAutosave is null on an empty store', () async {
     expect(await repo.newestAutosave(), isNull);
   });
