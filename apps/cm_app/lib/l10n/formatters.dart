@@ -13,6 +13,10 @@ String formatDate(GameDate d, Locale locale) => DateFormat.yMMMd(
   locale.toLanguageTag(),
 ).format(DateTime.utc(d.year, d.month, d.day));
 
+/// "2026-27" for the season starting in 2026.
+String seasonLabel(int year) =>
+    '$year-${((year + 1) % 100).toString().padLeft(2, '0')}';
+
 /// Locale-independent short code: "GK", "DL", … "ST".
 String positionCode(Position p) => p.name.toUpperCase();
 

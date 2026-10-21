@@ -67,17 +67,13 @@ abstract final class EventText {
         l.eventYouthReleasedBody(club),
       ),
       SeasonEnded(:final seasonYear) => EventTextResult(
-        l.eventSeasonEndedTitle(_season(seasonYear)),
+        l.eventSeasonEndedTitle(seasonLabel(seasonYear)),
         l.eventSeasonEndedBody,
       ),
       NewSeasonStarted(:final seasonYear) => EventTextResult(
-        l.eventNewSeasonTitle(_season(seasonYear)),
+        l.eventNewSeasonTitle(seasonLabel(seasonYear)),
         l.eventNewSeasonBody,
       ),
     };
   }
-
-  /// "2026-27" for the season starting in 2026.
-  static String _season(int year) =>
-      '$year-${((year + 1) % 100).toString().padLeft(2, '0')}';
 }

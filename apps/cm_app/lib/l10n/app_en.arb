@@ -423,6 +423,57 @@
     }
   },
   "seasonEnded": "Season over",
+  "seasonEndBody": "The {season} season is over. You finished {position}.",
+  "@seasonEndBody": {
+    "description": "Season end dialog body; season like 2026-27, position is the final league rank",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      },
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonEndBodyUnemployed": "The {season} season is over.",
+  "@seasonEndBodyUnemployed": {
+    "description": "Season end dialog body without a club",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "leaguePositionLabel": "Position {position}",
+  "@leaguePositionLabel": {
+    "description": "Home: the user's current league rank",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCount": "{count, plural, =1{1 player} other{{count} players}}",
+  "@playerCount": {
+    "description": "Home: senior squad size",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLabel": "Home",
+  "@homeLabel": {
+    "description": "Next match: played at home"
+  },
+  "awayLabel": "Away",
+  "@awayLabel": {
+    "description": "Next match: played away"
+  },
+  "latestNews": "Latest news",
+  "@latestNews": {
+    "description": "Home: heading over the newest inbox items"
+  },
   "champion": "Champion",
   "promoted": "Promoted",
   "relegated": "Relegated",

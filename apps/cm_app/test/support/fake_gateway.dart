@@ -287,6 +287,7 @@ HomeSnapshot copyHome(
   HomeSnapshot h, {
   GameDate? date,
   int? unreadCount,
+  bool? isMatchDay,
   bool unemployed = false,
 }) => HomeSnapshot(
   date: date ?? h.date,
@@ -296,7 +297,7 @@ HomeSnapshot copyHome(
   leagueId: unemployed ? null : h.leagueId,
   leaguePosition: unemployed ? null : h.leaguePosition,
   nextMatch: unemployed ? null : h.nextMatch,
-  isMatchDay: h.isMatchDay,
+  isMatchDay: isMatchDay ?? h.isMatchDay,
   unreadCount: unreadCount ?? h.unreadCount,
   seniorCount: unemployed ? 0 : h.seniorCount,
   injuredCount: unemployed ? 0 : h.injuredCount,
