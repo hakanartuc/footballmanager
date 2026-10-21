@@ -2,6 +2,7 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../engine/engine_gateway.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/event_text.dart';
 import '../../l10n/formatters.dart';
@@ -149,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
       future: _news,
       builder: (context, snap) => Column(
         children: [
+          if (snap.error is GatewayError) ListTile(title: Text(l.error)),
           for (final item in (snap.data ?? const <InboxItem>[]).take(3))
             ListTile(
               title: Text(

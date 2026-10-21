@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshots.dart';
 import 'package:cm_app/l10n/event_text.dart';
 import 'package:cm_app/l10n/formatters.dart';
@@ -253,6 +254,19 @@ void main() {
       t.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
       3,
     );
+  });
+
+  testWidgets('an inbox error shows the error text under latest news', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    g.inboxError = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await pumpApp(t, gateway: g);
+    expect(t.takeException(), isNull);
+    expect(find.text(l.latestNews), findsOneWidget);
+    expect(find.text(l.error), findsOneWidget);
+    expect(find.byType(ErrorCard), findsNothing);
   });
 
   testWidgets('unread news is bold', (t) async {
