@@ -49,11 +49,9 @@
     "description": "Home: advance the calendar"
   },
   "playMatch": "Play match",
-  "matchDay": "Match day",
   "nextMatch": "Next match",
   "noClubUnemployed": "You are not managing a club.",
   "season": "Season",
-  "unread": "Unread",
   "squadStatus": "{injured} injured, {suspended} suspended",
   "@squadStatus": {
     "description": "Home: squad availability summary",
@@ -65,10 +63,6 @@
         "type": "int"
       }
     }
-  },
-  "position": "Position",
-  "@position": {
-    "description": "Squad table column"
   },
   "age": "Age",
   "ca": "CA",
@@ -158,7 +152,6 @@
   "seasonStats": "Season stats",
   "table": "Table",
   "fixtures": "Fixtures",
-  "results": "Results",
   "played": "P",
   "@played": {
     "description": "League table column: played"
@@ -174,14 +167,6 @@
   "lost": "L",
   "@lost": {
     "description": "League table column: lost"
-  },
-  "goalsFor": "F",
-  "@goalsFor": {
-    "description": "League table column: goals for"
-  },
-  "goalsAgainst": "A",
-  "@goalsAgainst": {
-    "description": "League table column: goals against"
   },
   "goalDifference": "GD",
   "@goalDifference": {
@@ -484,9 +469,6 @@
   "@latestNews": {
     "description": "Home: heading over the newest inbox items"
   },
-  "champion": "Champion",
-  "promoted": "Promoted",
-  "relegated": "Relegated",
   "ok": "OK",
   "cancel": "Cancel",
   "retry": "Try again",
