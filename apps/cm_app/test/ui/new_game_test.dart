@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:cm_app/data/entitlements.dart';
+import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/l10n/generated/app_localizations.dart';
 import 'package:cm_app/state/game_controller.dart';
 import 'package:cm_app/ui/start/new_game_screen.dart';
@@ -121,7 +124,7 @@ void main() {
     expect(spec.managerLastName, 'Artuc');
     expect(spec.managerCountryCode, 'TR');
     expect(spec.size, WorldSize.small);
-    expect(g.calls.where((c) => c == 'newGame'), hasLength(1));
+    expect(g.calls.where((m) => m == 'newGame'), hasLength(1));
     expect(c.state, isA<Ready>());
     expect(find.byType(NewGameScreen), findsNothing);
     expect(find.byType(NavigationBar), findsOneWidget);
@@ -143,14 +146,16 @@ void main() {
   testWidgets('club flow: country, league, club fill the spec', (t) async {
     final l = await loadL10n();
     final g = FakeGateway.ready();
-    await _open(t, gateway: g);
+    final c = await _open(t, gateway: g);
     await _enterNames(t);
     await _pickGamma(t, l);
     expect(g.lastSpec!.startClubId, isNull, reason: 'preview is unemployed');
+    expect(c.state, isA<NoGame>(), reason: 'preview stays NoGame');
+    expect(await c.newestAutosave(), isNull, reason: 'preview not saved');
     expect(find.text('Gamma Spor'), findsOneWidget);
     await _tapStart(t, l);
     expect(g.lastSpec!.startClubId, 3);
-    expect(g.calls.where((c) => c == 'newGame'), hasLength(2));
+    expect(g.calls.where((m) => m == 'newGame'), hasLength(2));
     expect(find.byType(NewGameScreen), findsNothing);
     expect(find.byType(NavigationBar), findsOneWidget);
   });
@@ -171,6 +176,79 @@ void main() {
     await t.enterText(find.byKey(const Key('seed')), '42');
     await t.pumpAndSettle();
     expect(find.text('Gamma Spor'), findsNothing);
+  });
+
+  testWidgets('a failed start keeps the form and shows the error', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    final c = await _open(t, gateway: g);
+    await _enterNames(t);
+    await t.tap(find.text(l.startUnemployed));
+    await t.pumpAndSettle();
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await _tapStart(t, l);
+    expect(find.byType(NewGameScreen), findsOneWidget);
+    expect(c.state, isA<NoGame>(), reason: 'error dismissed');
+    expect(
+      find.descendant(of: find.byType(SnackBar), matching: find.text(l.error)),
+      findsOneWidget,
+    );
+    expect(find.text('Hakan'), findsOneWidget);
+  });
+
+  testWidgets('a failed preview keeps the form and shows the error', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    final c = await _open(t, gateway: g);
+    await _enterNames(t);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(find.text(l.pickClub));
+    await t.pumpAndSettle();
+    expect(find.byType(NewGameScreen), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(c.state, isA<NoGame>());
+    expect(find.text(l.error), findsOneWidget);
+  });
+
+  testWidgets('the pick button spins during the preview', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    await _open(t, gateway: g);
+    await _enterNames(t);
+    g.hold = Completer();
+    await t.tap(find.text(l.pickClub));
+    await t.pump();
+    expect(
+      find.descendant(
+        of: find.byType(OutlinedButton),
+        matching: find.byType(CircularProgressIndicator),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.text(l.startGame),
+      findsOneWidget,
+      reason: 'start not spinning',
+    );
+    g.hold!.complete();
+    await t.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  });
+
+  testWidgets('a non-numeric seed is rejected', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    await _open(t, gateway: g);
+    await _enterNames(t);
+    await t.tap(find.text(l.startUnemployed));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text(l.advanced));
+    await t.tap(find.text(l.advanced));
+    await t.pumpAndSettle();
+    await t.enterText(find.byKey(const Key('seed')), 'abc');
+    await _tapStart(t, l);
+    expect(find.text(l.invalidNumber), findsOneWidget);
+    expect(g.calls, isNot(contains('newGame')));
   });
 
   testWidgets('EN labels', (t) async {

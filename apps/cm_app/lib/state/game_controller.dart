@@ -62,6 +62,32 @@ class GameController extends ChangeNotifier {
     await _refresh(null);
   });
 
+  /// Generates [spec]'s world without a club and returns its refs, for the
+  /// new-game club picker; null when it failed. Only from [NoGame], which
+  /// [state] stays in: nothing is autosaved and the preview is replaced by
+  /// the next [newGame]. [retry] after a failed preview does nothing.
+  Future<WorldRefs?> previewWorld(NewGameSpec spec) async {
+    if (_state is Busy) throw StateError('busy');
+    if (_settled is! NoGame) throw StateError('previewWorld needs NoGame');
+    final refs = await _run('preview', (previous) async {
+      await _gateway.newGame(
+        NewGameSpec(
+          seed: spec.seed,
+          size: spec.size,
+          managerFirstName: spec.managerFirstName,
+          managerLastName: spec.managerLastName,
+          managerCountryCode: spec.managerCountryCode,
+          startClubId: null,
+        ),
+      );
+      final refs = await _gateway.refs();
+      _set(previous);
+      return refs;
+    });
+    _lastAction = () async => null;
+    return refs;
+  }
+
   /// Loads the newest autosave; stays [NoGame] when there is none.
   Future<void> continueLast() => _run('continueLast', (previous) async {
     if (await _repo.continueLast()) {

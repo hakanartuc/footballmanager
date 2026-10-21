@@ -18,11 +18,11 @@ final List<String> _countryCodes = [
 /// The new game form: manager name and nationality, world size, seed and
 /// the starting club (or none).
 ///
-/// Clubs only exist once a world is generated, so choosing one runs a
-/// preview: [GameController.newGame] with the same seed and size but no
-/// club, then the pickers over its [WorldRefs]. Starting generates the
-/// world again with the chosen club; generation is fast enough for the
-/// double cost. The preview stays loaded until then.
+/// Clubs only exist once a world is generated, so choosing one runs
+/// [GameController.previewWorld] (same seed and size, no club, not saved)
+/// and the pickers over its [WorldRefs]. Starting generates the world
+/// again with the chosen club; generation is fast enough for the double
+/// cost. A failed action keeps the form and shows a [SnackBar].
 class NewGameScreen extends StatefulWidget {
   const NewGameScreen({super.key});
 
@@ -61,7 +61,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
       _countryCodes.take(_size.countryCount).toList();
 
   NewGameSpec _spec({ClubId? startClubId}) => NewGameSpec(
-    seed: int.parse(_seed.text),
+    seed: int.parse(_seed.text.trim()),
     size: _size,
     managerFirstName: _firstName.text.trim(),
     managerLastName: _lastName.text.trim(),
@@ -81,20 +81,21 @@ class _NewGameScreenState extends State<NewGameScreen> {
     _worldChanged();
   });
 
-  /// Ends on the root route when an action failed, where the root shows
-  /// the error; returns whether [GameController.state] is [Ready].
-  bool _ready(GameController controller) {
-    if (controller.state is Ready) return true;
-    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
-    return false;
+  /// Drops the controller's error and shows it here, keeping the form.
+  void _failed(GameController controller) {
+    controller.dismissError();
+    if (!mounted) return;
+    final l = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l.error)));
   }
 
   Future<void> _pickClub() async {
     if (!_form.currentState!.validate()) return;
     final controller = context.read<GameController>();
-    await controller.newGame(_spec());
-    if (!_ready(controller)) return;
-    final refs = await controller.refs();
+    final refs = await controller.previewWorld(_spec());
+    if (refs == null) return _failed(controller);
     if (!mounted) return;
     final l = AppLocalizations.of(context)!;
 
@@ -180,16 +181,20 @@ class _NewGameScreenState extends State<NewGameScreen> {
     await controller.newGame(
       _spec(startClubId: _unemployed ? null : _club!.id),
     );
-    if (_ready(controller) && mounted) {
-      Navigator.of(context).popUntil((r) => r.isFirst);
-    }
+    if (controller.state is! Ready) return _failed(controller);
+    if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final entitlements = context.read<Entitlements>();
-    final busy = context.watch<GameController>().state is Busy;
+    final state = context.watch<GameController>().state;
+    final busy = state is Busy;
+    const spinner = SizedBox.square(
+      dimension: 20,
+      child: CircularProgressIndicator(strokeWidth: 2),
+    );
     String? required(String? v) =>
         (v == null || v.trim().isEmpty) ? l.fieldRequired : null;
     final club = _club;
@@ -257,7 +262,9 @@ class _NewGameScreenState extends State<NewGameScreen> {
                 title: Text(club?.name ?? l.startClub),
                 trailing: OutlinedButton(
                   onPressed: busy ? null : _pickClub,
-                  child: Text(l.pickClub),
+                  child: state is Busy && state.what == 'preview'
+                      ? spinner
+                      : Text(l.pickClub),
                 ),
               ),
             ExpansionTile(
@@ -270,7 +277,10 @@ class _NewGameScreenState extends State<NewGameScreen> {
                   decoration: InputDecoration(labelText: l.seed),
                   keyboardType: TextInputType.number,
                   validator: (v) =>
-                      int.tryParse(v ?? '') == null ? l.fieldRequired : null,
+                      required(v) ??
+                      (int.tryParse(v!.trim()) == null
+                          ? l.invalidNumber
+                          : null),
                   onChanged: (_) => setState(_worldChanged),
                 ),
               ],
@@ -278,11 +288,8 @@ class _NewGameScreenState extends State<NewGameScreen> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: busy || (!_unemployed && club == null) ? null : _start,
-              child: busy
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+              child: state is Busy && state.what == 'newGame'
+                  ? spinner
                   : Text(l.startGame),
             ),
           ],

@@ -35,6 +35,7 @@
   "pickClub": "Choose a club",
   "startGame": "Start game",
   "fieldRequired": "This field is required",
+  "invalidNumber": "Invalid number",
   "advanced": "Advanced",
   "@advanced": {
     "description": "New game: expander for optional settings"

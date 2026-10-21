@@ -50,6 +50,33 @@ void main() {
     expect(gateway.calls, contains('newGame'));
   });
 
+  test(
+    'previewWorld returns refs, stays NoGame and does not autosave',
+    () async {
+      final refs = await c.previewWorld(anySpec);
+      expect(refs, same(gateway.refsSnapshot));
+      expect(states.first, isA<Busy>());
+      expect(c.state, isA<NoGame>());
+      expect(gateway.lastSpec!.startClubId, isNull);
+      expect(gateway.calls, ['newGame', 'refs']);
+      expect(await store.list(), isEmpty);
+    },
+  );
+
+  test('previewWorld needs NoGame', () async {
+    await c.newGame(anySpec);
+    expect(() => c.previewWorld(anySpec), throwsStateError);
+  });
+
+  test('a failed previewWorld returns null and retry does nothing', () async {
+    gateway.failNext = boom;
+    expect(await c.previewWorld(anySpec), isNull);
+    expect((c.state as Failed).previous, isA<NoGame>());
+    gateway.calls.clear();
+    expect(await c.retry(), isNull);
+    expect(gateway.calls, isEmpty);
+  });
+
   test('advance autosaves once and measures lastAdvanceMs', () async {
     await c.newGame(anySpec);
     final before = (await store.list()).length;

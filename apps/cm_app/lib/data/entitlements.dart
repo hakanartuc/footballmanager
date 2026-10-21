@@ -13,8 +13,7 @@ class Entitlements {
 
   bool allows(WorldSize s) => allowedSizes.contains(s);
 
-  /// The largest allowed size, the new-game screen's default. Needs a
-  /// non-empty [allowedSizes].
+  /// The largest allowed size. Needs a non-empty [allowedSizes].
   WorldSize get maxWorldSize =>
       allowedSizes.reduce((a, b) => a.countryCount >= b.countryCount ? a : b);
 }
