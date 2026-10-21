@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/isolate_gateway.dart';
+import 'package:cm_app/engine/isolate_protocol.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -19,6 +20,16 @@ NewGameSpec _spec({WorldSize size = WorldSize.small}) => NewGameSpec(
 
 Matcher _fails(GatewayErrorKind kind) =>
     throwsA(isA<GatewayError>().having((e) => e.kind, 'kind', kind));
+
+/// A worker that dies before sending its port.
+void _crashingWorker(SendPort toMain) => throw StateError('boom');
+
+/// A worker that answers every request with a value of the wrong type.
+void _wrongTypeWorker(SendPort toMain) {
+  final port = ReceivePort();
+  toMain.send(port.sendPort);
+  port.listen((Object? m) => toMain.send(OkRes((m as EngineRequest).id, 42)));
+}
 
 void main() {
   group('contract', () {
@@ -77,8 +88,27 @@ void main() {
     final pending = g.home();
     await expectLater(pending, _fails(GatewayErrorKind.engine));
     expect(g.isBroken, isTrue);
+    expect(g.portsClosed, isTrue);
     await expectLater(g.refs(), _fails(GatewayErrorKind.engine));
     await g.dispose();
     await expectLater(g.refs(), _fails(GatewayErrorKind.noGame));
+  });
+
+  test('spawn() fails instead of hanging when the worker dies early', () async {
+    await expectLater(
+      IsolateGateway.spawn(
+        entry: _crashingWorker,
+      ).timeout(const Duration(seconds: 5)),
+      _fails(GatewayErrorKind.engine),
+    );
+  });
+
+  test('a response of the wrong type fails the call', () async {
+    final g2 = await IsolateGateway.spawn(entry: _wrongTypeWorker);
+    addTearDown(g2.dispose);
+    await expectLater(
+      g2.home().timeout(const Duration(seconds: 5)),
+      _fails(GatewayErrorKind.engine),
+    );
   });
 }

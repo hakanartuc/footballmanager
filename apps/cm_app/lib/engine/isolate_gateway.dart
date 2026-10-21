@@ -61,12 +61,15 @@ Future<Object?> _dispatch(InProcessGateway g, EngineRequest req) =>
 class IsolateGateway implements EngineGateway {
   IsolateGateway._(this._isolate, this._fromWorker, this._errors, this._exit);
 
-  static Future<IsolateGateway> spawn() async {
+  /// [entry] replaces [engineWorkerMain] in tests only.
+  static Future<IsolateGateway> spawn({
+    @visibleForTesting void Function(SendPort)? entry,
+  }) async {
     final fromWorker = ReceivePort();
     final errors = ReceivePort();
     final exit = ReceivePort();
     final isolate = await Isolate.spawn(
-      engineWorkerMain,
+      entry ?? engineWorkerMain,
       fromWorker.sendPort,
       onError: errors.sendPort,
       onExit: exit.sendPort,
@@ -75,14 +78,20 @@ class IsolateGateway implements EngineGateway {
     );
     final g = IsolateGateway._(isolate, fromWorker, errors, exit);
     final ready = Completer<SendPort>();
+    void crash(String message) {
+      g._crash(message);
+      if (!ready.isCompleted) {
+        ready.completeError(GatewayError(GatewayErrorKind.engine, message));
+      }
+    }
+
     fromWorker.listen(
       (Object? m) => m is SendPort ? ready.complete(m) : g._onResponse(m),
     );
     errors.listen(
-      (Object? e) =>
-          g._crash('engine isolate crashed: ${(e as List).join('\n')}'),
+      (Object? e) => crash('engine isolate crashed: ${(e as List).join('\n')}'),
     );
-    exit.listen((_) => g._crash('engine isolate crashed'));
+    exit.listen((_) => crash('engine isolate crashed'));
     g._toWorker = await ready.future;
     return g;
   }
@@ -96,6 +105,7 @@ class IsolateGateway implements EngineGateway {
   var _nextId = 0;
   var _broken = false;
   var _disposed = false;
+  var _portsClosed = false;
 
   /// True once the worker died from an uncaught error or was killed; every
   /// call fails with `GatewayError(engine)` from then on.
@@ -103,6 +113,9 @@ class IsolateGateway implements EngineGateway {
 
   @visibleForTesting
   Isolate get isolate => _isolate;
+
+  @visibleForTesting
+  bool get portsClosed => _portsClosed;
 
   Future<T> _send<T>(EngineRequest Function(int id) make) async {
     if (_disposed) {
@@ -127,16 +140,31 @@ class IsolateGateway implements EngineGateway {
     if (completer == null) return;
     switch (response) {
       case OkRes(:final value):
-        completer.complete(value);
+        try {
+          completer.complete(value);
+        } on TypeError catch (e) {
+          completer.completeError(
+            GatewayError(GatewayErrorKind.engine, 'bad response type: $e'),
+          );
+        }
       case FailRes(:final kind, :final message):
         completer.completeError(GatewayError(kind, message));
     }
   }
 
+  /// The worker is gone: release its ports and fail everything in flight.
   void _crash(String message) {
     if (_broken) return;
     _broken = true;
+    _closePorts();
     _failPending(GatewayError(GatewayErrorKind.engine, message));
+  }
+
+  void _closePorts() {
+    _fromWorker.close();
+    _errors.close();
+    _exit.close();
+    _portsClosed = true;
   }
 
   void _failPending(GatewayError error) {
@@ -202,9 +230,7 @@ class IsolateGateway implements EngineGateway {
   Future<void> dispose() async {
     if (_disposed) return;
     _disposed = true;
-    _fromWorker.close();
-    _errors.close();
-    _exit.close();
+    _closePorts();
     if (!_broken) _toWorker.send(ShutdownReq(_nextId++));
     _isolate.kill(priority: Isolate.immediate);
     _failPending(
