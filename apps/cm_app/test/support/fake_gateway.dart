@@ -272,8 +272,14 @@ class FakeGateway implements EngineGateway {
     return _call('clubFixtures', () => fixtureRows);
   }
 
+  /// Thrown by every [inbox] call while set.
+  GatewayError? inboxError;
+
   @override
-  Future<List<InboxItem>> inbox() => _call('inbox', () => inboxItems);
+  Future<List<InboxItem>> inbox() => _call('inbox', () {
+    if (inboxError case final e?) throw e;
+    return inboxItems;
+  });
 
   /// Marks the item read and recounts [HomeSnapshot.unreadCount], like the
   /// real gateway.

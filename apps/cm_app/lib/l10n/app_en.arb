@@ -192,6 +192,10 @@
     "description": "League table column: points"
   },
   "markAllRead": "Mark all as read",
+  "noMessages": "No messages yet",
+  "@noMessages": {
+    "description": "Inbox: empty list"
+  },
   "eventMatchTitle": "{home} {hg} - {ag} {away}",
   "@eventMatchTitle": {
     "description": "Inbox: match result headline",

@@ -115,6 +115,7 @@
   "goalDifference": "Av",
   "points": "P",
   "markAllRead": "Tümünü okundu olarak işaretle",
+  "noMessages": "Henüz mesaj yok",
   "eventMatchTitle": "{home} {hg} - {ag} {away}",
   "eventMatchBody": "Maç sonucu",
   "eventChampionTitle": "{club}, {league} şampiyonu oldu",

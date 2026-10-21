@@ -2,13 +2,12 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../engine/engine_gateway.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/formatters.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
 import '../widgets/club_chip.dart';
-import '../widgets/error_card.dart';
+import '../widgets/loaded.dart';
 
 /// The league tab: a country and league picker over a table tab and a
 /// fixtures tab (the user's club, or a picked club while unemployed).
@@ -152,7 +151,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
           Expanded(
             child: TabBarView(
               children: [
-                _Loaded(
+                Loaded(
                   future: _table!,
                   onRetry: () => setState(() => _table = null),
                   builder: (rows) => [
@@ -160,7 +159,7 @@ class _LeagueScreenState extends State<LeagueScreen> {
                     for (final r in rows) _TableRow(r, clubs[r.clubId]!),
                   ],
                 ),
-                _Loaded(
+                Loaded(
                   future: _fixtures!,
                   onRetry: () => setState(() => _fixtures = null),
                   header: clubPicker,
@@ -175,37 +174,6 @@ class _LeagueScreenState extends State<LeagueScreen> {
       ),
     );
   }
-}
-
-/// A list of [builder]'s widgets once [future] completes, after an
-/// optional [header]; a spinner while loading, an [ErrorCard] on failure.
-class _Loaded<T> extends StatelessWidget {
-  const _Loaded({
-    required this.future,
-    required this.onRetry,
-    required this.builder,
-    this.header,
-  });
-
-  final Future<List<T>> future;
-  final VoidCallback onRetry;
-  final List<Widget> Function(List<T> rows) builder;
-  final Widget? header;
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder(
-    future: future,
-    builder: (context, snap) => ListView(
-      children: [
-        ?header,
-        if (snap.error case final GatewayError e)
-          ErrorCard(error: e, onRetry: onRetry)
-        else if (snap.connectionState != ConnectionState.done)
-          const Center(child: CircularProgressIndicator()),
-        ...builder(snap.data ?? const []),
-      ],
-    ),
-  );
 }
 
 const _cellWidth = 28.0;
