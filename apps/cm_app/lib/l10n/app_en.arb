@@ -421,6 +421,10 @@
   "cancel": "Cancel",
   "retry": "Try again",
   "error": "Error",
+  "errorDetails": "Details",
+  "@errorDetails": {
+    "description": "Error card: expandable technical details"
+  },
   "leagueDisplayName": "{country} Division {tier}",
   "@leagueDisplayName": {
     "description": "League name from country and tier, e.g. Türkiye 1. Lig",

@@ -1,37 +1,153 @@
+import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'data/app_save_store.dart';
+import 'data/entitlements.dart';
+import 'data/game_repository.dart';
+import 'data/settings_controller.dart';
+import 'engine/engine_gateway.dart';
+import 'engine/isolate_gateway.dart';
 import 'l10n/generated/app_localizations.dart';
+import 'state/game_controller.dart';
+import 'ui/shell/game_shell.dart';
+import 'ui/theme.dart';
+import 'ui/widgets/busy_overlay.dart';
+import 'ui/widgets/error_card.dart';
 
 class CmApp extends StatelessWidget {
-  const CmApp({super.key, this.locale, this.gateway, this.store});
+  const CmApp({
+    super.key,
+    this.locale,
+    this.gateway,
+    this.store,
+    this.settings,
+    this.entitlements = Entitlements.dev,
+  });
 
   final Locale? locale;
 
-  // Placeholders: typed `Object?` until the engine gateway and save store
-  // exist; they will be retyped to `EngineGateway?` / `SaveStore?` without
-  // changing call sites.
-  final Object? gateway;
-  final Object? store;
+  /// Null creates an [IsolateGateway].
+  final EngineGateway? gateway;
+
+  /// Null opens the [AppSaveStore].
+  final SaveStore? store;
+
+  /// Null creates and loads one.
+  final SettingsController? settings;
+  final Entitlements entitlements;
+
+  @override
+  Widget build(BuildContext context) => _AppBootstrap(app: this);
+}
+
+/// Creates whatever [CmApp] was not given, then provides the app state.
+class _AppBootstrap extends StatefulWidget {
+  const _AppBootstrap({required this.app});
+
+  final CmApp app;
+
+  @override
+  State<_AppBootstrap> createState() => _AppBootstrapState();
+}
+
+typedef _Deps = (EngineGateway, SaveStore, SettingsController);
+
+class _AppBootstrapState extends State<_AppBootstrap> {
+  late final Future<_Deps> _deps = _resolve();
+  EngineGateway? _ownGateway;
+
+  Future<_Deps> _resolve() async {
+    final app = widget.app;
+    final gateway = app.gateway ?? (_ownGateway = await IsolateGateway.spawn());
+    final store = app.store ?? await AppSaveStore.open();
+    var settings = app.settings;
+    if (settings == null) {
+      settings = SettingsController();
+      await settings.load();
+    }
+    return (gateway, store, settings);
+  }
+
+  @override
+  void dispose() {
+    _ownGateway?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      locale: locale,
-      onGenerateTitle: (c) => AppLocalizations.of(c)!.appTitle,
-      home: const _Home(),
+    return FutureBuilder(
+      future: _deps,
+      builder: (context, snap) {
+        final deps = snap.data;
+        if (deps == null) {
+          return const ColoredBox(
+            color: Colors.white,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final (gateway, store, settings) = deps;
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: settings),
+            ChangeNotifierProvider(
+              create: (_) =>
+                  GameController(GameRepository(gateway, store), gateway),
+            ),
+            Provider.value(value: widget.app.entitlements),
+          ],
+          child: Consumer<SettingsController>(
+            builder: (context, settings, _) => MaterialApp(
+              theme: lightTheme(),
+              darkTheme: darkTheme(),
+              locale: settings.locale ?? widget.app.locale,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              onGenerateTitle: (c) => AppLocalizations.of(c)!.appTitle,
+              home: const _Root(),
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _Home extends StatelessWidget {
-  const _Home();
+/// Renders the [GameController] state.
+class _Root extends StatefulWidget {
+  const _Root();
+
+  @override
+  State<_Root> createState() => _RootState();
+}
+
+class _RootState extends State<_Root> {
+  /// The last [NoGame] or [Ready], shown under [Busy].
+  GameState _settled = const NoGame();
+
+  Widget _content(GameState s) => switch (s) {
+    Ready(:final home) => GameShell(home: home),
+    _ => const Placeholder(key: Key('startScreen')),
+  };
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(child: Text(AppLocalizations.of(context)!.appTitle)),
+    final controller = context.watch<GameController>();
+    final state = controller.state;
+    if (state is NoGame || state is Ready) _settled = state;
+    final shown = state is Failed ? state.previous : _settled;
+    // One tree shape for every state so the content keeps its own state.
+    return Stack(
+      children: [
+        BusyOverlay(busy: state is Busy, child: _content(shown)),
+        if (state is Failed) ...[
+          const ModalBarrier(color: Colors.black38, dismissible: false),
+          Center(
+            child: ErrorCard(error: state.error, onRetry: controller.retry),
+          ),
+        ],
+      ],
     );
   }
 }

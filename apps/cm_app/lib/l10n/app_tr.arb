@@ -158,6 +158,7 @@
   "cancel": "İptal",
   "retry": "Tekrar dene",
   "error": "Hata",
+  "errorDetails": "Ayrıntılar",
   "leagueDisplayName": "{country} {tier}. Lig",
   "countryTR": "Türkiye",
   "countryENG": "İngiltere",

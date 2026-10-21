@@ -1,15 +1,14 @@
-import 'package:cm_app/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-void main() {
-  testWidgets('shows app title in Turkish and English', (tester) async {
-    await tester.pumpWidget(const CmApp(locale: Locale('tr')));
-    await tester.pumpAndSettle();
-    expect(find.text('Futbol Menajeri'), findsOneWidget);
+import 'support/pump_app.dart';
 
-    await tester.pumpWidget(const CmApp(locale: Locale('en')));
-    await tester.pumpAndSettle();
-    expect(find.text('Football Manager'), findsOneWidget);
+void main() {
+  testWidgets('app title follows the locale', (tester) async {
+    for (final locale in const [Locale('tr'), Locale('en')]) {
+      final l = await loadL10n(locale);
+      await pumpApp(tester, locale: locale, startReady: false);
+      expect(tester.widget<Title>(find.byType(Title)).title, l.appTitle);
+    }
   });
 }
