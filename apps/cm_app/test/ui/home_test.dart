@@ -108,7 +108,7 @@ void main() {
     g.playOutcome = _outcome(userMatch: _result());
     await pumpApp(t, gateway: g);
     expect(find.text(l.advance), findsNothing);
-    expect(find.text(l.lineup), findsOneWidget);
+    expect(find.text(l.lineup), findsNothing, reason: 'no lineup handler');
     await t.tap(find.text(l.playMatch));
     await t.pumpAndSettle();
     expect(g.calls, contains('playToday'));
@@ -167,6 +167,22 @@ void main() {
       find.descendant(of: find.byType(BottomSheet), matching: find.text(l.ok)),
     );
     await t.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+  });
+
+  testWidgets('dismissing the sheet by tapping outside shows the dialog', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    g.homeSnapshot = copyHome(g.homeSnapshot, isMatchDay: true);
+    g.playOutcome = _outcome(userMatch: _result(), seasonEnded: true);
+    await pumpApp(t, gateway: g);
+    await t.tap(find.text(l.playMatch));
+    await t.pumpAndSettle();
+    await t.tapAt(const Offset(10, 10));
+    await t.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
     expect(find.byType(AlertDialog), findsOneWidget);
   });
 

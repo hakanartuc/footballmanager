@@ -423,7 +423,7 @@
     }
   },
   "seasonEnded": "Season over",
-  "seasonEndBody": "The {season} season is over. You finished {position}.",
+  "seasonEndBody": "The {season} season is over. You finished the league in position {position}.",
   "@seasonEndBody": {
     "description": "Season end dialog body; season like 2026-27, position is the final league rank",
     "placeholders": {

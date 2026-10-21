@@ -123,11 +123,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   : () => _act(() => controller.playMatch(const []), ready),
               child: Text(l.playMatch),
             ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: busy ? null : widget.onOpenLineup,
-              child: Text(l.lineup),
-            ),
+            if (widget.onOpenLineup case final open?) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: busy ? null : open,
+                child: Text(l.lineup),
+              ),
+            ],
           ]
         : [
             FilledButton(
