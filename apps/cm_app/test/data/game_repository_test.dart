@@ -66,10 +66,21 @@ void main() {
     expect(slots.map((s) => s.slot), [6, 7, 8]);
     expect(slots.firstWhere((s) => s.slot == 6).date, date4);
     expect(slots.firstWhere((s) => s.slot == 7).date, dates[1]);
+    expect(slots.firstWhere((s) => s.slot == 8).date, dates[2]);
 
     final newest = await repo.newestAutosave();
     expect(newest!.slot, 6);
     expect(newest.date, date4);
+
+    // Slot 7 is now the oldest, though not the lowest.
+    await advanceDay();
+    await repo.autosave();
+    final date5 = (await gateway.home()).date;
+    slots = await store.list();
+    expect(slots.firstWhere((s) => s.slot == 6).date, date4);
+    expect(slots.firstWhere((s) => s.slot == 7).date, date5);
+    expect(slots.firstWhere((s) => s.slot == 8).date, dates[2]);
+    expect((await repo.newestAutosave())!.slot, 7);
   });
 
   test('newestAutosave is null on an empty store', () async {

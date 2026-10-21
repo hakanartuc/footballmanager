@@ -8,7 +8,8 @@ class AppSaveStore {
   AppSaveStore._();
 
   /// A [FileSaveStore] at [root], by default `<documents>/saves`. Creates
-  /// the directory.
+  /// the directory. [root] is the saves directory itself (slots go directly
+  /// in it), not its parent.
   static Future<SaveStore> open({Directory? root}) async {
     final dir =
         root ??
