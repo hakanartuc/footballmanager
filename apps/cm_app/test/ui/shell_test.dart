@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:cm_app/app.dart';
 import 'package:cm_app/data/settings_controller.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
+import 'package:cm_app/engine/snapshots.dart';
+import 'package:cm_app/l10n/formatters.dart';
 import 'package:cm_app/state/game_controller.dart';
 import 'package:cm_app/ui/start/start_screen.dart';
 import 'package:cm_app/ui/widgets/busy_overlay.dart';
@@ -67,6 +69,79 @@ void main() {
       find.byKey(const Key('homeTab'), skipOffstage: false),
       findsOneWidget,
     );
+  });
+
+  testWidgets('loading a different game resets the tab state', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    final c = await pumpApp(t, gateway: g);
+    await t.tap(find.text(l.tabLeague));
+    await t.pumpAndSettle();
+    expect(g.tableArgs.last, 10);
+    // The autosave in slot 6 is reloaded as a world with one other league.
+    const eta = ClubRef(
+      id: 7,
+      name: 'Eta Town',
+      shortName: 'ETA',
+      kitPrimary: 0xFF000000,
+      kitSecondary: 0xFFFFFFFF,
+      leagueId: 20,
+      countryId: 200,
+    );
+    g.refsSnapshot = const WorldRefs(
+      countries: [
+        CountryRef(id: 200, code: 'ENG', name: 'England', leagueIds: [20]),
+      ],
+      leagues: [
+        LeagueRef(
+          id: 20,
+          name: 'ENG_tier1',
+          countryCode: 'ENG',
+          tier: 1,
+          clubIds: [7],
+        ),
+      ],
+      clubs: [eta],
+    );
+    g.homeSnapshot = HomeSnapshot(
+      date: g.homeSnapshot.date,
+      seasonYear: 2026,
+      clubId: 7,
+      clubName: 'Eta Town',
+      leagueId: 20,
+      leaguePosition: 1,
+      nextMatch: null,
+      isMatchDay: false,
+      unreadCount: 0,
+      seniorCount: 20,
+      injuredCount: 0,
+      suspendedCount: 0,
+      managerName: 'Test Manager',
+    );
+    g.tableRows = const [
+      TableRowView(
+        rank: 1,
+        clubId: 7,
+        clubName: 'Eta Town',
+        played: 0,
+        won: 0,
+        drawn: 0,
+        lost: 0,
+        gf: 0,
+        ga: 0,
+        gd: 0,
+        points: 0,
+        isUser: true,
+      ),
+    ];
+    g.fixtureRows = const [];
+    await c.loadSlot(6);
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    expect(g.tableArgs.last, 20);
+    await t.tap(find.text(l.tabLeague));
+    await t.pumpAndSettle();
+    expect(find.text(leagueDisplayName('ENG', 1, l)), findsOneWidget);
   });
 
   testWidgets('NoGame shows the start screen', (t) async {

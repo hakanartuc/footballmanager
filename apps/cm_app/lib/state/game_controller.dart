@@ -21,10 +21,14 @@ final class Busy extends GameState {
 }
 
 final class Ready extends GameState {
-  const Ready(this.home, this.refs);
+  const Ready(this.home, this.refs, this.gameId);
 
   final HomeSnapshot home;
   final WorldRefs refs;
+
+  /// Changes whenever a game is started or loaded, so per-game UI state
+  /// keyed on it is dropped.
+  final int gameId;
 }
 
 final class Failed extends GameState {
@@ -49,6 +53,9 @@ class GameController extends ChangeNotifier {
   GameState _state = const NoGame();
   GameState get state => _state;
 
+  /// See [Ready.gameId].
+  int _gameId = 0;
+
   int lastAdvanceMs = 0;
   int lastSaveMs = 0;
 
@@ -59,7 +66,7 @@ class GameController extends ChangeNotifier {
 
   Future<void> newGame(NewGameSpec spec) => _run('newGame', (_) async {
     await _repo.newGame(spec);
-    await _refresh(null);
+    await _enterGame();
   });
 
   /// Generates [spec]'s world without a club and returns its refs, for the
@@ -91,7 +98,7 @@ class GameController extends ChangeNotifier {
   /// Loads the newest autosave; stays [NoGame] when there is none.
   Future<void> continueLast() => _run('continueLast', (previous) async {
     if (await _repo.continueLast()) {
-      await _refresh(null);
+      await _enterGame();
     } else {
       _set(previous);
     }
@@ -99,7 +106,7 @@ class GameController extends ChangeNotifier {
 
   Future<void> loadSlot(int slot) => _run('loadSlot', (_) async {
     await _repo.loadSlot(slot);
-    await _refresh(null);
+    await _enterGame();
   });
 
   Future<void> saveToSlot(int slot) => _run('saveToSlot', (previous) async {
@@ -182,12 +189,18 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets [Ready] for a game just started or loaded, under a new game id.
+  Future<void> _enterGame() {
+    _gameId++;
+    return _refresh(null);
+  }
+
   /// Fetches home and sets [Ready], reusing [previous]'s refs when it is
   /// [Ready] (refs are fixed per game) and fetching them otherwise.
   Future<void> _refresh(GameState? previous) async {
     final home = await _gateway.home();
     final refs = previous is Ready ? previous.refs : await _gateway.refs();
-    _set(Ready(home, refs));
+    _set(Ready(home, refs, _gameId));
   }
 
   /// Autosaves and refreshes home after the world changed. When saving

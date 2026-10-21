@@ -160,7 +160,11 @@ class _RootState extends State<_Root> {
   }
 
   Widget _content(GameState s) => switch (s) {
-    Ready(:final home) => GameShell(home: home),
+    // Keyed per game so the tabs' state does not outlive the game it is for.
+    Ready(:final home, :final gameId) => GameShell(
+      key: ValueKey(gameId),
+      home: home,
+    ),
     _ => StartScreen(
       onLoadGame: () => Navigator.of(context).push(
         MaterialPageRoute<void>(
