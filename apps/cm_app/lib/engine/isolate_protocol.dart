@@ -65,9 +65,10 @@ final class PlayerReq extends EngineRequest {
 }
 
 final class LineupReq extends EngineRequest {
-  const LineupReq(super.id, this.clubId);
+  const LineupReq(super.id, this.clubId, {required this.auto});
 
   final ClubId clubId;
+  final bool auto;
 }
 
 final class TableReq extends EngineRequest {

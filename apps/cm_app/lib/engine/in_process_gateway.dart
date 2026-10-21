@@ -115,7 +115,8 @@ class InProcessGateway implements EngineGateway {
   Future<PlayerDetail> player(PlayerId id) => _build((b) => b.player(id));
 
   @override
-  Future<LineupView> lineup(ClubId clubId) => _build((b) => b.lineup(clubId));
+  Future<LineupView> lineup(ClubId clubId, {bool auto = false}) =>
+      _build((b) => b.lineup(clubId, auto: auto));
 
   @override
   Future<List<TableRowView>> table(LeagueId leagueId) =>

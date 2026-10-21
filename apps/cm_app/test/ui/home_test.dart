@@ -108,7 +108,7 @@ void main() {
     g.playOutcome = _outcome(userMatch: _result());
     await pumpApp(t, gateway: g);
     expect(find.text(l.advance), findsNothing);
-    expect(find.text(l.lineup), findsNothing, reason: 'no lineup handler');
+    expect(find.text(l.lineup), findsOneWidget);
     await t.tap(find.text(l.playMatch));
     await t.pumpAndSettle();
     expect(g.calls, contains('playToday'));

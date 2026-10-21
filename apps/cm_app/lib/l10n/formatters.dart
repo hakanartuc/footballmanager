@@ -75,6 +75,27 @@ String attrName(Attr a, AppLocalizations l) => switch (a) {
   Attr.commandOfArea => l.attrCommandOfArea,
 };
 
+enum AttrGroup { technical, mental, physical, goalkeeping }
+
+/// First [Attr] index of each group; [Attr] declares its groups in this
+/// order: technical 0–8, mental 9–17, physical 18–24, goalkeeping 25–29.
+const _attrGroupStart = {
+  AttrGroup.technical: 0,
+  AttrGroup.mental: 9,
+  AttrGroup.physical: 18,
+  AttrGroup.goalkeeping: 25,
+};
+
+AttrGroup attrGroupOf(Attr a) =>
+    AttrGroup.values.lastWhere((g) => a.index >= _attrGroupStart[g]!);
+
+String attrGroupName(AttrGroup g, AppLocalizations l) => switch (g) {
+  AttrGroup.technical => l.attrGroupTechnical,
+  AttrGroup.mental => l.attrGroupMental,
+  AttrGroup.physical => l.attrGroupPhysical,
+  AttrGroup.goalkeeping => l.attrGroupGoalkeeping,
+};
+
 String statusName(PlayerStatus s, AppLocalizations l) => switch (s) {
   PlayerStatus.keyPlayer => l.statusKeyPlayer,
   PlayerStatus.firstTeam => l.statusFirstTeam,

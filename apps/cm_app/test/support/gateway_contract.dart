@@ -184,6 +184,30 @@ void runGatewayContract(Future<EngineGateway> Function() make) {
     },
   );
 
+  test('lineup(auto: true) ignores a stored lineup', () async {
+    await newGame();
+    final auto = autoLineup(reference, club);
+    final swapped = [...auto.starters];
+    swapped[1] = auto.starters[2];
+    swapped[2] = auto.starters[1];
+    await g.playToday([
+      SetLineup(
+        clubId: club,
+        lineup: Lineup(
+          formation: auto.formation,
+          starters: swapped,
+          bench: auto.bench,
+        ),
+      ),
+    ]);
+    expect((await g.lineup(club)).starters, swapped);
+    final world = EngineSession.fromBytes(await g.save()).world;
+    final view = await g.lineup(club, auto: true);
+    expect(view.starters, autoLineup(world, club).starters);
+    expect(view.starters, isNot(swapped));
+    expect(view.errors, isEmpty);
+  });
+
   test('after dispose() every call fails with GatewayError(noGame)', () async {
     await newGame();
     await g.dispose();

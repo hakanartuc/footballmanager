@@ -45,7 +45,7 @@ Future<Object?> _dispatch(InProcessGateway g, EngineRequest req) =>
       HomeReq() => g.home(),
       SquadReq(:final clubId, :final youth) => g.squad(clubId, youth: youth),
       PlayerReq(:final playerId) => g.player(playerId),
-      LineupReq(:final clubId) => g.lineup(clubId),
+      LineupReq(:final clubId, :final auto) => g.lineup(clubId, auto: auto),
       TableReq(:final leagueId) => g.table(leagueId),
       ClubFixturesReq(:final clubId) => g.clubFixtures(clubId),
       InboxReq() => g.inbox(),
@@ -207,8 +207,8 @@ class IsolateGateway implements EngineGateway {
       _send((reqId) => PlayerReq(reqId, id));
 
   @override
-  Future<LineupView> lineup(ClubId clubId) =>
-      _send((id) => LineupReq(id, clubId));
+  Future<LineupView> lineup(ClubId clubId, {bool auto = false}) =>
+      _send((id) => LineupReq(id, clubId, auto: auto));
 
   @override
   Future<List<TableRowView>> table(LeagueId leagueId) =>

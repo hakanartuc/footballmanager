@@ -62,8 +62,8 @@ abstract interface class EngineGateway {
   Future<PlayerDetail> player(PlayerId id);
 
   /// The club's stored lineup with its validation errors, or the auto
-  /// lineup (no errors) when none is stored.
-  Future<LineupView> lineup(ClubId clubId);
+  /// lineup (no errors) when none is stored or [auto] is true.
+  Future<LineupView> lineup(ClubId clubId, {bool auto = false});
 
   Future<List<TableRowView>> table(LeagueId leagueId);
 

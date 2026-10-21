@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../home/home_screen.dart';
+import '../squad/lineup_screen.dart';
+import '../squad/squad_screen.dart';
 
 /// The in-game scaffold: four tabs behind a bottom navigation bar.
 class GameShell extends StatefulWidget {
@@ -21,6 +23,7 @@ class _GameShellState extends State<GameShell> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final unread = widget.home.unreadCount;
+    final clubId = widget.home.clubId;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.home.clubName ?? widget.home.managerName),
@@ -31,11 +34,16 @@ class _GameShellState extends State<GameShell> {
           HomeScreen(
             key: const Key('homeTab'),
             onOpenInbox: () => setState(() => _tab = 3),
-            // The lineup screen arrives with Task 10.
-            onOpenLineup: null,
+            onOpenLineup: clubId == null
+                ? null
+                : () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => LineupScreen(clubId: clubId),
+                    ),
+                  ),
           ),
+          const SquadScreen(key: Key('squadTab')),
           // Placeholders until the other tab screens land.
-          const Placeholder(key: Key('squadTab')),
           const Placeholder(key: Key('leagueTab')),
           const Placeholder(key: Key('inboxTab')),
         ],

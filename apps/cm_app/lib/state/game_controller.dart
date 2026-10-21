@@ -156,7 +156,8 @@ class GameController extends ChangeNotifier {
   Future<List<SquadRow>> squad(ClubId clubId, {bool youth = false}) =>
       _gateway.squad(clubId, youth: youth);
   Future<PlayerDetail> player(PlayerId id) => _gateway.player(id);
-  Future<LineupView> lineup(ClubId clubId) => _gateway.lineup(clubId);
+  Future<LineupView> lineup(ClubId clubId, {bool auto = false}) =>
+      _gateway.lineup(clubId, auto: auto);
   Future<List<TableRowView>> table(LeagueId leagueId) =>
       _gateway.table(leagueId);
   Future<List<FixtureRow>> clubFixtures(ClubId clubId) =>

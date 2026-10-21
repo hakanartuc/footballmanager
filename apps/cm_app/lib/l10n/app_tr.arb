@@ -185,5 +185,18 @@
   "countryJP": "Japonya",
   "countryKR": "Güney Kore",
   "countryNG": "Nijerya",
-  "countryAU": "Avustralya"
+  "countryAU": "Avustralya",
+  "seniorSquad": "A takım",
+  "groupGoalkeepers": "Kaleciler",
+  "groupDefenders": "Savunma",
+  "groupMidfielders": "Orta saha",
+  "groupForwards": "Hücum",
+  "info": "Bilgi",
+  "apps": "Maç",
+  "goals": "Gol",
+  "assists": "Asist",
+  "pa": "PA",
+  "heightCm": "{cm} cm",
+  "morale": "Moral",
+  "form": "Form"
 }

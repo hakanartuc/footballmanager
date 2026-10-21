@@ -146,12 +146,14 @@ class SnapshotBuilder {
     );
   }
 
-  LineupView lineup(ClubId clubId) {
+  /// The stored lineup with its errors, or the auto lineup when none is
+  /// stored or [auto] is true.
+  LineupView lineup(ClubId clubId, {bool auto = false}) {
     final club = _w.clubs[clubId];
     if (club == null) {
       throw const GatewayError(GatewayErrorKind.engine, 'no such club');
     }
-    final stored = club.lineup;
+    final stored = auto ? null : club.lineup;
     final l = stored ?? autoLineup(_w, clubId);
     return LineupView(
       formation: l.formation,

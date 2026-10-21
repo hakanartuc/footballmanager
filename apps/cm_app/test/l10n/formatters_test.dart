@@ -52,6 +52,20 @@ void main() {
     );
   });
 
+  test('attrGroupOf splits Attr into 9/9/7/5 contiguous groups', () {
+    final groups = [for (final a in Attr.values) attrGroupOf(a)];
+    expect(groups, [
+      ...List.filled(9, AttrGroup.technical),
+      ...List.filled(9, AttrGroup.mental),
+      ...List.filled(7, AttrGroup.physical),
+      ...List.filled(5, AttrGroup.goalkeeping),
+    ]);
+    expect(attrGroupOf(Attr.tackling), AttrGroup.technical);
+    expect(attrGroupOf(Attr.decisions), AttrGroup.mental);
+    expect(attrGroupOf(Attr.agility), AttrGroup.physical);
+    expect(attrGroupOf(Attr.reflexes), AttrGroup.goalkeeping);
+  });
+
   test('countryName', () {
     expect(countryName('TR', tr), 'Türkiye');
     expect(countryName('ENG', en), 'England');
@@ -66,6 +80,7 @@ void main() {
         [for (final s in PlayerStatus.values) statusName(s, l)],
         [for (final e in LineupError.values) lineupErrorText(e, l)],
         [for (final s in WorldSize.values) worldSizeName(s, l)],
+        [for (final g in AttrGroup.values) attrGroupName(g, l)],
       ];
       for (final names in lists) {
         expect(names.every((n) => n.isNotEmpty), isTrue);

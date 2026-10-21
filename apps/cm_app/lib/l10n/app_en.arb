@@ -515,5 +515,35 @@
   "countryJP": "Japan",
   "countryKR": "South Korea",
   "countryNG": "Nigeria",
-  "countryAU": "Australia"
+  "countryAU": "Australia",
+  "seniorSquad": "First team",
+  "groupGoalkeepers": "Goalkeepers",
+  "groupDefenders": "Defenders",
+  "groupMidfielders": "Midfielders",
+  "groupForwards": "Forwards",
+  "info": "Info",
+  "@info": {
+    "description": "Player screen tab with contract, season stats and condition"
+  },
+  "apps": "Apps",
+  "@apps": {
+    "description": "Season stats: matches played"
+  },
+  "goals": "Goals",
+  "assists": "Assists",
+  "pa": "PA",
+  "@pa": {
+    "description": "Potential ability abbreviation"
+  },
+  "heightCm": "{cm} cm",
+  "@heightCm": {
+    "description": "Player height",
+    "placeholders": {
+      "cm": {
+        "type": "int"
+      }
+    }
+  },
+  "morale": "Morale",
+  "form": "Form"
 }
