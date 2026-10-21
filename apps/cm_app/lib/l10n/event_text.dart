@@ -1,6 +1,7 @@
 import 'package:engine/engine.dart';
 
 import '../engine/snapshots.dart';
+import 'formatters.dart';
 import 'generated/app_localizations.dart';
 
 final class EventTextResult {
@@ -15,6 +16,16 @@ abstract final class EventText {
   static EventTextResult describe(InboxItem item, AppLocalizations l) {
     final x = item.labels;
     final club = x.clubName ?? '';
+    final league = leagueDisplayName(
+      x.leagueCountryCode ?? '',
+      x.leagueTier ?? 0,
+      l,
+    );
+    final toLeague = leagueDisplayName(
+      x.toLeagueCountryCode ?? '',
+      x.toLeagueTier ?? 0,
+      l,
+    );
     return switch (item.event) {
       MatchPlayed() => EventTextResult(
         l.eventMatchTitle(
@@ -26,16 +37,16 @@ abstract final class EventText {
         l.eventMatchBody,
       ),
       LeagueChampion() => EventTextResult(
-        l.eventChampionTitle(club, x.leagueName ?? ''),
-        l.eventChampionBody(club, x.leagueName ?? ''),
+        l.eventChampionTitle(club, league),
+        l.eventChampionBody(club, league),
       ),
       Promoted() => EventTextResult(
         l.eventPromotedTitle(club),
-        l.eventPromotedBody(club, x.leagueName ?? '', x.toLeagueName ?? ''),
+        l.eventPromotedBody(club, league, toLeague),
       ),
       Relegated() => EventTextResult(
         l.eventRelegatedTitle(club),
-        l.eventRelegatedBody(club, x.leagueName ?? '', x.toLeagueName ?? ''),
+        l.eventRelegatedBody(club, league, toLeague),
       ),
       PlayerRetired() => EventTextResult(
         x.playerNames.isEmpty

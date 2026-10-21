@@ -234,6 +234,9 @@ class SnapshotBuilder {
   InboxLabels _labels(GameEvent e) {
     String clubName(ClubId id) => _w.clubs[id]!.name;
     String leagueName(LeagueId id) => _w.leagues[id]!.name;
+    String leagueCountry(LeagueId id) =>
+        _w.countries[_w.leagues[id]!.countryId]!.code;
+    int leagueTier(LeagueId id) => _w.leagues[id]!.tier;
     return switch (e) {
       MatchPlayed(:final fixtureId) => () {
         final f = _w.fixtures[fixtureId]!;
@@ -247,6 +250,8 @@ class SnapshotBuilder {
       LeagueChampion(:final clubId, :final leagueId) => InboxLabels(
         clubName: clubName(clubId),
         leagueName: leagueName(leagueId),
+        leagueCountryCode: leagueCountry(leagueId),
+        leagueTier: leagueTier(leagueId),
       ),
       Promoted(:final clubId, :final fromLeagueId, :final toLeagueId) ||
       Relegated(
@@ -256,7 +261,11 @@ class SnapshotBuilder {
       ) => InboxLabels(
         clubName: clubName(clubId),
         leagueName: leagueName(fromLeagueId),
+        leagueCountryCode: leagueCountry(fromLeagueId),
+        leagueTier: leagueTier(fromLeagueId),
         toLeagueName: leagueName(toLeagueId),
+        toLeagueCountryCode: leagueCountry(toLeagueId),
+        toLeagueTier: leagueTier(toLeagueId),
       ),
       PlayerRetired(:final clubId) => InboxLabels(
         clubName: clubId == null ? null : clubName(clubId),

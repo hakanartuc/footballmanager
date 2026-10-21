@@ -59,6 +59,27 @@ void main() {
     expect(item.labels.awayGoals, f.result!.awayGoals);
   });
 
+  test('LeagueChampion labels carry the league country and tier', () {
+    final leagueId = s.world.clubs[club]!.leagueId;
+    s.world.inbox.add(
+      InboxMessage(
+        id: 1 << 30,
+        date: s.world.date,
+        event: LeagueChampion(
+          date: s.world.date,
+          leagueId: leagueId,
+          clubId: club,
+        ),
+      ),
+    );
+
+    final item = b.inbox().first;
+    expect(item.event, isA<LeagueChampion>());
+    expect(item.labels.leagueCountryCode, 'TR');
+    expect(item.labels.leagueTier, 1);
+    expect(item.labels.leagueName, s.world.leagues[leagueId]!.name);
+  });
+
   test('leaguePosition equals the table rank after some matches', () {
     for (var i = 0; i < 5; i++) {
       s.advanceUntil(s.world.date.addDays(90));

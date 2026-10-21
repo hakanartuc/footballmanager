@@ -109,6 +109,10 @@ String countryName(String code, AppLocalizations l) => switch (code) {
   _ => code,
 };
 
+/// "Türkiye 1. Lig" / "Türkiye Division 1"; never the raw engine name.
+String leagueDisplayName(String countryCode, int tier, AppLocalizations l) =>
+    l.leagueDisplayName(countryName(countryCode, l), tier);
+
 String worldSizeName(WorldSize s, AppLocalizations l) => switch (s) {
   WorldSize.small => l.worldSizeSmall,
   WorldSize.medium => l.worldSizeMedium,

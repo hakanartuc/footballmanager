@@ -13,82 +13,103 @@ final _date = GameDate.ymd(2026, 8, 8);
 InboxItem _item(GameEvent event, InboxLabels labels) =>
     InboxItem(id: 1, date: _date, read: false, event: event, labels: labels);
 
-/// One item per [GameEvent] subtype, with the strings the text must contain.
-final _cases = <String, (InboxItem, List<String>)>{
-  'MatchPlayed': (
-    _item(
-      MatchPlayed(date: _date, fixtureId: 7),
-      const InboxLabels(
-        homeName: 'Galatasaray',
-        awayName: 'Fenerbahçe',
-        homeGoals: 3,
-        awayGoals: 1,
+/// One item per [GameEvent] subtype, with the strings the text must contain
+/// in locale [code].
+Map<String, (InboxItem, List<String>)> _cases(String code) {
+  String league(int tier) =>
+      code == 'tr' ? 'Türkiye $tier. Lig' : 'Türkiye Division $tier';
+  return {
+    'MatchPlayed': (
+      _item(
+        MatchPlayed(date: _date, fixtureId: 7),
+        const InboxLabels(
+          homeName: 'Galatasaray',
+          awayName: 'Fenerbahçe',
+          homeGoals: 3,
+          awayGoals: 1,
+        ),
       ),
+      ['Galatasaray 3 - 1 Fenerbahçe'],
     ),
-    ['Galatasaray 3 - 1 Fenerbahçe'],
-  ),
-  'SeasonEnded': (
-    _item(SeasonEnded(date: _date, seasonYear: 2026), const InboxLabels()),
-    ['2026'],
-  ),
-  'LeagueChampion': (
-    _item(
-      LeagueChampion(date: _date, leagueId: 1, clubId: 2),
-      const InboxLabels(clubName: 'Beşiktaş', leagueName: 'Süper Lig'),
+    'SeasonEnded': (
+      _item(SeasonEnded(date: _date, seasonYear: 2026), const InboxLabels()),
+      ['2026'],
     ),
-    ['Beşiktaş', 'Süper Lig'],
-  ),
-  'Promoted': (
-    _item(
-      Promoted(date: _date, clubId: 2, fromLeagueId: 2, toLeagueId: 1),
-      const InboxLabels(
-        clubName: 'Göztepe',
-        leagueName: '1. Lig',
-        toLeagueName: 'Süper Lig',
+    'LeagueChampion': (
+      _item(
+        LeagueChampion(date: _date, leagueId: 1, clubId: 2),
+        const InboxLabels(
+          clubName: 'Beşiktaş',
+          leagueName: 'TR_tier1',
+          leagueCountryCode: 'TR',
+          leagueTier: 1,
+        ),
       ),
+      ['Beşiktaş', league(1)],
     ),
-    ['Göztepe', '1. Lig', 'Süper Lig'],
-  ),
-  'Relegated': (
-    _item(
-      Relegated(date: _date, clubId: 2, fromLeagueId: 1, toLeagueId: 2),
-      const InboxLabels(
-        clubName: 'Ankaragücü',
-        leagueName: 'Süper Lig',
-        toLeagueName: '1. Lig',
+    'Promoted': (
+      _item(
+        Promoted(date: _date, clubId: 2, fromLeagueId: 2, toLeagueId: 1),
+        const InboxLabels(
+          clubName: 'Göztepe',
+          leagueName: 'TR_tier2',
+          leagueCountryCode: 'TR',
+          leagueTier: 2,
+          toLeagueName: 'TR_tier1',
+          toLeagueCountryCode: 'TR',
+          toLeagueTier: 1,
+        ),
       ),
+      ['Göztepe', league(2), league(1)],
     ),
-    ['Ankaragücü', 'Süper Lig', '1. Lig'],
-  ),
-  'PlayerRetired': (
-    _item(
-      PlayerRetired(date: _date, playerId: 9, clubId: 2),
-      const InboxLabels(clubName: 'Trabzonspor', playerNames: ['Ali Yılmaz']),
-    ),
-    ['Ali Yılmaz', 'Trabzonspor'],
-  ),
-  'YouthIntake': (
-    _item(
-      YouthIntake(date: _date, clubId: 2, playerIds: [10, 11]),
-      const InboxLabels(
-        clubName: 'Bursaspor',
-        playerNames: ['Can Demir', 'Efe Kaya'],
+    'Relegated': (
+      _item(
+        Relegated(date: _date, clubId: 2, fromLeagueId: 1, toLeagueId: 2),
+        const InboxLabels(
+          clubName: 'Ankaragücü',
+          leagueName: 'TR_tier1',
+          leagueCountryCode: 'TR',
+          leagueTier: 1,
+          toLeagueName: 'TR_tier2',
+          toLeagueCountryCode: 'TR',
+          toLeagueTier: 2,
+        ),
       ),
+      ['Ankaragücü', league(1), league(2)],
     ),
-    ['2', 'Bursaspor', 'Can Demir', 'Efe Kaya'],
-  ),
-  'YouthReleased': (
-    _item(
-      YouthReleased(date: _date, clubId: 2, playerIds: [10, 11, 12]),
-      const InboxLabels(clubName: 'Sivasspor'),
+    'PlayerRetired': (
+      _item(
+        PlayerRetired(date: _date, playerId: 9, clubId: 2),
+        const InboxLabels(clubName: 'Trabzonspor', playerNames: ['Ali Yılmaz']),
+      ),
+      ['Ali Yılmaz', 'Trabzonspor'],
     ),
-    ['3', 'Sivasspor'],
-  ),
-  'NewSeasonStarted': (
-    _item(NewSeasonStarted(date: _date, seasonYear: 2027), const InboxLabels()),
-    ['2027'],
-  ),
-};
+    'YouthIntake': (
+      _item(
+        YouthIntake(date: _date, clubId: 2, playerIds: [10, 11]),
+        const InboxLabels(
+          clubName: 'Bursaspor',
+          playerNames: ['Can Demir', 'Efe Kaya'],
+        ),
+      ),
+      ['2', 'Bursaspor', 'Can Demir', 'Efe Kaya'],
+    ),
+    'YouthReleased': (
+      _item(
+        YouthReleased(date: _date, clubId: 2, playerIds: [10, 11, 12]),
+        const InboxLabels(clubName: 'Sivasspor'),
+      ),
+      ['3', 'Sivasspor'],
+    ),
+    'NewSeasonStarted': (
+      _item(
+        NewSeasonStarted(date: _date, seasonYear: 2027),
+        const InboxLabels(),
+      ),
+      ['2027'],
+    ),
+  };
+}
 
 Set<String> _messageKeys(String file) {
   final json = jsonDecode(File('lib/l10n/$file').readAsStringSync()) as Map;
@@ -106,8 +127,9 @@ void main() {
         l = await AppLocalizations.delegate.load(Locale(code));
       });
 
-      for (final MapEntry(key: name, value: (item, expected))
-          in _cases.entries) {
+      for (final MapEntry(key: name, value: (item, expected)) in _cases(
+        code,
+      ).entries) {
         test(name, () {
           final r = EventText.describe(item, l);
           final text = '${r.title}\n${r.body}';
@@ -118,6 +140,7 @@ void main() {
           expect(r.body, isNotEmpty);
           expect(text, isNot(contains('{')));
           expect(text, isNot(contains('null')));
+          expect(text, isNot(contains('_tier')));
         });
       }
 
@@ -156,15 +179,18 @@ void main() {
           ),
           l,
         );
-        expect('${r.title}\n${r.body}', contains('Bursaspor'));
+        final text = '${r.title}\n${r.body}';
+        expect(text, contains('Bursaspor'));
+        expect(text, isNot(contains('null')));
+        expect(text, isNot(contains('{')));
       });
     });
   }
 
   test('Turkish champion title reads naturally', () async {
     final l = await AppLocalizations.delegate.load(const Locale('tr'));
-    final r = EventText.describe(_cases['LeagueChampion']!.$1, l);
-    expect(r.title, 'Beşiktaş, Süper Lig şampiyonu oldu');
+    final r = EventText.describe(_cases('tr')['LeagueChampion']!.$1, l);
+    expect(r.title, 'Beşiktaş, Türkiye 1. Lig şampiyonu oldu');
   });
 
   test('ARB files have identical key sets', () {

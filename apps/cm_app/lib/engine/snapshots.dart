@@ -319,9 +319,14 @@ final class InboxItem {
 /// event kind uses are set.
 ///
 /// - [MatchPlayed]: [homeName], [awayName], [homeGoals], [awayGoals].
-/// - [LeagueChampion]: [clubName], [leagueName].
-/// - [Promoted] / [Relegated]: [clubName], [leagueName] (from),
-///   [toLeagueName].
+/// - [LeagueChampion]: [clubName], [leagueName], [leagueCountryCode],
+///   [leagueTier].
+/// - [Promoted] / [Relegated]: [clubName], [leagueName],
+///   [leagueCountryCode], [leagueTier] (from), [toLeagueName],
+///   [toLeagueCountryCode], [toLeagueTier].
+///
+/// League names are raw engine ids (e.g. `TR_tier1`); display text is
+/// built from the country code and tier.
 /// - [PlayerRetired]: [clubName] only. The player is removed from the
 ///   world when the event is raised, so the name cannot be resolved and
 ///   [playerNames] stays empty (Faz 4 archives names).
@@ -335,6 +340,10 @@ final class InboxLabels {
     this.otherClubName,
     this.leagueName,
     this.toLeagueName,
+    this.leagueCountryCode,
+    this.leagueTier,
+    this.toLeagueCountryCode,
+    this.toLeagueTier,
     this.homeName,
     this.awayName,
     this.homeGoals,
@@ -346,6 +355,10 @@ final class InboxLabels {
   final String? otherClubName;
   final String? leagueName;
   final String? toLeagueName;
+  final String? leagueCountryCode;
+  final int? leagueTier;
+  final String? toLeagueCountryCode;
+  final int? toLeagueTier;
   final String? homeName;
   final String? awayName;
   final int? homeGoals;

@@ -15,8 +15,8 @@
   "@continueGame": {
     "description": "Start screen: resume the latest save"
   },
-  "newGame": "New Game",
-  "loadGame": "Load Game",
+  "newGame": "New game",
+  "loadGame": "Load game",
   "noSavedGame": "No saved game",
   "managerFirstName": "First name",
   "@managerFirstName": {
@@ -33,15 +33,15 @@
   "pickCountry": "Choose a country",
   "pickLeague": "Choose a league",
   "pickClub": "Choose a club",
-  "startGame": "Start Game",
+  "startGame": "Start game",
   "fieldRequired": "This field is required",
   "advance": "Continue",
   "@advance": {
     "description": "Home: advance the calendar"
   },
-  "playMatch": "Play Match",
-  "matchDay": "Match Day",
-  "nextMatch": "Next Match",
+  "playMatch": "Play match",
+  "matchDay": "Match day",
+  "nextMatch": "Next match",
   "noClubUnemployed": "You are not managing a club.",
   "season": "Season",
   "unread": "Unread",
@@ -67,19 +67,19 @@
     "description": "Current ability, short column header"
   },
   "condition": "Condition",
-  "statusKeyPlayer": "Key Player",
+  "statusKeyPlayer": "Key player",
   "@statusKeyPlayer": {
     "description": "Squad status"
   },
-  "statusFirstTeam": "First Team",
+  "statusFirstTeam": "First team",
   "statusRotation": "Rotation",
   "statusBackup": "Backup",
-  "statusHotProspect": "Hot Prospect",
+  "statusHotProspect": "Hot prospect",
   "statusYouth": "Youth",
-  "youthSquad": "Youth Squad",
+  "youthSquad": "Youth squad",
   "lineup": "Lineup",
-  "autoLineup": "Auto Lineup",
-  "saveLineup": "Save Lineup",
+  "autoLineup": "Auto lineup",
+  "saveLineup": "Save lineup",
   "lineupErrorNotEleven": "The lineup must have exactly 11 players.",
   "@lineupErrorNotEleven": {
     "description": "Lineup validation error"
@@ -92,16 +92,16 @@
   "@posGk": {
     "description": "Position full name"
   },
-  "posDl": "Left Back",
-  "posDc": "Centre Back",
-  "posDr": "Right Back",
-  "posDm": "Defensive Midfielder",
-  "posMl": "Left Midfielder",
-  "posMc": "Central Midfielder",
-  "posMr": "Right Midfielder",
-  "posAml": "Left Winger",
-  "posAmc": "Attacking Midfielder",
-  "posAmr": "Right Winger",
+  "posDl": "Left back",
+  "posDc": "Centre back",
+  "posDr": "Right back",
+  "posDm": "Defensive midfielder",
+  "posMl": "Left midfielder",
+  "posMc": "Central midfielder",
+  "posMr": "Right midfielder",
+  "posAml": "Left winger",
+  "posAmc": "Attacking midfielder",
+  "posAmr": "Right winger",
   "posSt": "Striker",
   "attrGroupTechnical": "Technical",
   "@attrGroupTechnical": {
@@ -114,19 +114,19 @@
   "@attrPassing": {
     "description": "Player attribute"
   },
-  "attrLongShots": "Long Shots",
-  "attrFirstTouch": "First Touch",
+  "attrLongShots": "Long shots",
+  "attrFirstTouch": "First touch",
   "attrDribbling": "Dribbling",
   "attrCrossing": "Crossing",
   "attrHeading": "Heading",
-  "attrLongPassing": "Long Passing",
+  "attrLongPassing": "Long passing",
   "attrFinishing": "Finishing",
   "attrTackling": "Tackling",
   "attrDecisions": "Decisions",
   "attrPositioning": "Positioning",
   "attrAnticipation": "Anticipation",
   "attrComposure": "Composure",
-  "attrWorkRate": "Work Rate",
+  "attrWorkRate": "Work rate",
   "attrTeamwork": "Teamwork",
   "attrAggression": "Aggression",
   "attrConcentration": "Concentration",
@@ -139,14 +139,14 @@
   "attrJumping": "Jumping",
   "attrAgility": "Agility",
   "attrReflexes": "Reflexes",
-  "attrAerialAbility": "Aerial Ability",
+  "attrAerialAbility": "Aerial ability",
   "attrHandling": "Handling",
-  "attrOneOnOnes": "One on Ones",
-  "attrCommandOfArea": "Command of Area",
+  "attrOneOnOnes": "One on ones",
+  "attrCommandOfArea": "Command of area",
   "contract": "Contract",
   "wage": "Wage",
-  "contractEnd": "Contract Expires",
-  "seasonStats": "Season Stats",
+  "contractEnd": "Contract expires",
+  "seasonStats": "Season stats",
   "table": "Table",
   "fixtures": "Fixtures",
   "results": "Results",
@@ -385,7 +385,7 @@
   "@english": {
     "description": "Language name, always in its own language"
   },
-  "devStats": "Developer Stats",
+  "devStats": "Developer stats",
   "lastAdvanceMs": "Last advance: {ms} ms",
   "@lastAdvanceMs": {
     "description": "Dev stats: duration of the last advance",
@@ -413,14 +413,26 @@
       }
     }
   },
-  "seasonEnded": "Season Over",
+  "seasonEnded": "Season over",
   "champion": "Champion",
   "promoted": "Promoted",
   "relegated": "Relegated",
   "ok": "OK",
   "cancel": "Cancel",
-  "retry": "Try Again",
+  "retry": "Try again",
   "error": "Error",
+  "leagueDisplayName": "{country} Division {tier}",
+  "@leagueDisplayName": {
+    "description": "League name from country and tier, e.g. Türkiye 1. Lig",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "int"
+      }
+    }
+  },
   "countryTR": "Türkiye",
   "@countryTR": {
     "description": "Country name"
