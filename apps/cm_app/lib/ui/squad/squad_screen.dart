@@ -2,10 +2,12 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../engine/engine_gateway.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/error_card.dart';
 import '../widgets/position_chip.dart';
 import 'player_screen.dart';
 
@@ -64,6 +66,10 @@ class _SquadScreenState extends State<SquadScreen> {
         return ListView(
           children: [
             toggle,
+            if (snap.error case final GatewayError e)
+              ErrorCard(error: e, onRetry: () => setState(() => _rows = null))
+            else if (snap.connectionState != ConnectionState.done)
+              const Center(child: CircularProgressIndicator()),
             for (final group in PositionGroup.values)
               if (rows.any((r) => r.position.group == group)) ...[
                 _GroupHeader(_groupName(group, l)),

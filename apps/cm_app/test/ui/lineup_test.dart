@@ -1,7 +1,9 @@
+import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshots.dart';
 import 'package:cm_app/l10n/formatters.dart';
 import 'package:cm_app/state/game_controller.dart';
 import 'package:cm_app/ui/squad/lineup_screen.dart';
+import 'package:cm_app/ui/widgets/error_card.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -163,6 +165,51 @@ void main() {
     expect(g.lineupAutoArgs, [false, true]);
     expect(find.text('Injured Mid'), findsNothing);
     expect(find.text('Mid One'), findsOneWidget);
+  });
+
+  testWidgets('reopening after save shows the pending lineup', (t) async {
+    final l = await loadL10n();
+    final (g, c) = await _open(t, _valid);
+    await t.tap(find.text('Striker Two'));
+    await t.pumpAndSettle();
+    await t.tap(_inSheet('Spare Striker'));
+    await t.pumpAndSettle();
+    await t.tap(find.text(l.saveLineup));
+    await t.pumpAndSettle();
+    expect(find.byType(LineupScreen), findsNothing);
+
+    await t.tap(find.text(l.lineup));
+    await t.pumpAndSettle();
+    expect(find.text('Spare Striker'), findsOneWidget);
+    expect(find.text('Striker Two'), findsNothing);
+    expect(g.lineupAutoArgs, [false], reason: 'seeded from pendingLineup');
+    expect(c.pendingLineup, isNotNull);
+  });
+
+  testWidgets('a load error shows an ErrorCard; retry loads, ok pops', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready()
+      ..squadRows = _rows
+      ..lineupView = _view(_valid);
+    g.homeSnapshot = copyHome(g.homeSnapshot, isMatchDay: true);
+    await pumpApp(t, gateway: g);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(find.text(l.lineup));
+    await t.pumpAndSettle();
+    await t.tap(find.text(l.ok));
+    await t.pumpAndSettle();
+    expect(find.byType(LineupScreen), findsNothing);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(find.text(l.lineup));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await t.tap(find.text(l.retry));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsNothing);
+    expect(find.text('Keeper One'), findsOneWidget);
   });
 
   testWidgets('unemployed home has no lineup button', (t) async {

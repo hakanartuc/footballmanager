@@ -2,15 +2,17 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../engine/engine_gateway.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/formatters.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
+import '../widgets/error_card.dart';
 import '../widgets/position_chip.dart';
 
 /// Picks the starting 11 for the next match. Saving stores the lineup as
 /// [GameController.pendingLineup]; the engine validates it again when the
-/// match is played.
+/// match is played. Opens on the pending lineup when there is one.
 class LineupScreen extends StatefulWidget {
   const LineupScreen({super.key, required this.clubId});
 
@@ -21,7 +23,12 @@ class LineupScreen extends StatefulWidget {
 }
 
 class _LineupScreenState extends State<LineupScreen> {
-  LineupView? _view;
+  /// Null until loaded.
+  Formation? _formation;
+
+  /// The positions of [_formation]; `_starters[i]` fills `_slots[i]`.
+  List<Position> _slots = const [];
+  GatewayError? _error;
 
   /// The club's seniors and youth, which may all be picked.
   List<SquadRow> _players = const [];
@@ -36,24 +43,40 @@ class _LineupScreenState extends State<LineupScreen> {
     _load();
   }
 
-  /// Loads the current lineup, or the auto lineup with [auto].
+  /// Loads the pending lineup, else the gateway's current one; the auto
+  /// lineup with [auto].
   Future<void> _load({bool auto = false}) async {
     final c = context.read<GameController>();
-    final (view, seniors, youth) = await (
-      c.lineup(widget.clubId, auto: auto),
-      c.squad(widget.clubId),
-      c.squad(widget.clubId, youth: true),
-    ).wait;
-    if (!mounted) return;
-    setState(() {
-      _view = view;
-      _players = [...seniors, ...youth];
-      _byId = {for (final p in _players) p.id: p};
-      _starters = [
-        for (var i = 0; i < view.slots.length; i++)
-          i < view.starters.length ? view.starters[i] : null,
-      ];
-    });
+    if (_error != null) setState(() => _error = null);
+    try {
+      final pending = auto ? null : c.pendingLineup;
+      final Formation formation;
+      final List<PlayerId> starters;
+      if (pending != null) {
+        formation = pending.formation;
+        starters = pending.starters;
+      } else {
+        final view = await c.lineup(widget.clubId, auto: auto);
+        formation = view.formation;
+        starters = view.starters;
+      }
+      final seniors = await c.squad(widget.clubId);
+      final youth = await c.squad(widget.clubId, youth: true);
+      if (!mounted) return;
+      final slots = formationSlots(formation);
+      setState(() {
+        _formation = formation;
+        _slots = slots;
+        _players = [...seniors, ...youth];
+        _byId = {for (final p in _players) p.id: p};
+        _starters = [
+          for (var i = 0; i < slots.length; i++)
+            i < starters.length ? starters[i] : null,
+        ];
+      });
+    } on GatewayError catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
   }
 
   static bool _eligible(SquadRow r) => !r.injured && r.suspension == 0;
@@ -88,7 +111,7 @@ class _LineupScreenState extends State<LineupScreen> {
             .toList()
           ..sort((a, b) => b.ca.compareTo(a.ca));
     context.read<GameController>().pendingLineup = Lineup(
-      formation: _view!.formation,
+      formation: _formation!,
       starters: starters,
       bench: [for (final r in bench.take(7)) r.id],
     );
@@ -99,7 +122,7 @@ class _LineupScreenState extends State<LineupScreen> {
   /// already starting, those whose position is the slot's first, then by
   /// CA.
   Future<void> _pick(int i) async {
-    final slot = _view!.slots[i];
+    final slot = _slots[i];
     final candidates =
         _players
             .where((r) => _eligible(r) && !_starters.contains(r.id))
@@ -132,25 +155,34 @@ class _LineupScreenState extends State<LineupScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final view = _view;
+    final formation = _formation;
+    final error = _error;
     return Scaffold(
       appBar: AppBar(title: Text(l.lineup)),
-      body: view == null
+      body: error != null
+          ? Center(
+              child: ErrorCard(
+                error: error,
+                onRetry: _load,
+                onDismiss: () => Navigator.of(context).pop(),
+              ),
+            )
+          : formation == null
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Text(
-                    formationLabel(view.formation),
+                    formationLabel(formation),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 Expanded(
                   child: ListView(
                     children: [
-                      for (var i = 0; i < view.slots.length; i++)
-                        _slotTile(i, view.slots[i]),
+                      for (var i = 0; i < _slots.length; i++)
+                        _slotTile(i, _slots[i]),
                     ],
                   ),
                 ),

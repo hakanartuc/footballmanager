@@ -1,8 +1,10 @@
+import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshots.dart';
 import 'package:cm_app/l10n/formatters.dart';
 import 'package:cm_app/ui/squad/player_screen.dart';
 import 'package:cm_app/ui/squad/squad_screen.dart';
 import 'package:cm_app/ui/widgets/empty_state.dart';
+import 'package:cm_app/ui/widgets/error_card.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -112,6 +114,42 @@ void main() {
     await t.tap(_inSquad(find.text(l.seniorSquad)));
     await t.pumpAndSettle();
     expect(_inSquad(find.text('Keeper One')), findsOneWidget);
+  });
+
+  testWidgets('a squad load error shows an ErrorCard; retry loads', (t) async {
+    final l = await loadL10n();
+    final g = await _openSquad(t);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(_inSquad(find.text(l.youthSquad)));
+    await t.pumpAndSettle();
+    expect(_inSquad(find.byType(ErrorCard)), findsOneWidget);
+    expect(_inSquad(find.byType(CircularProgressIndicator)), findsNothing);
+    await t.tap(_inSquad(find.text(l.retry)));
+    await t.pumpAndSettle();
+    expect(_inSquad(find.byType(ErrorCard)), findsNothing);
+    expect(_inSquad(find.text('Youth Kid')), findsOneWidget);
+  });
+
+  testWidgets('a player load error shows an ErrorCard; retry loads, ok pops', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = await _openSquad(t);
+    g.playerDetail = _detail(Position.gk);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(_inSquad(find.text('Keeper One')));
+    await t.pumpAndSettle();
+    await t.tap(find.text(l.ok));
+    await t.pumpAndSettle();
+    expect(find.byType(PlayerScreen), findsNothing);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await t.tap(_inSquad(find.text('Keeper One')));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await t.tap(find.text(l.retry));
+    await t.pumpAndSettle();
+    expect(find.text('${l.ca} 132 · ${l.pa} 160'), findsOneWidget);
   });
 
   testWidgets('unemployed shows the empty state', (t) async {

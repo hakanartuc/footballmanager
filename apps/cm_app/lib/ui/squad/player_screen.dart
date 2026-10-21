@@ -2,10 +2,12 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../engine/engine_gateway.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/formatters.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
+import '../widgets/error_card.dart';
 
 /// One player's profile: header, attribute tabs (a goalkeeping tab first
 /// for keepers) and an info tab with contract, season stats and condition.
@@ -19,22 +21,31 @@ class PlayerScreen extends StatefulWidget {
 }
 
 class _PlayerScreenState extends State<PlayerScreen> {
-  late final Future<PlayerDetail> _detail = context
-      .read<GameController>()
-      .player(widget.playerId);
+  late Future<PlayerDetail> _detail = _fetch();
+
+  Future<PlayerDetail> _fetch() =>
+      context.read<GameController>().player(widget.playerId);
 
   @override
   Widget build(BuildContext context) => FutureBuilder(
     future: _detail,
     builder: (context, snap) {
-      final p = snap.data;
-      if (p == null) {
-        return Scaffold(
-          appBar: AppBar(),
-          body: const Center(child: CircularProgressIndicator()),
-        );
-      }
-      return _PlayerView(p);
+      if (snap.data case final p?) return _PlayerView(p);
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: switch (snap.error) {
+            final GatewayError e => ErrorCard(
+              error: e,
+              onRetry: () => setState(() {
+                _detail = _fetch();
+              }),
+              onDismiss: () => Navigator.of(context).pop(),
+            ),
+            _ => const CircularProgressIndicator(),
+          },
+        ),
+      );
     },
   );
 }
