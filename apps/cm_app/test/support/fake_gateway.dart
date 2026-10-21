@@ -254,13 +254,23 @@ class FakeGateway implements EngineGateway {
         return (auto ? autoLineupView : null) ?? lineupView!;
       });
 
-  @override
-  Future<List<TableRowView>> table(LeagueId leagueId) =>
-      _call('table', () => tableRows);
+  /// The league id of each [table] call.
+  final List<LeagueId> tableArgs = [];
 
   @override
-  Future<List<FixtureRow>> clubFixtures(ClubId clubId) =>
-      _call('clubFixtures', () => fixtureRows);
+  Future<List<TableRowView>> table(LeagueId leagueId) {
+    tableArgs.add(leagueId);
+    return _call('table', () => tableRows);
+  }
+
+  /// The club id of each [clubFixtures] call.
+  final List<ClubId> clubFixturesArgs = [];
+
+  @override
+  Future<List<FixtureRow>> clubFixtures(ClubId clubId) {
+    clubFixturesArgs.add(clubId);
+    return _call('clubFixtures', () => fixtureRows);
+  }
 
   @override
   Future<List<InboxItem>> inbox() => _call('inbox', () => inboxItems);

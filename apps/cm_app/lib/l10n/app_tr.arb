@@ -198,5 +198,6 @@
   "pa": "PA",
   "heightCm": "{cm} cm",
   "morale": "Moral",
-  "form": "Form"
+  "form": "Form",
+  "roundLabel": "{round}. hafta"
 }

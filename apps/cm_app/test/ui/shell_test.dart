@@ -40,7 +40,13 @@ void main() {
     final l = await loadL10n();
     final g = FakeGateway.ready();
     final c = await pumpApp(t, gateway: g);
-    IndexedStack stack() => t.widget(find.byType(IndexedStack));
+    // The shell's stack; dropdowns on the tabs hold IndexedStacks too.
+    IndexedStack stack() => t.widget(
+      find.ancestor(
+        of: find.byKey(const Key('homeTab'), skipOffstage: false),
+        matching: find.byType(IndexedStack),
+      ),
+    );
     expect(stack().index, 0);
     await t.tap(find.text(l.tabLeague));
     await t.pumpAndSettle();

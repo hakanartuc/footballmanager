@@ -545,5 +545,14 @@
     }
   },
   "morale": "Morale",
-  "form": "Form"
+  "form": "Form",
+  "roundLabel": "Round {round}",
+  "@roundLabel": {
+    "description": "Fixture list: league round number",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  }
 }

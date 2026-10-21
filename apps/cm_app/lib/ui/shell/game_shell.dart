@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../engine/snapshots.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../home/home_screen.dart';
+import '../league/league_screen.dart';
 import '../squad/lineup_screen.dart';
 import '../squad/squad_screen.dart';
 
@@ -43,8 +44,8 @@ class _GameShellState extends State<GameShell> {
                   ),
           ),
           const SquadScreen(key: Key('squadTab')),
-          // Placeholders until the other tab screens land.
-          const Placeholder(key: Key('leagueTab')),
+          const LeagueScreen(key: Key('leagueTab')),
+          // Placeholder until the inbox screen lands.
           const Placeholder(key: Key('inboxTab')),
         ],
       ),
