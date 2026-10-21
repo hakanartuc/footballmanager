@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:cm_app/engine/snapshots.dart';
 import 'package:cm_app/l10n/event_text.dart';
 import 'package:cm_app/l10n/formatters.dart';
+import 'package:cm_app/ui/widgets/error_card.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_gateway.dart';
+import '../support/flaky_store.dart';
 import '../support/pump_app.dart';
 
 /// A played 2-1 for club 1 at home to club 2.
@@ -124,6 +126,32 @@ void main() {
     await t.tap(inSheet(find.text(l.ok)));
     await t.pumpAndSettle();
     expect(find.byType(BottomSheet), findsNothing);
+  });
+
+  testWidgets('retry after a failed autosave still shows the result', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    g.homeSnapshot = copyHome(g.homeSnapshot, isMatchDay: true);
+    g.playOutcome = _outcome(userMatch: _result());
+    final store = FlakyStore();
+    await pumpApp(t, gateway: g, store: store);
+    store.failNextWrite = true;
+    await t.tap(find.text(l.playMatch));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsOneWidget);
+    expect(find.byType(BottomSheet), findsNothing);
+    await t.tap(find.text(l.retry));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsNothing);
+    expect(g.playTodayCommands, hasLength(1), reason: 'not replayed');
+    final sheet = find.byType(BottomSheet);
+    expect(sheet, findsOneWidget);
+    expect(
+      find.descendant(of: sheet, matching: find.text('2 - 1')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('a season-ended outcome shows the season end dialog', (t) async {

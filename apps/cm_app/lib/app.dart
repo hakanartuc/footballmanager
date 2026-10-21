@@ -10,8 +10,10 @@ import 'data/game_repository.dart';
 import 'data/settings_controller.dart';
 import 'engine/engine_gateway.dart';
 import 'engine/isolate_gateway.dart';
+import 'engine/snapshots.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'state/game_controller.dart';
+import 'ui/home/outcome_presenter.dart';
 import 'ui/saves/saves_screen.dart';
 import 'ui/shell/game_shell.dart';
 import 'ui/start/start_screen.dart';
@@ -150,13 +152,18 @@ class _RootState extends State<_Root> {
   /// The last [NoGame] or [Ready], shown under [Busy].
   GameState _settled = const NoGame();
 
-  /// A second tap while the retry runs is ignored.
+  /// A second tap while the retry runs is ignored. A retried advance or
+  /// play (or the autosave after one) still presents its outcome.
   Future<void> _retry(GameController controller) async {
+    final AdvanceOutcome? outcome;
     try {
-      await controller.retry();
+      outcome = await controller.retry();
     } on StateError catch (e) {
       if (e.message != 'busy') rethrow;
+      return;
     }
+    if (!mounted || outcome == null) return;
+    await presentOutcome(context, controller, outcome);
   }
 
   Widget _content(GameState s) => switch (s) {

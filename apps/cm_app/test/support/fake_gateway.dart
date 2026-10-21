@@ -311,17 +311,28 @@ class FakeGateway implements EngineGateway {
   @override
   Future<Uint8List> save() => _call('save', () => Uint8List.fromList([1]));
 
+  /// Like the engine, a season end starts the next season at once.
+  AdvanceOutcome _rollover(AdvanceOutcome outcome) {
+    if (outcome.seasonEnded) {
+      homeSnapshot = copyHome(
+        homeSnapshot,
+        seasonYear: homeSnapshot.seasonYear + 1,
+      );
+    }
+    return outcome;
+  }
+
   @override
   Future<AdvanceOutcome> advanceToNext({int maxDays = 90}) => _call(
     'advanceToNext',
-    () => advanceOutcome ?? _outcome(StopReason.reachedLimit),
+    () => _rollover(advanceOutcome ?? _outcome(StopReason.reachedLimit)),
   );
 
   @override
   Future<AdvanceOutcome> playToday(List<Command> commands) =>
       _call('playToday', () {
         playTodayCommands.add(commands);
-        return playOutcome ?? _outcome(StopReason.played);
+        return _rollover(playOutcome ?? _outcome(StopReason.played));
       });
 
   @override
@@ -413,12 +424,13 @@ class FakeGateway implements EngineGateway {
 HomeSnapshot copyHome(
   HomeSnapshot h, {
   GameDate? date,
+  int? seasonYear,
   int? unreadCount,
   bool? isMatchDay,
   bool unemployed = false,
 }) => HomeSnapshot(
   date: date ?? h.date,
-  seasonYear: h.seasonYear,
+  seasonYear: seasonYear ?? h.seasonYear,
   clubId: unemployed ? null : h.clubId,
   clubName: unemployed ? null : h.clubName,
   leagueId: unemployed ? null : h.leagueId,

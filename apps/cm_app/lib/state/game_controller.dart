@@ -122,7 +122,7 @@ class GameController extends ChangeNotifier {
   Future<AdvanceOutcome?> advance() => _run('advance', (previous) async {
     final sw = Stopwatch()..start();
     final outcome = await _gateway.advanceToNext();
-    await _autosaveAfterMutation(previous);
+    await _autosaveAfterMutation(previous, outcome);
     lastAdvanceMs = sw.elapsedMilliseconds;
     return outcome;
   });
@@ -138,7 +138,7 @@ class GameController extends ChangeNotifier {
           ...extra,
         ]);
         pendingLineup = null;
-        await _autosaveAfterMutation(previous);
+        await _autosaveAfterMutation(previous, outcome);
         return outcome;
       });
 
@@ -152,7 +152,8 @@ class GameController extends ChangeNotifier {
   }, busy: false);
 
   /// Re-runs the last action; returns its outcome when it was [advance] or
-  /// [playMatch], else null.
+  /// [playMatch] (or the autosave after one, whose outcome is kept), else
+  /// null.
   Future<AdvanceOutcome?> retry() async {
     final result = await _lastAction?.call();
     return result is AdvanceOutcome ? result : null;
@@ -213,14 +214,19 @@ class GameController extends ChangeNotifier {
 
   /// Autosaves and refreshes home after the world changed. When saving
   /// fails the world has still moved on, so home is refreshed anyway (the
-  /// failure keeps it as previous) and [retry] only saves again.
-  Future<void> _autosaveAfterMutation(GameState previous) async {
+  /// failure keeps it as previous) and [retry] only saves again, returning
+  /// the kept [outcome].
+  Future<void> _autosaveAfterMutation(
+    GameState previous,
+    AdvanceOutcome outcome,
+  ) async {
     try {
       await _repo.autosave();
     } on Exception {
-      _lastAction = () => _run<void>('autosave', (p) async {
+      _lastAction = () => _run('autosave', (p) async {
         await _repo.autosave();
         await _refresh(p);
+        return outcome;
       });
       await _refresh(previous);
       rethrow;

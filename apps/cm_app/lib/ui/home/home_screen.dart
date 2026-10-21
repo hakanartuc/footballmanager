@@ -8,8 +8,7 @@ import '../../l10n/formatters.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
 import '../widgets/club_chip.dart';
-import 'match_result_sheet.dart';
-import 'season_end_dialog.dart';
+import 'outcome_presenter.dart';
 
 /// The home tab: date and club header, the advance / play button, the next
 /// match, the latest news and a squad status row.
@@ -35,35 +34,22 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Runs [action], then shows the user's match result and the season end.
   ///
-  /// The season and position are taken from [before]: the season-ending
-  /// advance always starts after the last round (the calendar's season end
-  /// is a week past it), so that position is final, while the refreshed
-  /// home already shows the next season's empty table.
+  /// [positionBefore] is the league position before the action: the
+  /// season-ending advance always starts after the last round (the
+  /// calendar's season end is a week past it), so it is final, while the
+  /// refreshed home already shows the next season's empty table.
   Future<void> _act(
     Future<AdvanceOutcome?> Function() action,
-    Ready before,
+    int? positionBefore,
   ) async {
     final outcome = await action();
     if (!mounted || outcome == null) return;
-    final match = outcome.userMatch;
-    if (match != null) {
-      ClubRef club(ClubId id) =>
-          before.refs.clubs.firstWhere((c) => c.id == id);
-      await showMatchResultSheet(
-        context,
-        match,
-        home: club(match.homeId),
-        away: club(match.awayId),
-      );
-      if (!mounted) return;
-    }
-    if (outcome.seasonEnded) {
-      await showSeasonEndDialog(
-        context,
-        seasonYear: before.home.seasonYear,
-        finalPosition: before.home.leaguePosition,
-      );
-    }
+    await presentOutcome(
+      context,
+      context.read<GameController>(),
+      outcome,
+      positionBefore: positionBefore,
+    );
   }
 
   @override
@@ -120,7 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
               style: FilledButton.styleFrom(minimumSize: bigButton),
               onPressed: busy
                   ? null
-                  : () => _act(() => controller.playMatch(const []), ready),
+                  : () => _act(
+                      () => controller.playMatch(const []),
+                      home.leaguePosition,
+                    ),
               child: Text(l.playMatch),
             ),
             if (widget.onOpenLineup case final open?) ...[
@@ -134,7 +123,9 @@ class _HomeScreenState extends State<HomeScreen> {
         : [
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: bigButton),
-              onPressed: busy ? null : () => _act(controller.advance, ready),
+              onPressed: busy
+                  ? null
+                  : () => _act(controller.advance, home.leaguePosition),
               child: Text(l.advance),
             ),
           ];

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:cm_app/data/game_repository.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
@@ -9,31 +8,18 @@ import 'package:engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fake_gateway.dart';
+import '../support/flaky_store.dart';
 import '../support/pump_app.dart';
-
-/// Throws [SaveError] `io` on the next [write] when [failNextWrite].
-class _FlakyStore extends MemorySaveStore {
-  bool failNextWrite = false;
-
-  @override
-  Future<void> write(int slot, Uint8List bytes, SlotInfo meta) async {
-    if (failNextWrite) {
-      failNextWrite = false;
-      throw SaveError(SaveErrorKind.io, 'disk full');
-    }
-    await super.write(slot, bytes, meta);
-  }
-}
 
 void main() {
   late FakeGateway gateway;
-  late _FlakyStore store;
+  late FlakyStore store;
   late GameController c;
   late List<GameState> states;
 
   setUp(() {
     gateway = FakeGateway.ready();
-    store = _FlakyStore();
+    store = FlakyStore();
     c = GameController(GameRepository(gateway, store), gateway);
     states = [];
     c.addListener(() => states.add(c.state));
@@ -271,10 +257,11 @@ void main() {
     expect((failed.previous as Ready).home, same(after));
 
     gateway.calls.clear();
-    await c.retry();
+    final outcome = await c.retry();
     expect(gateway.calls, contains('save'));
     expect(gateway.calls, isNot(contains('advanceToNext')));
     expect(c.state, isA<Ready>());
+    expect(outcome!.reason, StopReason.reachedLimit, reason: 'kept');
   });
 
   test('autosave failure after playMatch does not replay the day', () async {
