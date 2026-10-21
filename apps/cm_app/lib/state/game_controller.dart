@@ -59,7 +59,8 @@ class GameController extends ChangeNotifier {
   int lastAdvanceMs = 0;
   int lastSaveMs = 0;
 
-  /// Sent as a [SetLineup] by the next successful [playMatch].
+  /// Sent as a [SetLineup] by the next successful [playMatch]; dropped when
+  /// another game is started, loaded or previewed.
   Lineup? pendingLineup;
 
   Future<Object?> Function()? _lastAction;
@@ -76,6 +77,7 @@ class GameController extends ChangeNotifier {
   Future<WorldRefs?> previewWorld(NewGameSpec spec) async {
     if (_state is Busy) throw StateError('busy');
     if (_settled is! NoGame) throw StateError('previewWorld needs NoGame');
+    pendingLineup = null;
     final refs = await _run('preview', (previous) async {
       await _gateway.newGame(
         NewGameSpec(
@@ -189,9 +191,11 @@ class GameController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Sets [Ready] for a game just started or loaded, under a new game id.
+  /// Sets [Ready] for a game just started or loaded, under a new game id
+  /// and without the old game's [pendingLineup].
   Future<void> _enterGame() {
     _gameId++;
+    pendingLineup = null;
     return _refresh(null);
   }
 

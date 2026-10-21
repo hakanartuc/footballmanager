@@ -154,6 +154,26 @@ void main() {
     expect(gateway.playTodayCommands.last, isEmpty);
   });
 
+  test('starting, loading or previewing a game drops pendingLineup', () async {
+    final lineup = Lineup(
+      formation: Formation.f442,
+      starters: List.generate(11, (i) => i + 1),
+      bench: const [],
+    );
+    c.pendingLineup = lineup;
+    await c.previewWorld(anySpec);
+    expect(c.pendingLineup, isNull, reason: 'previewWorld');
+    c.pendingLineup = lineup;
+    await c.newGame(anySpec); // autosave in slot 6
+    expect(c.pendingLineup, isNull, reason: 'newGame');
+    c.pendingLineup = lineup;
+    await c.loadSlot(6);
+    expect(c.pendingLineup, isNull, reason: 'loadSlot');
+    c.pendingLineup = lineup;
+    await c.continueLast();
+    expect(c.pendingLineup, isNull, reason: 'continueLast');
+  });
+
   test('actions throw StateError while busy', () async {
     await c.newGame(anySpec);
     final first = c.advance();
