@@ -1,0 +1,550 @@
+{
+  "@@locale": "en",
+  "appTitle": "Football Manager",
+  "@appTitle": {
+    "description": "App title (placeholder name)"
+  },
+  "tabHome": "Home",
+  "@tabHome": {
+    "description": "Bottom navigation tab"
+  },
+  "tabSquad": "Squad",
+  "tabLeague": "League",
+  "tabInbox": "Inbox",
+  "continueGame": "Continue",
+  "@continueGame": {
+    "description": "Start screen: resume the latest save"
+  },
+  "newGame": "New game",
+  "loadGame": "Load game",
+  "noSavedGame": "No saved game",
+  "managerFirstName": "First name",
+  "@managerFirstName": {
+    "description": "New game form: manager first name"
+  },
+  "managerLastName": "Last name",
+  "nationality": "Nationality",
+  "worldSize": "World size",
+  "worldSizeSmall": "Small",
+  "worldSizeMedium": "Medium",
+  "worldSizeLarge": "Large",
+  "startClub": "Start at a club",
+  "startUnemployed": "Start unemployed",
+  "pickCountry": "Choose a country",
+  "pickLeague": "Choose a league",
+  "pickClub": "Choose a club",
+  "startGame": "Start game",
+  "fieldRequired": "This field is required",
+  "invalidNumber": "Invalid number",
+  "advanced": "Advanced",
+  "@advanced": {
+    "description": "New game: expander for optional settings"
+  },
+  "seed": "Seed",
+  "@seed": {
+    "description": "New game: world generation seed number"
+  },
+  "advance": "Continue",
+  "@advance": {
+    "description": "Home: advance the calendar"
+  },
+  "playMatch": "Play match",
+  "nextMatch": "Next match",
+  "noClubUnemployed": "You are not managing a club.",
+  "season": "Season",
+  "squadStatus": "{injured} injured, {suspended} suspended",
+  "@squadStatus": {
+    "description": "Home: squad availability summary",
+    "placeholders": {
+      "injured": {
+        "type": "int"
+      },
+      "suspended": {
+        "type": "int"
+      }
+    }
+  },
+  "age": "Age",
+  "ca": "CA",
+  "@ca": {
+    "description": "Current ability, short column header"
+  },
+  "condition": "Condition",
+  "statusKeyPlayer": "Key player",
+  "@statusKeyPlayer": {
+    "description": "Squad status"
+  },
+  "statusFirstTeam": "First team",
+  "statusRotation": "Rotation",
+  "statusBackup": "Backup",
+  "statusHotProspect": "Hot prospect",
+  "statusYouth": "Youth",
+  "youthSquad": "Youth squad",
+  "lineup": "Lineup",
+  "autoLineup": "Auto lineup",
+  "saveLineup": "Save lineup",
+  "lineupErrorNotEleven": "The lineup must have exactly 11 players.",
+  "@lineupErrorNotEleven": {
+    "description": "Lineup validation error"
+  },
+  "lineupErrorDuplicate": "A player has been picked more than once.",
+  "lineupErrorNotInClub": "A selected player is not in your squad.",
+  "lineupErrorNoGoalkeeper": "The lineup needs a goalkeeper.",
+  "lineupErrorIneligible": "An injured or suspended player has been picked.",
+  "posGk": "Goalkeeper",
+  "@posGk": {
+    "description": "Position full name"
+  },
+  "posDl": "Left back",
+  "posDc": "Centre back",
+  "posDr": "Right back",
+  "posDm": "Defensive midfielder",
+  "posMl": "Left midfielder",
+  "posMc": "Central midfielder",
+  "posMr": "Right midfielder",
+  "posAml": "Left winger",
+  "posAmc": "Attacking midfielder",
+  "posAmr": "Right winger",
+  "posSt": "Striker",
+  "attrGroupTechnical": "Technical",
+  "@attrGroupTechnical": {
+    "description": "Attribute group"
+  },
+  "attrGroupMental": "Mental",
+  "attrGroupPhysical": "Physical",
+  "attrGroupGoalkeeping": "Goalkeeping",
+  "attrPassing": "Passing",
+  "@attrPassing": {
+    "description": "Player attribute"
+  },
+  "attrLongShots": "Long shots",
+  "attrFirstTouch": "First touch",
+  "attrDribbling": "Dribbling",
+  "attrCrossing": "Crossing",
+  "attrHeading": "Heading",
+  "attrLongPassing": "Long passing",
+  "attrFinishing": "Finishing",
+  "attrTackling": "Tackling",
+  "attrDecisions": "Decisions",
+  "attrPositioning": "Positioning",
+  "attrAnticipation": "Anticipation",
+  "attrComposure": "Composure",
+  "attrWorkRate": "Work rate",
+  "attrTeamwork": "Teamwork",
+  "attrAggression": "Aggression",
+  "attrConcentration": "Concentration",
+  "attrLeadership": "Leadership",
+  "attrPace": "Pace",
+  "attrAcceleration": "Acceleration",
+  "attrStamina": "Stamina",
+  "attrStrength": "Strength",
+  "attrBalance": "Balance",
+  "attrJumping": "Jumping",
+  "attrAgility": "Agility",
+  "attrReflexes": "Reflexes",
+  "attrAerialAbility": "Aerial ability",
+  "attrHandling": "Handling",
+  "attrOneOnOnes": "One on ones",
+  "attrCommandOfArea": "Command of area",
+  "contract": "Contract",
+  "wage": "Wage",
+  "contractEnd": "Contract expires",
+  "seasonStats": "Season stats",
+  "table": "Table",
+  "fixtures": "Fixtures",
+  "played": "P",
+  "@played": {
+    "description": "League table column: played"
+  },
+  "won": "W",
+  "@won": {
+    "description": "League table column: won"
+  },
+  "drawn": "D",
+  "@drawn": {
+    "description": "League table column: drawn"
+  },
+  "lost": "L",
+  "@lost": {
+    "description": "League table column: lost"
+  },
+  "goalDifference": "GD",
+  "@goalDifference": {
+    "description": "League table column: goal difference"
+  },
+  "points": "Pts",
+  "@points": {
+    "description": "League table column: points"
+  },
+  "markAllRead": "Mark all as read",
+  "noMessages": "No messages yet",
+  "@noMessages": {
+    "description": "Inbox: empty list"
+  },
+  "eventMatchTitle": "{home} {hg} - {ag} {away}",
+  "@eventMatchTitle": {
+    "description": "Inbox: match result headline",
+    "placeholders": {
+      "home": {
+        "type": "String"
+      },
+      "hg": {
+        "type": "int"
+      },
+      "ag": {
+        "type": "int"
+      },
+      "away": {
+        "type": "String"
+      }
+    }
+  },
+  "eventMatchBody": "Match result",
+  "eventChampionTitle": "{club} won the {league}",
+  "@eventChampionTitle": {
+    "description": "Inbox: league champion headline",
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "league": {
+        "type": "String"
+      }
+    }
+  },
+  "eventChampionBody": "{club} finished the season top of the {league}.",
+  "@eventChampionBody": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "league": {
+        "type": "String"
+      }
+    }
+  },
+  "eventPromotedTitle": "{club} promoted",
+  "@eventPromotedTitle": {
+    "description": "Inbox: promotion headline",
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "eventPromotedBody": "{club} go up from the {fromLeague} to the {toLeague}.",
+  "@eventPromotedBody": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "fromLeague": {
+        "type": "String"
+      },
+      "toLeague": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRelegatedTitle": "{club} relegated",
+  "@eventRelegatedTitle": {
+    "description": "Inbox: relegation headline",
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRelegatedBody": "{club} go down from the {fromLeague} to the {toLeague}.",
+  "@eventRelegatedBody": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "fromLeague": {
+        "type": "String"
+      },
+      "toLeague": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRetiredTitle": "{player} retires",
+  "@eventRetiredTitle": {
+    "description": "Inbox: retirement headline",
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRetiredTitleUnnamed": "A player retires",
+  "@eventRetiredTitleUnnamed": {
+    "description": "Inbox: retirement headline when the name is unknown"
+  },
+  "eventRetiredBodyClub": "He ends his career at {club}.",
+  "@eventRetiredBodyClub": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "eventRetiredBodyFree": "He ends his career as a free agent.",
+  "eventYouthIntakeTitle": "{count, plural, =1{1 youth player joins the academy} other{{count} youth players join the academy}}",
+  "@eventYouthIntakeTitle": {
+    "description": "Inbox: youth intake headline",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventYouthIntakeBody": "New at the {club} academy: {names}",
+  "@eventYouthIntakeBody": {
+    "description": "names is a comma-separated list",
+    "placeholders": {
+      "club": {
+        "type": "String"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "eventYouthIntakeBodyUnnamed": "New players have joined the {club} academy.",
+  "@eventYouthIntakeBodyUnnamed": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "eventYouthReleasedTitle": "{count, plural, =1{1 youth player released} other{{count} youth players released}}",
+  "@eventYouthReleasedTitle": {
+    "description": "Inbox: youth release headline",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "eventYouthReleasedBody": "Academy players at {club} who did not make the first team have left the club.",
+  "@eventYouthReleasedBody": {
+    "placeholders": {
+      "club": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSeasonEndedTitle": "The {season} season is over",
+  "@eventSeasonEndedTitle": {
+    "description": "Inbox: season end headline; season is like 2026-27",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSeasonEndedBody": "The final tables are in.",
+  "eventNewSeasonTitle": "The {season} season begins",
+  "@eventNewSeasonTitle": {
+    "description": "Inbox: new season headline; season is like 2027-28",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "eventNewSeasonBody": "The new fixture list is out.",
+  "slot": "Slot {number}",
+  "@slot": {
+    "description": "Save slot label",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "emptySlot": "Empty slot",
+  "save": "Save",
+  "load": "Load",
+  "delete": "Delete",
+  "overwriteConfirm": "Overwrite this save?",
+  "deleteConfirm": "Delete this save?",
+  "loadError": "The save could not be loaded.",
+  "newerSaveError": "This save was made with a newer version of the game.",
+  "manualSaves": "Saves",
+  "autosaves": "Autosaves",
+  "saved": "Saved",
+  "settings": "Settings",
+  "systemLanguage": "System language",
+  "language": "Language",
+  "turkish": "Türkçe",
+  "@turkish": {
+    "description": "Language name, always in its own language"
+  },
+  "english": "English",
+  "@english": {
+    "description": "Language name, always in its own language"
+  },
+  "devStats": "Developer stats",
+  "lastAdvanceMs": "Last advance: {ms} ms",
+  "@lastAdvanceMs": {
+    "description": "Dev stats: duration of the last advance",
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "lastSaveMs": "Last save: {ms} ms",
+  "@lastSaveMs": {
+    "description": "Dev stats: duration of the last save",
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "engineVersion": "Engine version",
+  "about": "About",
+  "version": "Version {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "seasonEnded": "Season over",
+  "seasonEndBody": "The {season} season is over. You finished the league in position {position}.",
+  "@seasonEndBody": {
+    "description": "Season end dialog body; season like 2026-27, position is the final league rank",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      },
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "seasonEndBodyUnemployed": "The {season} season is over.",
+  "@seasonEndBodyUnemployed": {
+    "description": "Season end dialog body without a club",
+    "placeholders": {
+      "season": {
+        "type": "String"
+      }
+    }
+  },
+  "leaguePositionLabel": "Position {position}",
+  "@leaguePositionLabel": {
+    "description": "Home: the user's current league rank",
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
+  "playerCount": "{count, plural, =1{1 player} other{{count} players}}",
+  "@playerCount": {
+    "description": "Home: senior squad size",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeLabel": "Home",
+  "@homeLabel": {
+    "description": "Next match: played at home"
+  },
+  "awayLabel": "Away",
+  "@awayLabel": {
+    "description": "Next match: played away"
+  },
+  "latestNews": "Latest news",
+  "@latestNews": {
+    "description": "Home: heading over the newest inbox items"
+  },
+  "ok": "OK",
+  "cancel": "Cancel",
+  "retry": "Try again",
+  "error": "Error",
+  "errorDetails": "Details",
+  "@errorDetails": {
+    "description": "Error card: expandable technical details"
+  },
+  "leagueDisplayName": "{country} Division {tier}",
+  "@leagueDisplayName": {
+    "description": "League name from country and tier, e.g. Türkiye 1. Lig",
+    "placeholders": {
+      "country": {
+        "type": "String"
+      },
+      "tier": {
+        "type": "int"
+      }
+    }
+  },
+  "countryTR": "Türkiye",
+  "@countryTR": {
+    "description": "Country name"
+  },
+  "countryENG": "England",
+  "countryES": "Spain",
+  "countryDE": "Germany",
+  "countryIT": "Italy",
+  "countryFR": "France",
+  "countryNL": "Netherlands",
+  "countryPT": "Portugal",
+  "countryBR": "Brazil",
+  "countryAR": "Argentina",
+  "countryUS": "United States",
+  "countryMX": "Mexico",
+  "countryJP": "Japan",
+  "countryKR": "South Korea",
+  "countryNG": "Nigeria",
+  "countryAU": "Australia",
+  "seniorSquad": "First team",
+  "groupGoalkeepers": "Goalkeepers",
+  "groupDefenders": "Defenders",
+  "groupMidfielders": "Midfielders",
+  "groupForwards": "Forwards",
+  "info": "Info",
+  "@info": {
+    "description": "Player screen tab with contract, season stats and condition"
+  },
+  "apps": "Apps",
+  "@apps": {
+    "description": "Season stats: matches played"
+  },
+  "goals": "Goals",
+  "assists": "Assists",
+  "pa": "PA",
+  "@pa": {
+    "description": "Potential ability abbreviation"
+  },
+  "heightCm": "{cm} cm",
+  "@heightCm": {
+    "description": "Player height",
+    "placeholders": {
+      "cm": {
+        "type": "int"
+      }
+    }
+  },
+  "morale": "Morale",
+  "form": "Form",
+  "roundLabel": "Round {round}",
+  "@roundLabel": {
+    "description": "Fixture list: league round number",
+    "placeholders": {
+      "round": {
+        "type": "int"
+      }
+    }
+  }
+}

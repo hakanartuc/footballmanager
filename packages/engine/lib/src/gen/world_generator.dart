@@ -155,7 +155,7 @@ World generateWorld({
   }
 
   return World(
-    schemaVersion: 1,
+    schemaVersion: currentSchemaVersion,
     seed: seed,
     date: startDate,
     seasonYear: seasonYear,

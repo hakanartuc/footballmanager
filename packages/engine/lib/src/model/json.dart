@@ -581,12 +581,14 @@ GameEvent eventFromJson(Map<String, dynamic> j) {
 }
 
 Map<String, dynamic> inboxMessageToJson(InboxMessage m) => {
+  'id': m.id,
   'date': m.date.dayIndex,
   'event': eventToJson(m.event),
   'read': m.read,
 };
 
 InboxMessage inboxMessageFromJson(Map<String, dynamic> j) => InboxMessage(
+  id: j['id'] as int,
   date: _date(j['date']),
   event: eventFromJson(_obj(j['event'])),
   read: j['read'] as bool,

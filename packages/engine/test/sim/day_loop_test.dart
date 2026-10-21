@@ -174,6 +174,17 @@ void main() {
       );
     });
 
+    test('inbox ids are strictly increasing across days', () {
+      final w = _world(startClubId: _firstTrClub());
+      for (var i = 0; i < 40; i++) {
+        runner.advanceDay(w, const []);
+      }
+      final ids = w.inbox.map((m) => m.id).toList();
+      expect(ids.length, greaterThan(2));
+      expect(ids, [for (var i = 1; i <= ids.length; i++) i]);
+      expect(w.ids.next('inbox'), ids.length + 1);
+    });
+
     test('a 7-day advance stays well under 200 ms per day', () {
       final w = _world();
       for (var i = 0; i < 7; i++) {
@@ -193,6 +204,27 @@ void main() {
       expect(w.inbox, hasLength(300));
       expect((w.inbox.last.event as SeasonEnded).seasonYear, 399);
       expect((w.inbox.first.event as SeasonEnded).seasonYear, 100);
+    });
+
+    test('assigns ids from the allocator; they survive the trim', () {
+      final w = _world();
+      expect(w.inbox.single.id, 1);
+      runner.endOfDay(
+        w,
+        dayEvents: [
+          for (var i = 0; i < 400; i++)
+            SeasonEnded(date: w.date, seasonYear: i),
+        ],
+      );
+      runner.endOfDay(
+        w,
+        dayEvents: [SeasonEnded(date: w.date, seasonYear: 400)],
+      );
+      // 401 messages issued after the initial one: ids 2..402; the newest
+      // 300 remain.
+      expect(w.inbox, hasLength(inboxLimit));
+      expect(w.inbox.map((m) => m.id), [for (var i = 103; i <= 402; i++) i]);
+      expect(w.ids.next('inbox'), 403);
     });
 
     test('calls the rollover hook on the season end date', () {

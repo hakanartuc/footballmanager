@@ -171,6 +171,7 @@ void main() {
       w.inbox.insertAll(0, [
         for (var i = 0; i < inboxLimit; i++)
           InboxMessage(
+            id: 1000 + i,
             date: w.date,
             event: SeasonEnded(date: w.date, seasonYear: i),
           ),
@@ -182,6 +183,22 @@ void main() {
       s.markRead(newest);
       expect(newest.read, isTrue);
       expect(s.inbox(unreadOnly: true), isNot(contains(same(newest))));
+    });
+
+    test('markReadById flips that message only; an unknown id is a no-op', () {
+      final s = EngineSession.newGame(_spec(startClubId: club));
+      s.advanceUntil(s.world.calendar.seasonStart.addDays(30));
+      s.advanceDay();
+      final all = s.inbox();
+      expect(all.length, greaterThanOrEqualTo(2));
+      final target = all[1];
+
+      s.markReadById(target.id);
+      expect(target.read, isTrue);
+      expect(all.where((m) => m.read), [target]);
+
+      s.markReadById(999999);
+      expect(all.where((m) => m.read), [target]);
     });
   });
 

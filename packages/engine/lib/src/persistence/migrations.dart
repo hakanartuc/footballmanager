@@ -12,8 +12,23 @@ class Migration {
   const Migration({required this.from, required this.apply});
 }
 
-/// The registered migrations, one per schema step. Empty at schema v1.
-const List<Migration> migrations = [];
+/// The registered migrations, one per schema step.
+const List<Migration> migrations = [Migration(from: 1, apply: _v1InboxIds)];
+
+/// v1 -> v2: inbox messages get ids `1..n` in stored order (v1 entries
+/// have none) and `ids.inbox` becomes `n`, the last issued id.
+Map<String, dynamic> _v1InboxIds(Map<String, dynamic> envelope) {
+  final world = envelope['world'] as Map<String, dynamic>;
+  var n = 0;
+  world['inbox'] = [
+    for (final m in world['inbox'] as List)
+      {'id': ++n, ...m as Map<String, dynamic>},
+  ];
+  final ids = world['ids'] as Map<String, dynamic>? ?? <String, dynamic>{};
+  ids['inbox'] = n;
+  world['ids'] = ids;
+  return envelope;
+}
 
 /// Applies the migrations of [registry] (default [migrations]) in order until
 /// [envelope] is at [currentSchemaVersion].

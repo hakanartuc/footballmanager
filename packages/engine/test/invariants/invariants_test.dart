@@ -218,6 +218,7 @@ void main() {
     for (var i = 0; i < 301; i++) {
       w.inbox.add(
         InboxMessage(
+          id: w.ids.next('inbox'),
           date: w.date,
           event: SeasonEnded(date: w.date, seasonYear: 2025),
         ),
@@ -226,11 +227,50 @@ void main() {
     expect(_rules(w), contains('inbox.size'));
   });
 
+  group('inbox.ids', () {
+    test('a duplicate id', () {
+      final w = _world();
+      w.inbox.add(
+        InboxMessage(
+          id: w.inbox.first.id,
+          date: w.date,
+          event: SeasonEnded(date: w.date, seasonYear: 2025),
+        ),
+      );
+      expect(_rules(w), contains('inbox.ids'));
+    });
+
+    test('id 0', () {
+      final w = _world();
+      w.inbox.add(
+        InboxMessage(
+          id: 0,
+          date: w.date,
+          event: SeasonEnded(date: w.date, seasonYear: 2025),
+        ),
+      );
+      expect(_rules(w), contains('inbox.ids'));
+    });
+
+    test('allocated ids pass', () {
+      final w = _world();
+      w.inbox.add(
+        InboxMessage(
+          id: w.ids.next('inbox'),
+          date: w.date,
+          event: SeasonEnded(date: w.date, seasonYear: 2025),
+        ),
+      );
+      expect(_rules(w), isNot(contains('inbox.ids')));
+    });
+  });
+
   group('inbox.refs', () {
     test('a missing fixture', () {
       final w = _world();
       w.inbox.add(
         InboxMessage(
+          id: w.ids.next('inbox'),
           date: w.date,
           event: MatchPlayed(date: w.date, fixtureId: 999999),
         ),
@@ -244,10 +284,12 @@ void main() {
       final club = _firstClub(w).id;
       w.inbox.addAll([
         InboxMessage(
+          id: w.ids.next('inbox'),
           date: w.date,
           event: YouthIntake(date: w.date, clubId: club, playerIds: [999999]),
         ),
         InboxMessage(
+          id: w.ids.next('inbox'),
           date: w.date,
           event: YouthReleased(date: w.date, clubId: club, playerIds: [999998]),
         ),
@@ -259,6 +301,7 @@ void main() {
       final w = _world();
       w.inbox.add(
         InboxMessage(
+          id: w.ids.next('inbox'),
           date: w.date,
           event: YouthReleased(date: w.date, clubId: 999999, playerIds: []),
         ),

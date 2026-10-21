@@ -100,9 +100,17 @@ final class NewSeasonStarted extends GameEvent {
 }
 
 class InboxMessage {
+  /// Unique per world, issued by `ids.next('inbox')`; stable across saves,
+  /// so hosts can refer to a message without holding the instance.
+  final int id;
   GameDate date;
   GameEvent event;
   bool read;
 
-  InboxMessage({required this.date, required this.event, this.read = false});
+  InboxMessage({
+    required this.id,
+    required this.date,
+    required this.event,
+    this.read = false,
+  });
 }

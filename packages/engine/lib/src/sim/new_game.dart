@@ -82,6 +82,7 @@ World createNewGame(NewGameSpec spec, {int startSeasonYear = 2026}) {
 
   world.inbox.add(
     InboxMessage(
+      id: world.ids.next('inbox'),
       date: startDate,
       event: NewSeasonStarted(date: startDate, seasonYear: startSeasonYear),
     ),

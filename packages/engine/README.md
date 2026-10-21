@@ -129,12 +129,21 @@ Tuned during implementation; the tests in `test/gen` pin them.
 
 ## Saves
 
-`JsonGzipSaveCodec` writes `gzip(utf8(jsonEncode({"schemaVersion": 1,
+`JsonGzipSaveCodec` writes `gzip(utf8(jsonEncode({"schemaVersion": 2,
 "world": worldToJson(world)})))` at gzip level 6. The JSON is byte-stable
 and is the determinism oracle; the gzip bytes may differ between platforms
 (native zlib vs. pure Dart). `decode` runs the `migrations` registry up to
-`currentSchemaVersion` (1) and throws `SaveError` (`corrupt`,
-`newerSchema`) otherwise.
+`currentSchemaVersion` (2, defined in `model/world.dart`) and throws
+`SaveError` (`corrupt`, `newerSchema`) otherwise.
+
+Schema history:
+
+- v1 (Faz 0A): initial shape.
+- v2 (Faz 0B): every inbox message carries an `id` (`ids.next('inbox')`,
+  JSON `{"id", "date", "event", "read"}`) so hosts can refer to a message
+  across an isolate boundary (`EngineSession.markReadById`). Migration
+  1 -> 2 numbers the stored messages `1..n` in order and sets `ids.inbox`
+  to `n`.
 
 `FileSaveStore` keeps one directory per slot (spec §18.3, Faz 0 subset):
 

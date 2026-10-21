@@ -10,10 +10,48 @@ Map<String, dynamic> _renameOldToNew(Map<String, dynamic> env) {
   return env;
 }
 
+Map<String, dynamic> _identity(Map<String, dynamic> env) => env;
+
 void main() {
-  test('the v1 registry is empty', () {
-    expect(currentSchemaVersion, 1);
-    expect(migrations, isEmpty);
+  test('schema v2 registers the single 1 -> 2 step', () {
+    expect(currentSchemaVersion, 2);
+    expect(migrations.map((m) => m.from), [1]);
+  });
+
+  group('1 -> 2', () {
+    Map<String, dynamic> entry(int day) => {
+      'date': day,
+      'event': {'type': 'SeasonEnded', 'date': day, 'seasonYear': 2026},
+      'read': day.isEven,
+    };
+
+    test('gives inbox entries ids 1..n in stored order and sets ids.inbox', () {
+      final env = <String, dynamic>{
+        'schemaVersion': 1,
+        'world': <String, dynamic>{
+          'inbox': [entry(1), entry(2), entry(3)],
+          'ids': <String, dynamic>{'player': 40},
+        },
+      };
+      final out = migrate(env);
+      expect(out['schemaVersion'], 2);
+      final w = out['world'] as Map<String, dynamic>;
+      final inbox = w['inbox'] as List;
+      expect([
+        for (final m in inbox) (m as Map).keys.toList(),
+      ], everyElement(['id', 'date', 'event', 'read']));
+      expect([for (final m in inbox) (m as Map)['id']], [1, 2, 3]);
+      expect([for (final m in inbox) (m as Map)['read']], [false, true, false]);
+      expect(w['ids'], {'player': 40, 'inbox': 3});
+    });
+
+    test('creates ids when it is missing', () {
+      final out = migrate({
+        'schemaVersion': 1,
+        'world': <String, dynamic>{'inbox': <Object?>[]},
+      });
+      expect((out['world'] as Map)['ids'], {'inbox': 0});
+    });
   });
 
   test('a current envelope is returned unchanged', () {
@@ -34,10 +72,13 @@ void main() {
     };
     final out = migrate(
       env,
-      registry: const [Migration(from: 0, apply: _renameOldToNew)],
+      registry: const [
+        Migration(from: 0, apply: _renameOldToNew),
+        Migration(from: 1, apply: _identity),
+      ],
     );
     expect(out, {
-      'schemaVersion': 1,
+      'schemaVersion': currentSchemaVersion,
       'world': {'new': 7, 'keep': true},
     });
   });
@@ -54,10 +95,10 @@ void main() {
     // Registered out of order on purpose: lookup is by `from`.
     final out = migrate(
       {'schemaVersion': -1, 'world': <String, dynamic>{}},
-      registry: [step(0), step(-1)],
+      registry: [step(1), step(0), step(-1)],
     );
-    expect(applied, [-1, 0]);
-    expect(out['schemaVersion'], 1);
+    expect(applied, [-1, 0, 1]);
+    expect(out['schemaVersion'], currentSchemaVersion);
   });
 
   test('a newer envelope throws SaveError(newerSchema)', () {

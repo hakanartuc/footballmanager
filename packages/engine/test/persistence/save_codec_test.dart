@@ -23,6 +23,22 @@ Uint8List _gzipJson(Object? value) =>
 TypeMatcher<SaveError> _saveError(SaveErrorKind kind) =>
     isA<SaveError>().having((e) => e.kind, 'kind', kind);
 
+/// [bytes] rewritten as the schema v1 save of the same world: no inbox
+/// message ids and no `inbox` id counter.
+Uint8List _asV1(Uint8List bytes) {
+  final env =
+      jsonDecode(utf8.decode(GZipDecoder().decodeBytes(bytes)))
+          as Map<String, dynamic>;
+  final w = env['world'] as Map<String, dynamic>;
+  for (final m in w['inbox'] as List) {
+    (m as Map).remove('id');
+  }
+  (w['ids'] as Map).remove('inbox');
+  env['schemaVersion'] = 1;
+  w['schemaVersion'] = 1;
+  return _gzipJson(env);
+}
+
 void main() {
   const codec = JsonGzipSaveCodec();
   late World world;
@@ -101,6 +117,32 @@ void main() {
     );
   });
 
+  test('a v1 save decodes with inbox ids 1..n and the inbox counter', () {
+    final s = EngineSession.newGame(
+      NewGameSpec(
+        seed: 1,
+        size: WorldSize.small,
+        managerFirstName: 'Test',
+        managerLastName: 'Manager',
+        managerCountryCode: 'TR',
+        startClubId: world.leagues.values.first.clubIds.first,
+      ),
+    );
+    s.advanceUntil(s.world.calendar.seasonStart.addDays(30));
+    s.advanceDay();
+    final n = s.world.inbox.length;
+    expect(n, greaterThanOrEqualTo(2));
+    final v2 = s.save();
+    final v1 = _asV1(v2);
+    expect(v1, isNot(v2));
+
+    final decoded = codec.decode(v1);
+    expect(decoded.schemaVersion, currentSchemaVersion);
+    expect(decoded.inbox.map((m) => m.id), [for (var i = 1; i <= n; i++) i]);
+    expect(codec.encode(decoded), v2);
+    expect(decoded.ids.next('inbox'), n + 1);
+  });
+
   test('decode applies an injected migration before worldFromJson', () {
     final v0World = worldToJson(world);
     v0World['oldSeed'] = v0World.remove('seed');
@@ -116,6 +158,7 @@ void main() {
             return env;
           },
         ),
+        ...migrations,
       ],
     );
 

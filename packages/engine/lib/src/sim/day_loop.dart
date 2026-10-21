@@ -141,7 +141,9 @@ class DayRunner {
 
     for (final e in [...dayEvents, ...rolled]) {
       if (isUserRelevant(w, e, userLeagueId: userLeagueId)) {
-        w.inbox.add(InboxMessage(date: w.date, event: e));
+        w.inbox.add(
+          InboxMessage(id: w.ids.next('inbox'), date: w.date, event: e),
+        );
       }
     }
     if (w.inbox.length > inboxLimit) {
