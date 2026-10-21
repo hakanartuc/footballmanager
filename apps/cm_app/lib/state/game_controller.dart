@@ -142,12 +142,13 @@ class GameController extends ChangeNotifier {
         return outcome;
       });
 
-  Future<void> refreshHome() => _run('refreshHome', _refresh, busy: false);
+  Future<void> refreshHome() =>
+      _run('refreshHome', (p) => _refresh(p, unlessBusy: true), busy: false);
 
   /// Marks an inbox item read and refreshes home for the unread badge.
   Future<void> markRead(int id) => _run('markRead', (previous) async {
     await _gateway.markRead(id);
-    await _refresh(previous);
+    await _refresh(previous, unlessBusy: true);
   }, busy: false);
 
   /// Re-runs the last action; returns its outcome when it was [advance] or
@@ -200,10 +201,13 @@ class GameController extends ChangeNotifier {
   }
 
   /// Fetches home and sets [Ready], reusing [previous]'s refs when it is
-  /// [Ready] (refs are fixed per game) and fetching them otherwise.
-  Future<void> _refresh(GameState? previous) async {
+  /// [Ready] (refs are fixed per game) and fetching them otherwise. With
+  /// [unlessBusy] (non-busy actions) nothing is set while a busy action
+  /// started meanwhile runs: it refreshes when it ends.
+  Future<void> _refresh(GameState? previous, {bool unlessBusy = false}) async {
     final home = await _gateway.home();
     final refs = previous is Ready ? previous.refs : await _gateway.refs();
+    if (unlessBusy && _state is Busy) return;
     _set(Ready(home, refs, _gameId));
   }
 
@@ -226,7 +230,8 @@ class GameController extends ChangeNotifier {
 
   /// Runs [body] with the settled state before it; [body] sets the final
   /// state. Errors set [Failed] over the settled state [body] reached
-  /// ([previous] unless it set a new one).
+  /// ([previous] unless it set a new one). A non-busy action that fails
+  /// while a busy one runs leaves the state to that action.
   Future<T?> _run<T>(
     String what,
     Future<T> Function(GameState previous) body, {
@@ -236,20 +241,19 @@ class GameController extends ChangeNotifier {
     final previous = _settled;
     _lastAction = () => _run<T>(what, body, busy: busy);
     if (busy) _set(Busy(what));
-    GameState reached() => _state is Busy ? previous : _settled;
+    void fail(GatewayError e) {
+      if (!busy && _state is Busy) return;
+      _set(Failed(e, _state is Busy ? previous : _settled));
+    }
+
     try {
       return await body(previous);
     } on GatewayError catch (e) {
-      _set(Failed(e, reached()));
+      fail(e);
     } on SaveError catch (e) {
-      _set(
-        Failed(
-          GatewayError(GatewayErrorKind.save, e.message, saveKind: e.kind),
-          reached(),
-        ),
-      );
+      fail(GatewayError(GatewayErrorKind.save, e.message, saveKind: e.kind));
     } catch (e) {
-      _set(Failed(GatewayError(GatewayErrorKind.engine, '$e'), reached()));
+      fail(GatewayError(GatewayErrorKind.engine, '$e'));
       rethrow;
     }
     return null;

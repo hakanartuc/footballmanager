@@ -37,13 +37,19 @@ class _InboxScreenState extends State<InboxScreen> {
     ).push(MaterialPageRoute<void>(builder: (_) => InboxDetailScreen(item)));
   }
 
+  /// Stops at a failure, and when a busy action started meanwhile.
   Future<void> _markAllRead(
     GameController controller,
     List<InboxItem> items,
   ) async {
     for (final item in items) {
       if (item.read) continue;
-      await controller.markRead(item.id);
+      try {
+        await controller.markRead(item.id);
+      } on StateError catch (e) {
+        if (e.message != 'busy') rethrow;
+        return;
+      }
       if (controller.state is Failed) return;
     }
   }

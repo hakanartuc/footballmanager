@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:cm_app/data/game_repository.dart';
@@ -207,6 +208,35 @@ void main() {
     expect((c.state as Ready).home.unreadCount, 1);
     expect((await c.inbox()).map((i) => i.read), [true, false]);
   });
+
+  test(
+    'a non-busy action ending during a busy one leaves Busy to it',
+    () async {
+      await c.newGame(anySpec);
+      // Every gateway call waits for `hold`; swapping it releases the calls
+      // waiting so far and holds the next ones.
+      Future<void> release() async {
+        final held = gateway.hold!;
+        gateway.hold = Completer();
+        held.complete();
+        await pumpEventQueue();
+      }
+
+      gateway.hold = Completer();
+      final read = c.markRead(2); // markRead waits
+      final adv = c.advance(); // advanceToNext waits
+      expect(c.state, isA<Busy>());
+      await release(); // markRead: home waits; advance: save waits
+      await release(); // markRead ends; advance: home waits
+      await read;
+      expect(c.state, isA<Busy>(), reason: 'advance is still running');
+      gateway.hold!.complete();
+      gateway.hold = null;
+      await adv;
+      final ready = c.state as Ready;
+      expect(ready.home.unreadCount, 1, reason: 'refreshed by advance');
+    },
+  );
 
   test('dismissError returns to previous without a gateway call', () async {
     await c.newGame(anySpec);

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cm_app/data/settings_controller.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshots.dart';
@@ -136,6 +138,34 @@ void main() {
       _inInbox(find.widgetWithText(TextButton, l.markAllRead)),
     );
     expect(button.onPressed, isNull);
+  });
+
+  testWidgets('mark all stops when a busy action starts meanwhile', (t) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    final c = await pumpApp(t, gateway: g);
+    await _openInbox(t);
+    g.hold = Completer();
+    await t.tap(_inInbox(find.text(l.markAllRead))); // markRead(2) waits
+    await t.pump();
+    final adv = c.advance(); // advanceToNext waits
+    await t.pump();
+    // Releasing lets markRead(2) run to its end while advance saves.
+    for (var i = 0; i < 2; i++) {
+      final held = g.hold!;
+      g.hold = Completer();
+      held.complete();
+      await t.pump();
+    }
+    expect(c.state, isA<Busy>());
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    g.hold!.complete();
+    g.hold = null;
+    await adv;
+    await t.pumpAndSettle();
+    expect(t.takeException(), isNull);
+    expect(c.state, isA<Ready>());
+    expect(g.calls.where((m) => m == 'markRead'), hasLength(1));
   });
 
   testWidgets('an empty inbox shows the empty state', (t) async {
