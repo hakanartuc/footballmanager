@@ -252,9 +252,50 @@ class FakeGateway implements EngineGateway {
   @override
   Future<List<InboxItem>> inbox() => _call('inbox', () => inboxItems);
 
+  /// Marks the item read and recounts [HomeSnapshot.unreadCount], like the
+  /// real gateway.
   @override
-  Future<void> markRead(int inboxId) => _call('markRead', () {});
+  Future<void> markRead(int inboxId) => _call('markRead', () {
+    inboxItems = [
+      for (final i in inboxItems)
+        i.id == inboxId
+            ? InboxItem(
+                id: i.id,
+                date: i.date,
+                read: true,
+                event: i.event,
+                labels: i.labels,
+              )
+            : i,
+    ];
+    homeSnapshot = copyHome(
+      homeSnapshot,
+      unreadCount: inboxItems.where((i) => !i.read).length,
+    );
+  });
 
   @override
   Future<void> dispose() => _call('dispose', () {});
 }
+
+/// [h] with the given fields replaced; [unemployed] clears the club fields.
+HomeSnapshot copyHome(
+  HomeSnapshot h, {
+  GameDate? date,
+  int? unreadCount,
+  bool unemployed = false,
+}) => HomeSnapshot(
+  date: date ?? h.date,
+  seasonYear: h.seasonYear,
+  clubId: unemployed ? null : h.clubId,
+  clubName: unemployed ? null : h.clubName,
+  leagueId: unemployed ? null : h.leagueId,
+  leaguePosition: unemployed ? null : h.leaguePosition,
+  nextMatch: unemployed ? null : h.nextMatch,
+  isMatchDay: h.isMatchDay,
+  unreadCount: unreadCount ?? h.unreadCount,
+  seniorCount: unemployed ? 0 : h.seniorCount,
+  injuredCount: unemployed ? 0 : h.injuredCount,
+  suspendedCount: unemployed ? 0 : h.suspendedCount,
+  managerName: h.managerName,
+);

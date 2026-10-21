@@ -39,7 +39,7 @@ final class Failed extends GameState {
 /// The app's game state machine over a [GameRepository].
 ///
 /// Actions throw [StateError] while [state] is [Busy]. A failing action
-/// leaves [state] [Failed]; [retry] re-runs it.
+/// leaves [state] [Failed]; [retry] re-runs it, [dismissError] drops it.
 class GameController extends ChangeNotifier {
   GameController(this._repo, this._gateway);
 
@@ -55,7 +55,7 @@ class GameController extends ChangeNotifier {
   /// Sent as a [SetLineup] by the next successful [playMatch].
   Lineup? pendingLineup;
 
-  Future<void> Function()? _lastAction;
+  Future<Object?> Function()? _lastAction;
 
   Future<void> newGame(NewGameSpec spec) => _run('newGame', (_) async {
     await _repo.newGame(spec);
@@ -87,8 +87,7 @@ class GameController extends ChangeNotifier {
   Future<AdvanceOutcome?> advance() => _run('advance', (previous) async {
     final sw = Stopwatch()..start();
     final outcome = await _gateway.advanceToNext();
-    await _repo.autosave();
-    await _refresh(previous);
+    await _autosaveAfterMutation(previous);
     lastAdvanceMs = sw.elapsedMilliseconds;
     return outcome;
   });
@@ -103,9 +102,8 @@ class GameController extends ChangeNotifier {
           if (lineup != null) SetLineup(clubId: home.clubId!, lineup: lineup),
           ...extra,
         ]);
-        await _repo.autosave();
-        await _refresh(previous);
         pendingLineup = null;
+        await _autosaveAfterMutation(previous);
         return outcome;
       });
 
@@ -117,8 +115,17 @@ class GameController extends ChangeNotifier {
     await _refresh(previous);
   }, busy: false);
 
-  /// Re-runs the last action.
-  Future<void> retry() async => _lastAction?.call();
+  /// Re-runs the last action; returns its outcome when it was [advance] or
+  /// [playMatch], else null.
+  Future<AdvanceOutcome?> retry() async {
+    final result = await _lastAction?.call();
+    return result is AdvanceOutcome ? result : null;
+  }
+
+  /// Leaves [Failed] for its previous state without retrying.
+  void dismissError() {
+    if (_state case Failed(:final previous)) _set(previous);
+  }
 
   Future<List<SquadRow>> squad(ClubId clubId, {bool youth = false}) =>
       _gateway.squad(clubId, youth: youth);
@@ -150,8 +157,26 @@ class GameController extends ChangeNotifier {
     _set(Ready(home, refs));
   }
 
+  /// Autosaves and refreshes home after the world changed. When saving
+  /// fails the world has still moved on, so home is refreshed anyway (the
+  /// failure keeps it as previous) and [retry] only saves again.
+  Future<void> _autosaveAfterMutation(GameState previous) async {
+    try {
+      await _repo.autosave();
+    } on Exception {
+      _lastAction = () => _run<void>('autosave', (p) async {
+        await _repo.autosave();
+        await _refresh(p);
+      });
+      await _refresh(previous);
+      rethrow;
+    }
+    await _refresh(previous);
+  }
+
   /// Runs [body] with the settled state before it; [body] sets the final
-  /// state. Errors set [Failed].
+  /// state. Errors set [Failed] over the settled state [body] reached
+  /// ([previous] unless it set a new one).
   Future<T?> _run<T>(
     String what,
     Future<T> Function(GameState previous) body, {
@@ -159,16 +184,17 @@ class GameController extends ChangeNotifier {
   }) async {
     if (_state is Busy) throw StateError('busy');
     final previous = _settled;
-    _lastAction = () => _run(what, body, busy: busy);
+    _lastAction = () => _run<T>(what, body, busy: busy);
     if (busy) _set(Busy(what));
+    GameState reached() => _state is Busy ? previous : _settled;
     try {
       return await body(previous);
     } on GatewayError catch (e) {
-      _set(Failed(e, previous));
+      _set(Failed(e, reached()));
     } on SaveError catch (e) {
-      _set(Failed(GatewayError(GatewayErrorKind.save, e.message), previous));
+      _set(Failed(GatewayError(GatewayErrorKind.save, e.message), reached()));
     } catch (e) {
-      _set(Failed(GatewayError(GatewayErrorKind.engine, '$e'), previous));
+      _set(Failed(GatewayError(GatewayErrorKind.engine, '$e'), reached()));
       rethrow;
     }
     return null;

@@ -6,6 +6,7 @@ import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fake_gateway.dart';
 
@@ -35,6 +36,7 @@ Future<GameController> pumpApp(
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
   addTearDown(t.view.reset);
+  SharedPreferences.setMockInitialValues({});
   await t.pumpWidget(
     CmApp(
       gateway: gateway ?? FakeGateway.ready(),

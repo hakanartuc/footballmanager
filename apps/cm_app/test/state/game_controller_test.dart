@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cm_app/data/game_repository.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshots.dart';
@@ -8,15 +10,29 @@ import 'package:flutter_test/flutter_test.dart';
 import '../support/fake_gateway.dart';
 import '../support/pump_app.dart';
 
+/// Throws [SaveError] `io` on the next [write] when [failNextWrite].
+class _FlakyStore extends MemorySaveStore {
+  bool failNextWrite = false;
+
+  @override
+  Future<void> write(int slot, Uint8List bytes, SlotInfo meta) async {
+    if (failNextWrite) {
+      failNextWrite = false;
+      throw SaveError(SaveErrorKind.io, 'disk full');
+    }
+    await super.write(slot, bytes, meta);
+  }
+}
+
 void main() {
   late FakeGateway gateway;
-  late MemorySaveStore store;
+  late _FlakyStore store;
   late GameController c;
   late List<GameState> states;
 
   setUp(() {
     gateway = FakeGateway.ready();
-    store = MemorySaveStore();
+    store = _FlakyStore();
     c = GameController(GameRepository(gateway, store), gateway);
     states = [];
     c.addListener(() => states.add(c.state));
@@ -123,5 +139,71 @@ void main() {
     gateway.calls.clear();
     await c.markRead(2);
     expect(gateway.calls, ['markRead', 'home']);
+  });
+
+  test('markRead decrements the unread count', () async {
+    await c.newGame(anySpec);
+    expect((c.state as Ready).home.unreadCount, 2);
+    await c.markRead(2);
+    expect((c.state as Ready).home.unreadCount, 1);
+    expect((await c.inbox()).map((i) => i.read), [true, false]);
+  });
+
+  test('dismissError returns to previous without a gateway call', () async {
+    await c.newGame(anySpec);
+    gateway.failNext = boom;
+    await c.advance();
+    gateway.calls.clear();
+    c.dismissError();
+    expect(c.state, isA<Ready>());
+    expect(gateway.calls, isEmpty);
+  });
+
+  test('retry returns the outcome of a retried advance', () async {
+    await c.newGame(anySpec);
+    gateway.failNext = boom;
+    await c.advance();
+    final outcome = await c.retry();
+    expect(outcome!.reason, StopReason.reachedLimit);
+  });
+
+  test('autosave failure after advance keeps the new home and retry only '
+      'saves', () async {
+    await c.newGame(anySpec);
+    final after = copyHome(
+      gateway.homeSnapshot,
+      date: gateway.homeSnapshot.date.addDays(1),
+    );
+    gateway.homeSnapshot = after;
+    store.failNextWrite = true;
+    await c.advance();
+    final failed = c.state as Failed;
+    expect(failed.error.kind, GatewayErrorKind.save);
+    expect((failed.previous as Ready).home, same(after));
+
+    gateway.calls.clear();
+    await c.retry();
+    expect(gateway.calls, contains('save'));
+    expect(gateway.calls, isNot(contains('advanceToNext')));
+    expect(c.state, isA<Ready>());
+  });
+
+  test('autosave failure after playMatch does not replay the day', () async {
+    await c.newGame(anySpec);
+    c.pendingLineup = Lineup(
+      formation: Formation.f442,
+      starters: List.generate(11, (i) => i + 1),
+      bench: const [],
+    );
+    store.failNextWrite = true;
+    await c.playMatch(const []);
+    expect(c.state, isA<Failed>());
+    expect(c.pendingLineup, isNull);
+
+    gateway.calls.clear();
+    await c.retry();
+    expect(gateway.calls, contains('save'));
+    expect(gateway.playTodayCommands, hasLength(1));
+    expect(c.state, isA<Ready>());
   });
 }

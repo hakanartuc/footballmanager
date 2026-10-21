@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,7 +35,7 @@ class CmApp extends StatelessWidget {
   /// Null opens the [AppSaveStore].
   final SaveStore? store;
 
-  /// Null creates and loads one.
+  /// Null creates one; either way it is loaded at startup.
   final SettingsController? settings;
   final Entitlements entitlements;
 
@@ -54,18 +56,15 @@ class _AppBootstrap extends StatefulWidget {
 typedef _Deps = (EngineGateway, SaveStore, SettingsController);
 
 class _AppBootstrapState extends State<_AppBootstrap> {
-  late final Future<_Deps> _deps = _resolve();
+  late Future<_Deps> _deps = _resolve();
   EngineGateway? _ownGateway;
 
   Future<_Deps> _resolve() async {
     final app = widget.app;
     final gateway = app.gateway ?? (_ownGateway = await IsolateGateway.spawn());
     final store = app.store ?? await AppSaveStore.open();
-    var settings = app.settings;
-    if (settings == null) {
-      settings = SettingsController();
-      await settings.load();
-    }
+    final settings = app.settings ?? SettingsController();
+    await settings.load();
     return (gateway, store, settings);
   }
 
@@ -80,12 +79,17 @@ class _AppBootstrapState extends State<_AppBootstrap> {
     return FutureBuilder(
       future: _deps,
       builder: (context, snap) {
+        if (snap.hasError) {
+          return _plainApp(
+            ErrorCard(
+              error: GatewayError(GatewayErrorKind.engine, '${snap.error}'),
+              onRetry: () => setState(() => _deps = _resolve()),
+            ),
+          );
+        }
         final deps = snap.data;
         if (deps == null) {
-          return const ColoredBox(
-            color: Colors.white,
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return _plainApp(const CircularProgressIndicator());
         }
         final (gateway, store, settings) = deps;
         return MultiProvider(
@@ -112,6 +116,18 @@ class _AppBootstrapState extends State<_AppBootstrap> {
       },
     );
   }
+
+  /// [child] centred in a themed, localized app, for before the
+  /// dependencies resolve.
+  Widget _plainApp(Widget child) => MaterialApp(
+    theme: lightTheme(),
+    darkTheme: darkTheme(),
+    locale: widget.app.locale,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    onGenerateTitle: (c) => AppLocalizations.of(c)!.appTitle,
+    home: Scaffold(body: Center(child: child)),
+  );
 }
 
 /// Renders the [GameController] state.
@@ -125,6 +141,15 @@ class _Root extends StatefulWidget {
 class _RootState extends State<_Root> {
   /// The last [NoGame] or [Ready], shown under [Busy].
   GameState _settled = const NoGame();
+
+  /// A second tap while the retry runs is ignored.
+  Future<void> _retry(GameController controller) async {
+    try {
+      await controller.retry();
+    } on StateError catch (e) {
+      if (e.message != 'busy') rethrow;
+    }
+  }
 
   Widget _content(GameState s) => switch (s) {
     Ready(:final home) => GameShell(home: home),
@@ -144,7 +169,11 @@ class _RootState extends State<_Root> {
         if (state is Failed) ...[
           const ModalBarrier(color: Colors.black38, dismissible: false),
           Center(
-            child: ErrorCard(error: state.error, onRetry: controller.retry),
+            child: ErrorCard(
+              error: state.error,
+              onRetry: () => unawaited(_retry(controller)),
+              onDismiss: controller.dismissError,
+            ),
           ),
         ],
       ],

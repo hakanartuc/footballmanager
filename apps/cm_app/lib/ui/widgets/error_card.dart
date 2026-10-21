@@ -4,12 +4,18 @@ import '../../engine/engine_gateway.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 /// A failed action: a short localized message, the raw message folded
-/// under details, and a retry button.
+/// under details, a retry button and, with [onDismiss], an ok button.
 class ErrorCard extends StatelessWidget {
-  const ErrorCard({super.key, required this.error, required this.onRetry});
+  const ErrorCard({
+    super.key,
+    required this.error,
+    required this.onRetry,
+    this.onDismiss,
+  });
 
   final GatewayError error;
   final VoidCallback onRetry;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +40,14 @@ class ErrorCard extends StatelessWidget {
               tilePadding: EdgeInsets.zero,
               children: [SelectableText(error.message)],
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(onPressed: onRetry, child: Text(l.retry)),
+            OverflowBar(
+              alignment: MainAxisAlignment.end,
+              spacing: 8,
+              children: [
+                if (onDismiss != null)
+                  TextButton(onPressed: onDismiss, child: Text(l.ok)),
+                FilledButton(onPressed: onRetry, child: Text(l.retry)),
+              ],
             ),
           ],
         ),

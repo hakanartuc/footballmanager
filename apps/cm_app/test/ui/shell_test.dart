@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:cm_app/app.dart';
+import 'package:cm_app/data/settings_controller.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/state/game_controller.dart';
 import 'package:cm_app/ui/widgets/busy_overlay.dart';
 import 'package:cm_app/ui/widgets/error_card.dart';
+import 'package:engine/engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -34,7 +37,8 @@ void main() {
 
   testWidgets('tapping tabs switches the IndexedStack', (t) async {
     final l = await loadL10n();
-    final c = await pumpApp(t);
+    final g = FakeGateway.ready();
+    final c = await pumpApp(t, gateway: g);
     IndexedStack stack() => t.widget(find.byType(IndexedStack));
     expect(stack().index, 0);
     await t.tap(find.text(l.tabLeague));
@@ -43,9 +47,15 @@ void main() {
     await t.tap(find.text(l.tabInbox));
     await t.pumpAndSettle();
     expect(stack().index, 3);
-    await c.advance();
-    await t.pumpAndSettle();
+    g.hold = Completer();
+    final pending = c.advance();
+    await t.pump();
+    expect(t.widget<BusyOverlay>(find.byType(BusyOverlay)).busy, isTrue);
     expect(stack().index, 3, reason: 'tab survives Busy');
+    g.hold!.complete();
+    await pending;
+    await t.pumpAndSettle();
+    expect(stack().index, 3);
     expect(
       find.byKey(const Key('homeTab'), skipOffstage: false),
       findsOneWidget,
@@ -90,4 +100,67 @@ void main() {
     expect(find.byType(ErrorCard), findsNothing);
     expect(c.state, isA<Ready>());
   });
+
+  testWidgets('ok on the ErrorCard dismisses without a gateway call', (
+    t,
+  ) async {
+    final l = await loadL10n();
+    final g = FakeGateway.ready();
+    final c = await pumpApp(t, gateway: g);
+    g.failNext = const GatewayError(GatewayErrorKind.engine, 'boom');
+    await c.advance();
+    await t.pumpAndSettle();
+    g.calls.clear();
+    await t.tap(find.text(l.ok));
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsNothing);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(g.calls, isEmpty);
+  });
+
+  testWidgets('app bar shows the club name when employed', (t) async {
+    final g = FakeGateway.ready();
+    await pumpApp(t, gateway: g);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text(g.homeSnapshot.clubName!),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('app bar shows the manager name when unemployed', (t) async {
+    final g = FakeGateway.ready();
+    g.homeSnapshot = copyHome(g.homeSnapshot, unemployed: true);
+    await pumpApp(t, gateway: g);
+    expect(
+      find.descendant(
+        of: find.byType(AppBar),
+        matching: find.text(g.homeSnapshot.managerName),
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a bootstrap failure shows an ErrorCard, not a spinner', (
+    t,
+  ) async {
+    await t.pumpWidget(
+      CmApp(
+        gateway: FakeGateway.ready(),
+        store: MemorySaveStore(),
+        settings: _BrokenSettings(),
+        locale: const Locale('tr'),
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(find.byType(ErrorCard), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+}
+
+class _BrokenSettings extends SettingsController {
+  @override
+  Future<void> load() async => throw StateError('prefs unavailable');
 }
