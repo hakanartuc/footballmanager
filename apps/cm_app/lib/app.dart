@@ -27,6 +27,7 @@ class CmApp extends StatelessWidget {
     this.store,
     this.settings,
     this.entitlements = Entitlements.dev,
+    this.themeMode = ThemeMode.system,
   });
 
   final Locale? locale;
@@ -40,6 +41,9 @@ class CmApp extends StatelessWidget {
   /// Null creates one; either way it is loaded at startup.
   final SettingsController? settings;
   final Entitlements entitlements;
+
+  /// Fixed in golden tests; the platform brightness otherwise.
+  final ThemeMode themeMode;
 
   @override
   Widget build(BuildContext context) => _AppBootstrap(app: this);
@@ -107,6 +111,7 @@ class _AppBootstrapState extends State<_AppBootstrap> {
             builder: (context, settings, _) => MaterialApp(
               theme: lightTheme(),
               darkTheme: darkTheme(),
+              themeMode: widget.app.themeMode,
               locale: settings.locale ?? widget.app.locale,
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
@@ -124,6 +129,7 @@ class _AppBootstrapState extends State<_AppBootstrap> {
   Widget _plainApp(Widget child) => MaterialApp(
     theme: lightTheme(),
     darkTheme: darkTheme(),
+    themeMode: widget.app.themeMode,
     locale: widget.app.locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,

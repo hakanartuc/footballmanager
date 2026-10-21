@@ -152,6 +152,108 @@ class FakeGateway implements EngineGateway {
     );
   }
 
+  /// [FakeGateway.ready] on a match day with a full squad, a player
+  /// detail, a valid 4-4-2 lineup and more inbox items, for goldens.
+  factory FakeGateway.rich() {
+    final g = FakeGateway.ready();
+    SquadRow row(
+      int id,
+      String name,
+      Position position,
+      int ca, {
+      bool injured = false,
+      int suspension = 0,
+      bool youth = false,
+    }) => SquadRow(
+      id: id,
+      name: name,
+      position: position,
+      age: youth ? 17 : 20 + id % 12,
+      ca: ca,
+      condition: 100 - id % 15,
+      injured: injured,
+      suspension: suspension,
+      status: youth ? PlayerStatus.youth : PlayerStatus.firstTeam,
+      isYouth: youth,
+    );
+    final day = g.homeSnapshot.date;
+    InboxItem item(
+      int id,
+      GameEvent event,
+      InboxLabels labels, {
+      bool read = true,
+    }) =>
+        InboxItem(id: id, date: day, read: read, event: event, labels: labels);
+    g
+      ..homeSnapshot = copyHome(g.homeSnapshot, isMatchDay: true)
+      ..squadRows = [
+        row(1, 'Emre Kaya', Position.gk, 128),
+        row(2, 'Can Demir', Position.dl, 112),
+        row(3, 'Mert Yılmaz', Position.dc, 121),
+        row(4, 'Burak Şahin', Position.dc, 118),
+        row(5, 'Ali Çelik', Position.dr, 109),
+        row(6, 'Kerem Aydın', Position.ml, 115),
+        row(7, 'Arda Öztürk', Position.mc, 131),
+        row(8, 'Yusuf Arslan', Position.mc, 119),
+        row(9, 'Oğuz Koç', Position.mr, 113),
+        row(10, 'Hakan Polat', Position.st, 134),
+        row(11, 'Cenk Erdoğan', Position.st, 122),
+        row(12, 'Deniz Kurt', Position.gk, 97),
+        row(13, 'Selim Aksoy', Position.st, 101),
+        row(14, 'Tolga Güneş', Position.mc, 125, injured: true),
+        row(15, 'Serkan Uçar', Position.dc, 117, suspension: 1),
+        row(16, 'Efe Bulut', Position.st, 64, youth: true),
+      ]
+      ..playerDetail = PlayerDetail(
+        id: 10,
+        name: 'Hakan Polat',
+        countryCode: 'TR',
+        position: Position.st,
+        familiarity: const {Position.st: 20, Position.amc: 14},
+        age: 26,
+        heightCm: 184,
+        attrs: [for (var i = 0; i < Attr.values.length; i++) 6 + i * 7 % 15],
+        ca: 134,
+        pa: 158,
+        condition: 96,
+        morale: 75,
+        sharpness: 82,
+        form: 7.1,
+        wageWeekly: 18500,
+        contractEnd: GameDate.ymd(2028, 6, 30),
+        status: PlayerStatus.keyPlayer,
+        apps: 12,
+        goals: 8,
+        assists: 3,
+      )
+      ..lineupView = LineupView(
+        formation: Formation.f442,
+        slots: formationSlots(Formation.f442),
+        starters: const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+        bench: const [12, 13],
+        errors: const [],
+      )
+      ..inboxItems = [
+        item(
+          5,
+          PlayerRetired(date: day, playerId: 99, clubId: 2),
+          const InboxLabels(clubName: 'Beta SK', playerNames: ['Volkan Er']),
+        ),
+        item(
+          4,
+          LeagueChampion(date: day, leagueId: 10, clubId: 3),
+          const InboxLabels(
+            clubName: 'Gamma Spor',
+            leagueCountryCode: 'TR',
+            leagueTier: 1,
+          ),
+        ),
+        item(3, SeasonEnded(date: day, seasonYear: 2025), const InboxLabels()),
+        ...g.inboxItems,
+      ];
+    return g;
+  }
+
   HomeSnapshot homeSnapshot;
   WorldRefs refsSnapshot;
   List<SquadRow> squadRows;

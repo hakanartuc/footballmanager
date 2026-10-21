@@ -34,6 +34,7 @@ Future<GameController> pumpApp(
   Size size = const Size(390, 844),
   bool startReady = true,
   Entitlements entitlements = Entitlements.dev,
+  ThemeMode themeMode = ThemeMode.system,
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -46,6 +47,7 @@ Future<GameController> pumpApp(
       settings: SettingsController(),
       locale: locale,
       entitlements: entitlements,
+      themeMode: themeMode,
     ),
   );
   await t.pumpAndSettle();
