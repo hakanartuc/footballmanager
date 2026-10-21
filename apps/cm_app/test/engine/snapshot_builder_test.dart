@@ -1,3 +1,4 @@
+import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshot_builder.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -67,5 +68,46 @@ void main() {
     final rank = s.table(leagueId).indexWhere((r) => r.clubId == club) + 1;
     expect(b.home().leaguePosition, rank);
     expect(b.table(leagueId).singleWhere((r) => r.isUser).rank, rank);
+  });
+
+  test('lineup returns a stored lineup unchanged with its errors', () {
+    final auto = autoLineup(s.world, club);
+    final starters = [...auto.starters]..[10] = -1;
+    s.world.clubs[club]!.lineup = Lineup(
+      formation: auto.formation,
+      starters: starters,
+      bench: auto.bench,
+    );
+    final view = b.lineup(club);
+    expect(view.errors, contains(LineupError.notInClub));
+    expect(view.starters, starters);
+  });
+
+  test('lineup returns a valid stored lineup, not the auto one', () {
+    final auto = autoLineup(s.world, club);
+    final stored = Lineup(
+      formation: auto.formation,
+      starters: [...auto.starters]..[10] = auto.bench[1],
+      bench: [...auto.bench]..[1] = auto.starters[10],
+    );
+    s.world.clubs[club]!.lineup = stored;
+    final view = b.lineup(club);
+    expect(view.errors, isEmpty);
+    expect(view.starters, stored.starters);
+    expect(view.starters, isNot(auto.starters));
+    expect(view.bench, stored.bench);
+  });
+
+  test('lineup of an unknown club is a GatewayError(engine)', () {
+    expect(
+      () => b.lineup(-1),
+      throwsA(
+        isA<GatewayError>().having(
+          (e) => e.kind,
+          'kind',
+          GatewayErrorKind.engine,
+        ),
+      ),
+    );
   });
 }

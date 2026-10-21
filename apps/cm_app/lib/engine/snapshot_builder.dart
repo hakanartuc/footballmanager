@@ -147,7 +147,11 @@ class SnapshotBuilder {
   }
 
   LineupView lineup(ClubId clubId) {
-    final stored = _w.clubs[clubId]!.lineup;
+    final club = _w.clubs[clubId];
+    if (club == null) {
+      throw const GatewayError(GatewayErrorKind.engine, 'no such club');
+    }
+    final stored = club.lineup;
     final l = stored ?? autoLineup(_w, clubId);
     return LineupView(
       formation: l.formation,

@@ -170,8 +170,34 @@ void runGatewayContract(Future<EngineGateway> Function() make) {
       expect(view.starters, auto.starters);
       expect(view.bench, auto.bench);
       expect(view.errors, isEmpty);
+
+      await expectLater(
+        g.lineup(-1),
+        throwsA(
+          isA<GatewayError>().having(
+            (e) => e.kind,
+            'kind',
+            GatewayErrorKind.engine,
+          ),
+        ),
+      );
     },
   );
+
+  test('after dispose() every call fails with GatewayError(noGame)', () async {
+    await newGame();
+    await g.dispose();
+    await expectLater(
+      g.home(),
+      throwsA(
+        isA<GatewayError>().having(
+          (e) => e.kind,
+          'kind',
+          GatewayErrorKind.noGame,
+        ),
+      ),
+    );
+  });
 
   test('table() ranks 1..n with isUser on exactly one row', () async {
     await newGame();

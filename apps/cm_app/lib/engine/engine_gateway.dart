@@ -41,6 +41,11 @@ abstract interface class EngineGateway {
   /// day ([StopReason.matchDay]) or after the season's last day
   /// ([StopReason.seasonEnded]); otherwise [StopReason.reachedLimit].
   /// Returns at once with [StopReason.matchDay] when today already is one.
+  ///
+  /// When a season end coincides with the next season's first user match
+  /// day the reason is [StopReason.matchDay] and
+  /// [AdvanceOutcome.seasonEnded] is true, so the UI must decide on the
+  /// season summary from that bool, not from the reason.
   Future<AdvanceOutcome> advanceToNext({int maxDays = 90});
 
   /// Processes today with [commands] (reason [StopReason.played]), with
