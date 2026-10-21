@@ -1,0 +1,7 @@
+{
+  "@@locale": "en",
+  "appTitle": "Football Manager",
+  "@appTitle": {
+    "description": "App title (placeholder name)"
+  }
+}

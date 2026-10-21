@@ -1,0 +1,13 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - lib/l10n/generated/**
+  errors:
+    prefer_final_locals: error
+    unawaited_futures: error
+
+linter:
+  rules:
+    - prefer_final_locals
+    - unawaited_futures
