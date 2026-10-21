@@ -7,8 +7,7 @@ import '../model/json.dart';
 import '../model/world.dart';
 import 'migrations.dart';
 
-/// Schema version written into every save envelope.
-const int currentSchemaVersion = 1;
+export '../model/world.dart' show currentSchemaVersion;
 
 enum SaveErrorKind { corrupt, newerSchema, missingSlot, io }
 
@@ -73,9 +72,9 @@ class JsonGzipSaveCodec implements SaveCodec {
       throw SaveError(SaveErrorKind.corrupt, 'not a save envelope');
     }
 
-    final envelope = migrate(decoded, registry: migrations);
     final World world;
     try {
+      final envelope = migrate(decoded, registry: migrations);
       world = worldFromJson(envelope['world'] as Map<String, dynamic>);
     } on TypeError catch (e) {
       throw SaveError(SaveErrorKind.corrupt, e.toString());

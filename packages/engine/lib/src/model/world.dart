@@ -22,6 +22,13 @@ class SeasonArchive {
   });
 }
 
+/// Schema version of [World] as serialized by `worldToJson`; written into
+/// every save envelope and the target of the persistence migrations.
+///
+/// History: v1 Faz 0A; v2 inbox messages carry an `id` and `ids` has an
+/// `inbox` counter.
+const int currentSchemaVersion = 2;
+
 /// The whole game state.
 ///
 /// The squad and fixture queries read derived indexes that are not

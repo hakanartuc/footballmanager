@@ -54,7 +54,7 @@ class EngineSession {
   final DayRunner _runner;
 
   /// The live world. Callers must treat it as read-only; mutate it only
-  /// through [advanceDay], [advanceUntil] and [markRead].
+  /// through [advanceDay], [advanceUntil], [markRead] and [markReadById].
   World get world => _world;
 
   /// Processes the current day with [commands] (see [DayRunner.advanceDay]).
@@ -133,6 +133,17 @@ class EngineSession {
   /// message it handed out can be passed here; positions in the stored
   /// list are not stable (it is trimmed from the front daily).
   void markRead(InboxMessage message) => message.read = true;
+
+  /// Marks the message with [id] read; a no-op when no stored message has
+  /// it (e.g. it was trimmed). For hosts that hold ids, not instances.
+  void markReadById(int id) {
+    for (final m in _world.inbox) {
+      if (m.id == id) {
+        m.read = true;
+        return;
+      }
+    }
+  }
 
   /// Every invariant the world currently breaks.
   List<invariants.Violation> checkInvariants() =>

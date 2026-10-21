@@ -259,15 +259,18 @@ World _world() {
     ids: ids,
     inbox: [
       InboxMessage(
+        id: 1,
         date: _d,
         event: MatchPlayed(date: _d, fixtureId: 1),
         read: true,
       ),
       InboxMessage(
+        id: 2,
         date: _d.addDays(1),
         event: PlayerRetired(date: _d.addDays(1), playerId: 3, clubId: null),
       ),
       InboxMessage(
+        id: 3,
         date: _d.addDays(2),
         event: YouthIntake(date: _d.addDays(2), clubId: 1, playerIds: [1, 2]),
       ),
@@ -329,6 +332,17 @@ void main() {
       expect(r.userClub!.id, 1);
       expect(r.inbox[2].event, isA<YouthIntake>());
       expect(r.ids.toJson(), {'player': 40, 'club': 4});
+    });
+
+    test('inbox messages carry their id, emitted first, and round-trip it', () {
+      final j = worldToJson(_world());
+      final inbox = j['inbox'] as List;
+      expect((inbox[0] as Map).keys.toList(), ['id', 'date', 'event', 'read']);
+      expect([for (final m in inbox) (m as Map)['id']], [1, 2, 3]);
+      final r = worldFromJson(
+        jsonDecode(jsonEncode(j)) as Map<String, dynamic>,
+      );
+      expect(r.inbox.map((m) => m.id), [1, 2, 3]);
     });
 
     test('id-keyed maps are emitted in ascending numeric order', () {

@@ -311,13 +311,20 @@ void _checkFixtures(World w, List<Violation> out) {
   }
 }
 
-/// `inbox.size`, `inbox.refs` (clubs, leagues and fixtures; player ids are
-/// exempt because players leave the world).
+/// `inbox.size`, `inbox.ids` (unique and positive), `inbox.refs` (clubs,
+/// leagues and fixtures; player ids are exempt because players leave the
+/// world).
 void _checkInbox(World w, List<Violation> out) {
   if (w.inbox.length > inboxLimit) {
     out.add(Violation('inbox.size', '${w.inbox.length} messages'));
   }
+  final seen = <int>{};
   for (final m in w.inbox) {
+    if (m.id <= 0) {
+      out.add(Violation('inbox.ids', 'message id ${m.id} is not positive'));
+    } else if (!seen.add(m.id)) {
+      out.add(Violation('inbox.ids', 'message id ${m.id} is duplicated'));
+    }
     void club(ClubId? id) {
       if (id != null && !w.clubs.containsKey(id)) {
         out.add(

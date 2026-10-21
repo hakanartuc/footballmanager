@@ -237,6 +237,7 @@ void main() {
     expect(w.history, isEmpty);
     expect(w.fixtures[1]!.result, isNull);
     final msg = InboxMessage(
+      id: 1,
       date: _d1,
       event: MatchPlayed(date: _d1, fixtureId: 2),
     );
