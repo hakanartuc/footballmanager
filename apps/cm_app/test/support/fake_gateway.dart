@@ -6,7 +6,8 @@ import 'package:cm_app/engine/snapshots.dart';
 import 'package:engine/engine.dart';
 
 /// A scripted [EngineGateway] for UI tests: returns the settable snapshot
-/// fields, logs every call in [calls] and throws [failNext] once.
+/// fields (a [GatewayError] where one was not scripted), logs every call
+/// in [calls] and throws [failNext] once.
 class FakeGateway implements EngineGateway {
   FakeGateway({
     required this.homeSnapshot,
@@ -350,9 +351,14 @@ class FakeGateway implements EngineGateway {
     ],
   );
 
+  static const _notScripted = GatewayError(
+    GatewayErrorKind.engine,
+    'not scripted',
+  );
+
   @override
   Future<PlayerDetail> player(PlayerId id) =>
-      _call('player', () => playerDetail!);
+      _call('player', () => playerDetail ?? (throw _notScripted));
 
   /// The `auto` argument of each [lineup] call.
   final List<bool> lineupAutoArgs = [];
@@ -364,7 +370,9 @@ class FakeGateway implements EngineGateway {
   Future<LineupView> lineup(ClubId clubId, {bool auto = false}) =>
       _call('lineup', () {
         lineupAutoArgs.add(auto);
-        return (auto ? autoLineupView : null) ?? lineupView!;
+        return (auto ? autoLineupView : null) ??
+            lineupView ??
+            (throw _notScripted);
       });
 
   /// The league id of each [table] call.
