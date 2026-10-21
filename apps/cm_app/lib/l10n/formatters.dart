@@ -143,3 +143,10 @@ String worldSizeName(WorldSize s, AppLocalizations l) => switch (s) {
   WorldSize.medium => l.worldSizeMedium,
   WorldSize.large => l.worldSizeLarge,
 };
+
+/// The [WorldSize] a world of [count] countries was generated at: the
+/// largest size not above [count], else [WorldSize.small].
+WorldSize sizeFromCountryCount(int count) => WorldSize.values.lastWhere(
+  (s) => s.countryCount <= count,
+  orElse: () => WorldSize.small,
+);

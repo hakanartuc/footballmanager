@@ -392,6 +392,8 @@
   "manualSaves": "Saves",
   "autosaves": "Autosaves",
   "saved": "Saved",
+  "settings": "Settings",
+  "systemLanguage": "System language",
   "language": "Language",
   "turkish": "Türkçe",
   "@turkish": {
@@ -420,6 +422,7 @@
       }
     }
   },
+  "engineVersion": "Engine version",
   "about": "About",
   "version": "Version {version}",
   "@version": {

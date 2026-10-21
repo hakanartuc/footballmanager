@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/formatters.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../../state/game_controller.dart';
+import '../settings/settings_screen.dart';
 import 'new_game_screen.dart';
 
 /// The screen without a game: continue the newest autosave, start a new
@@ -32,6 +33,7 @@ class _StartScreenState extends State<StartScreen> {
     final controller = context.read<GameController>();
     final locale = Localizations.localeOf(context);
     return Scaffold(
+      appBar: AppBar(actions: const [SettingsButton()]),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(

@@ -5,6 +5,7 @@ import '../../l10n/generated/app_localizations.dart';
 import '../home/home_screen.dart';
 import '../inbox/inbox_screen.dart';
 import '../saves/saves_screen.dart';
+import '../settings/settings_screen.dart';
 import '../league/league_screen.dart';
 import '../squad/lineup_screen.dart';
 import '../squad/squad_screen.dart';
@@ -40,6 +41,7 @@ class _GameShellState extends State<GameShell> {
               ),
             ),
           ),
+          const SettingsButton(),
         ],
       ),
       body: IndexedStack(
