@@ -90,6 +90,23 @@ void main() {
 
   setUp(() async => l = await loadL10n());
 
+  testWidgets('the title is Saves from both entry points', (t) async {
+    Finder title() => find.descendant(
+      of: find.byType(AppBar),
+      matching: find.text(l.manualSaves),
+    );
+    await _open(t);
+    expect(title(), findsOneWidget);
+    expect(find.text(l.manualSaves), findsOneWidget, reason: 'no header');
+
+    await t.pumpWidget(const SizedBox());
+    await pumpApp(t, store: await _store(), startReady: false);
+    await t.tap(find.text(l.loadGame));
+    await t.pumpAndSettle();
+    expect(title(), findsOneWidget);
+    expect(find.text(l.loadGame), findsNothing);
+  });
+
   testWidgets('lists five manual slots, empty and occupied', (t) async {
     await _open(t);
     expect(find.text(l.manualSaves), findsOneWidget);

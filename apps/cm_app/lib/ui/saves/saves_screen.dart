@@ -118,7 +118,7 @@ class _SavesScreenState extends State<SavesScreen> {
     // Actions throw while one runs, so their buttons are disabled.
     final busy = context.watch<GameController>().state is Busy;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.canSave ? l.save : l.loadGame)),
+      appBar: AppBar(title: Text(l.manualSaves)),
       body: FutureBuilder(
         future: _slots,
         builder: (context, snap) {
@@ -139,7 +139,6 @@ class _SavesScreenState extends State<SavesScreen> {
           return ListView(
             padding: const EdgeInsets.only(bottom: 16),
             children: [
-              _Header(l.manualSaves),
               for (final n in manualSlots)
                 _SlotCard(
                   key: Key('slot$n'),
