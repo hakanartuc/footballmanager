@@ -35,7 +35,11 @@ fi
 
 if $integration; then
   if [[ -d integration_test ]] && [[ -n "$(ls -A integration_test)" ]]; then
-    flutter test integration_test -d macos
+    # One run per file: launching the macOS app a second time within one
+    # `flutter test` run fails with "Error waiting for a debug connection".
+    for f in integration_test/*_test.dart; do
+      flutter test "$f" -d macos
+    done
   else
     echo "No integration tests found; skipping."
   fi
