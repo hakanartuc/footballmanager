@@ -173,6 +173,9 @@ class FakeGateway implements EngineGateway {
   /// Method names in call order.
   final List<String> calls = [];
 
+  /// The spec of the latest [newGame] call.
+  NewGameSpec? lastSpec;
+
   /// The commands of each [playToday] call.
   final List<List<Command>> playTodayCommands = [];
 
@@ -197,7 +200,8 @@ class FakeGateway implements EngineGateway {
   );
 
   @override
-  Future<void> newGame(NewGameSpec spec) => _call('newGame', () {});
+  Future<void> newGame(NewGameSpec spec) =>
+      _call('newGame', () => lastSpec = spec);
 
   @override
   Future<void> load(Uint8List bytes) => _call('load', () {});

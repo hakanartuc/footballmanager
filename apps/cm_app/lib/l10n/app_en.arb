@@ -35,6 +35,14 @@
   "pickClub": "Choose a club",
   "startGame": "Start game",
   "fieldRequired": "This field is required",
+  "advanced": "Advanced",
+  "@advanced": {
+    "description": "New game: expander for optional settings"
+  },
+  "seed": "Seed",
+  "@seed": {
+    "description": "New game: world generation seed number"
+  },
   "advance": "Continue",
   "@advance": {
     "description": "Home: advance the calendar"

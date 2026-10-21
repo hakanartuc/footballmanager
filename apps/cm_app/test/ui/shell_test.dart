@@ -4,6 +4,7 @@ import 'package:cm_app/app.dart';
 import 'package:cm_app/data/settings_controller.dart';
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/state/game_controller.dart';
+import 'package:cm_app/ui/start/start_screen.dart';
 import 'package:cm_app/ui/widgets/busy_overlay.dart';
 import 'package:cm_app/ui/widgets/error_card.dart';
 import 'package:engine/engine.dart';
@@ -62,9 +63,9 @@ void main() {
     );
   });
 
-  testWidgets('NoGame shows the start screen placeholder', (t) async {
+  testWidgets('NoGame shows the start screen', (t) async {
     await pumpApp(t, startReady: false);
-    expect(find.byKey(const Key('startScreen')), findsOneWidget);
+    expect(find.byType(StartScreen), findsOneWidget);
     expect(find.byType(NavigationBar), findsNothing);
   });
 

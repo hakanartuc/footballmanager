@@ -1,4 +1,5 @@
 import 'package:cm_app/app.dart';
+import 'package:cm_app/data/entitlements.dart';
 import 'package:cm_app/data/settings_controller.dart';
 import 'package:cm_app/l10n/generated/app_localizations.dart';
 import 'package:cm_app/state/game_controller.dart';
@@ -32,6 +33,7 @@ Future<GameController> pumpApp(
   Locale locale = const Locale('tr'),
   Size size = const Size(390, 844),
   bool startReady = true,
+  Entitlements entitlements = Entitlements.dev,
 }) async {
   t.view.physicalSize = size;
   t.view.devicePixelRatio = 1;
@@ -43,6 +45,7 @@ Future<GameController> pumpApp(
       store: store ?? MemorySaveStore(),
       settings: SettingsController(),
       locale: locale,
+      entitlements: entitlements,
     ),
   );
   await t.pumpAndSettle();

@@ -137,6 +137,7 @@ class GameController extends ChangeNotifier {
       _gateway.clubFixtures(clubId);
   Future<List<InboxItem>> inbox() => _gateway.inbox();
   Future<WorldRefs> refs() => _gateway.refs();
+  Future<SlotInfo?> newestAutosave() => _repo.newestAutosave();
 
   /// [state] without a [Failed] wrapper.
   GameState get _settled => switch (_state) {

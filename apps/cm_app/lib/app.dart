@@ -13,6 +13,7 @@ import 'engine/isolate_gateway.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'state/game_controller.dart';
 import 'ui/shell/game_shell.dart';
+import 'ui/start/start_screen.dart';
 import 'ui/theme.dart';
 import 'ui/widgets/busy_overlay.dart';
 import 'ui/widgets/error_card.dart';
@@ -153,7 +154,8 @@ class _RootState extends State<_Root> {
 
   Widget _content(GameState s) => switch (s) {
     Ready(:final home) => GameShell(home: home),
-    _ => const Placeholder(key: Key('startScreen')),
+    // The load button arrives with the saves screen.
+    _ => const StartScreen(),
   };
 
   @override
