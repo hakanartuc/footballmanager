@@ -1,5 +1,6 @@
 import '../core/ids.dart';
 import 'enums.dart';
+import 'match_rules.dart';
 
 class Country {
   CountryId id;
@@ -11,6 +12,10 @@ class Country {
   /// League ids by tier; `tiers[0]` is the top division.
   List<LeagueId> tiers;
 
+  /// 'temperate', 'mediterranean', 'continental', 'tropical' or 'arid';
+  /// drives match-day weather.
+  String climate;
+
   Country({
     required this.id,
     required this.code,
@@ -18,6 +23,7 @@ class Country {
     required this.continent,
     required this.namePool,
     required this.tiers,
+    this.climate = 'temperate',
   });
 }
 
@@ -30,6 +36,7 @@ class League {
   int promotedCount;
   int relegatedCount;
   int reputation;
+  MatchRules rules;
 
   League({
     required this.id,
@@ -40,5 +47,6 @@ class League {
     required this.promotedCount,
     required this.relegatedCount,
     required this.reputation,
+    this.rules = MatchRules.league,
   });
 }

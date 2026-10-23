@@ -1,4 +1,6 @@
 import '../model/enums.dart';
+import '../model/json.dart';
+import '../model/match_rules.dart';
 import 'save_codec.dart';
 
 /// Upgrades a save envelope from schema [from] to `from + 1`.
@@ -34,14 +36,31 @@ Map<String, dynamic> _v1InboxIds(Map<String, dynamic> envelope) {
   return envelope;
 }
 
-/// v2 -> v3 (Faz 1a): clubs carry tactics. Later v3 additions go in their
-/// own helpers called from here.
+/// v2 -> v3 (Faz 1a): clubs carry tactics, leagues match rules and
+/// countries a climate. Later v3 additions go in their own helpers called
+/// from here.
 Map<String, dynamic> _migrate2to3(Map<String, dynamic> envelope) {
   final world = envelope['world'] as Map<String, dynamic>;
   for (final club in (world['clubs'] as Map<String, dynamic>).values) {
     _addClubTactics(club as Map<String, dynamic>);
   }
+  for (final league in (world['leagues'] as Map<String, dynamic>).values) {
+    _addLeagueRules(league as Map<String, dynamic>);
+  }
+  for (final country in (world['countries'] as Map<String, dynamic>).values) {
+    _addCountryClimate(country as Map<String, dynamic>);
+  }
   return envelope;
+}
+
+/// Gives a league without `rules` the default league rules.
+void _addLeagueRules(Map<String, dynamic> league) {
+  league['rules'] ??= matchRulesToJson(MatchRules.league);
+}
+
+/// Gives a country without `climate` the temperate climate.
+void _addCountryClimate(Map<String, dynamic> country) {
+  country['climate'] ??= 'temperate';
 }
 
 /// Replaces a club's `formation` with three balanced preset tactics

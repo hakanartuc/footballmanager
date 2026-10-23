@@ -8,6 +8,7 @@ import 'enums.dart';
 import 'events.dart';
 import 'fixture.dart';
 import 'manager.dart';
+import 'match_rules.dart';
 import 'player.dart';
 import 'tactic.dart';
 import 'world.dart';
@@ -95,6 +96,7 @@ Map<String, dynamic> countryToJson(Country c) => {
   'continent': c.continent.name,
   'namePool': c.namePool,
   'tiers': List.of(c.tiers),
+  'climate': c.climate,
 };
 
 Country countryFromJson(Map<String, dynamic> j) => Country(
@@ -104,6 +106,7 @@ Country countryFromJson(Map<String, dynamic> j) => Country(
   continent: Continent.values.byName(j['continent'] as String),
   namePool: j['namePool'] as String,
   tiers: _ints(j['tiers']),
+  climate: j['climate'] as String,
 );
 
 Map<String, dynamic> leagueToJson(League l) => {
@@ -115,6 +118,7 @@ Map<String, dynamic> leagueToJson(League l) => {
   'promotedCount': l.promotedCount,
   'relegatedCount': l.relegatedCount,
   'reputation': l.reputation,
+  'rules': matchRulesToJson(l.rules),
 };
 
 League leagueFromJson(Map<String, dynamic> j) => League(
@@ -126,6 +130,29 @@ League leagueFromJson(Map<String, dynamic> j) => League(
   promotedCount: j['promotedCount'] as int,
   relegatedCount: j['relegatedCount'] as int,
   reputation: j['reputation'] as int,
+  rules: matchRulesFromJson(_obj(j['rules'])),
+);
+
+Map<String, dynamic> matchRulesToJson(MatchRules r) => {
+  'substitutions': r.substitutions,
+  'benchSize': r.benchSize,
+  'extraTime': r.extraTime,
+  'penalties': r.penalties,
+  'yellowThresholds': List.of(r.yellowThresholds),
+  'redBanSecondYellow': r.redBanSecondYellow,
+  'redBanFoul': r.redBanFoul,
+  'redBanViolent': r.redBanViolent,
+};
+
+MatchRules matchRulesFromJson(Map<String, dynamic> j) => MatchRules(
+  substitutions: j['substitutions'] as int,
+  benchSize: j['benchSize'] as int,
+  extraTime: j['extraTime'] as bool,
+  penalties: j['penalties'] as bool,
+  yellowThresholds: _ints(j['yellowThresholds']),
+  redBanSecondYellow: j['redBanSecondYellow'] as int,
+  redBanFoul: j['redBanFoul'] as int,
+  redBanViolent: j['redBanViolent'] as int,
 );
 
 // ---- club ----

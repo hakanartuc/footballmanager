@@ -32,6 +32,8 @@ void main() {
           'inbox': [entry(1), entry(2), entry(3)],
           'ids': <String, dynamic>{'player': 40},
           'clubs': <String, dynamic>{},
+          'leagues': <String, dynamic>{},
+          'countries': <String, dynamic>{},
         },
       };
       final out = migrate(env);
@@ -52,6 +54,8 @@ void main() {
         'world': <String, dynamic>{
           'inbox': <Object?>[],
           'clubs': <String, dynamic>{},
+          'leagues': <String, dynamic>{},
+          'countries': <String, dynamic>{},
         },
       });
       expect((out['world'] as Map)['ids'], {'inbox': 0});
@@ -81,6 +85,12 @@ void main() {
         club.remove('activeTactic');
         club['formation'] = Formation.values[(club['id'] as int) % 6].name;
       }
+      for (final l in (world['leagues'] as Map<String, dynamic>).values) {
+        (l as Map<String, dynamic>).remove('rules');
+      }
+      for (final c in (world['countries'] as Map<String, dynamic>).values) {
+        (c as Map<String, dynamic>).remove('climate');
+      }
       world['schemaVersion'] = 2;
       return {'schemaVersion': 2, 'world': world};
     }
@@ -106,6 +116,27 @@ void main() {
           [for (final t in tactics) (t as Map)['formation']],
           [before[club['id'] as int], 'f433', 'f532'],
         );
+      }
+    });
+
+    test('gives every league the default rules as its last key', () {
+      final out = migrate(v2Envelope());
+      final leagues = (out['world'] as Map)['leagues'] as Map<String, dynamic>;
+      expect(leagues, isNotEmpty);
+      for (final l in leagues.values) {
+        expect((l as Map).keys.last, 'rules');
+        expect(l['rules'], matchRulesToJson(MatchRules.league));
+      }
+    });
+
+    test('gives every country the temperate climate as its last key', () {
+      final out = migrate(v2Envelope());
+      final countries =
+          (out['world'] as Map)['countries'] as Map<String, dynamic>;
+      expect(countries, isNotEmpty);
+      for (final c in countries.values) {
+        expect((c as Map).keys.last, 'climate');
+        expect(c['climate'], 'temperate');
       }
     });
 

@@ -10,6 +10,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "tr",
       "reputation": 70,
+      "climate": "mediterranean",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -21,6 +22,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "eng",
       "reputation": 95,
+      "climate": "temperate",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 24, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -32,6 +34,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "es",
       "reputation": 92,
+      "climate": "mediterranean",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 22, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -43,6 +46,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "de",
       "reputation": 88,
+      "climate": "continental",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -54,6 +58,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "it",
       "reputation": 87,
+      "climate": "mediterranean",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -65,6 +70,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "fr",
       "reputation": 82,
+      "climate": "temperate",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -76,6 +82,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "nl",
       "reputation": 70,
+      "climate": "temperate",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -87,6 +94,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "europe",
       "namePool": "pt",
       "reputation": 72,
+      "climate": "mediterranean",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 18, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -98,6 +106,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "southAmerica",
       "namePool": "br",
       "reputation": 78,
+      "climate": "tropical",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -109,6 +118,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "southAmerica",
       "namePool": "ar",
       "reputation": 70,
+      "climate": "temperate",
       "tiers": [
         {"clubs": 28, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -119,6 +129,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "northAmerica",
       "namePool": "us",
       "reputation": 60,
+      "climate": "continental",
       "tiers": [
         {"clubs": 24, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -129,6 +140,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "northAmerica",
       "namePool": "mx",
       "reputation": 62,
+      "climate": "arid",
       "tiers": [
         {"clubs": 18, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -139,6 +151,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "asia",
       "namePool": "jp",
       "reputation": 60,
+      "climate": "temperate",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 22, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -150,6 +163,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "asia",
       "namePool": "kr",
       "reputation": 52,
+      "climate": "continental",
       "tiers": [
         {"clubs": 12, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -160,6 +174,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "africa",
       "namePool": "ng",
       "reputation": 45,
+      "climate": "tropical",
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -170,6 +185,7 @@ const Map<String, String> embeddedAssets = {
       "continent": "oceania",
       "namePool": "au",
       "reputation": 48,
+      "climate": "arid",
       "tiers": [
         {"clubs": 12, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]

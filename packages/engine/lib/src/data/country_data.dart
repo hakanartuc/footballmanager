@@ -5,6 +5,15 @@ import 'assets_embedded.dart';
 
 List<String> _strings(dynamic l) => [for (final e in l as List) e as String];
 
+/// The climates a country can have; they key the match-day weather tables.
+const climates = [
+  'temperate',
+  'mediterranean',
+  'continental',
+  'tropical',
+  'arid',
+];
+
 /// One division of a country's league pyramid; `tiers[0]` is the top flight.
 class TierTemplate {
   int clubs;
@@ -40,6 +49,9 @@ class CountryTemplate {
   /// 1..100.
   int reputation;
 
+  /// One of [climates].
+  String climate;
+
   CountryTemplate({
     required this.code,
     required this.name,
@@ -47,6 +59,7 @@ class CountryTemplate {
     required this.namePool,
     required this.tiers,
     required this.reputation,
+    required this.climate,
   });
 
   factory CountryTemplate.fromJson(Map<String, dynamic> j) => CountryTemplate(
@@ -59,6 +72,7 @@ class CountryTemplate {
         TierTemplate.fromJson(t as Map<String, dynamic>),
     ],
     reputation: j['reputation'] as int,
+    climate: j['climate'] as String,
   );
 }
 
@@ -123,6 +137,9 @@ class CountryData {
         problems.add('${c.code}: missing name pool "${c.namePool}"');
       }
       if (c.tiers.isEmpty) problems.add('${c.code}: no tiers');
+      if (!climates.contains(c.climate)) {
+        problems.add('${c.code}: unknown climate "${c.climate}"');
+      }
       for (var i = 0; i < c.tiers.length; i++) {
         final t = c.tiers[i];
         final at = '${c.code} ${t.nameKey}';
