@@ -52,6 +52,9 @@ class CountryTemplate {
   /// One of [climates].
   String climate;
 
+  /// JSON key `south`, absent means false.
+  bool southernHemisphere;
+
   CountryTemplate({
     required this.code,
     required this.name,
@@ -60,6 +63,7 @@ class CountryTemplate {
     required this.tiers,
     required this.reputation,
     required this.climate,
+    this.southernHemisphere = false,
   });
 
   factory CountryTemplate.fromJson(Map<String, dynamic> j) => CountryTemplate(
@@ -73,6 +77,7 @@ class CountryTemplate {
     ],
     reputation: j['reputation'] as int,
     climate: j['climate'] as String,
+    southernHemisphere: j['south'] as bool? ?? false,
   );
 }
 

@@ -90,6 +90,7 @@ void main() {
       }
       for (final c in (world['countries'] as Map<String, dynamic>).values) {
         (c as Map<String, dynamic>).remove('climate');
+        c.remove('south');
       }
       world['schemaVersion'] = 2;
       return {'schemaVersion': 2, 'world': world};
@@ -129,14 +130,16 @@ void main() {
       }
     });
 
-    test('gives every country the temperate climate as its last key', () {
+    test('gives every country a temperate northern climate as last keys', () {
       final out = migrate(v2Envelope());
       final countries =
           (out['world'] as Map)['countries'] as Map<String, dynamic>;
       expect(countries, isNotEmpty);
       for (final c in countries.values) {
-        expect((c as Map).keys.last, 'climate');
+        final keys = (c as Map).keys.toList();
+        expect(keys.sublist(keys.length - 2), ['climate', 'south']);
         expect(c['climate'], 'temperate');
+        expect(c['south'], isFalse);
       }
     });
 

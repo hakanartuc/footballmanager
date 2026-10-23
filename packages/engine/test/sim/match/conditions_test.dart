@@ -196,4 +196,46 @@ void main() {
       }
     }
   });
+
+  test('seasonMonth shifts southern months by six', () {
+    expect(seasonMonth(1, south: false), 1);
+    expect(seasonMonth(7, south: false), 7);
+    expect(seasonMonth(12, south: false), 12);
+    expect(seasonMonth(1, south: true), 7);
+    expect(seasonMonth(7, south: true), 1);
+    expect(seasonMonth(12, south: true), 6);
+  });
+
+  test('BR, AR and AU are southern; the rest northern', () {
+    final south = {
+      for (final c in CountryData.load().countries)
+        if (c.southernHemisphere) c.code,
+    };
+    expect(south, {'BR', 'AR', 'AU'});
+  });
+
+  test('a southern July plays like a northern January', () {
+    String run(bool south, int month) {
+      country.climate = 'continental';
+      country.southernHemisphere = south;
+      final f = _inMonth(f0, month);
+      final rng = SeededRng(21);
+      return [
+        for (var i = 0; i < 2000; i++)
+          () {
+            final c = sampleConditions(w: w, f: f, rng: rng);
+            return '${c.weather.name}/${c.pitch}/${c.attendance}';
+          }(),
+      ].join(',');
+    }
+
+    try {
+      final southJuly = run(true, 7);
+      expect(southJuly, run(false, 1));
+      expect(southJuly, isNot(run(false, 7)));
+      expect('snow/'.allMatches(southJuly).length, greaterThanOrEqualTo(200));
+    } finally {
+      country.southernHemisphere = false;
+    }
+  });
 }

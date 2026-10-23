@@ -97,6 +97,7 @@ Map<String, dynamic> countryToJson(Country c) => {
   'namePool': c.namePool,
   'tiers': List.of(c.tiers),
   'climate': c.climate,
+  'south': c.southernHemisphere,
 };
 
 Country countryFromJson(Map<String, dynamic> j) => Country(
@@ -107,6 +108,7 @@ Country countryFromJson(Map<String, dynamic> j) => Country(
   namePool: j['namePool'] as String,
   tiers: _ints(j['tiers']),
   climate: j['climate'] as String,
+  southernHemisphere: j['south'] as bool,
 );
 
 Map<String, dynamic> leagueToJson(League l) => {

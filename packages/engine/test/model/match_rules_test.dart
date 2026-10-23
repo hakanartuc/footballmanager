@@ -74,9 +74,12 @@ void main() {
       namePool: 'x',
       tiers: [],
       climate: 'arid',
+      southernHemisphere: true,
     );
     final j = countryToJson(c);
     expect(j['climate'], 'arid');
+    expect(j['south'], isTrue);
     expect(countryFromJson(j).climate, 'arid');
+    expect(countryFromJson(j).southernHemisphere, isTrue);
   });
 }

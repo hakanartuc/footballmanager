@@ -16,6 +16,9 @@ class Country {
   /// drives match-day weather.
   String climate;
 
+  /// Seasons are shifted by six months (JSON key `south`).
+  bool southernHemisphere;
+
   Country({
     required this.id,
     required this.code,
@@ -24,6 +27,7 @@ class Country {
     required this.namePool,
     required this.tiers,
     this.climate = 'temperate',
+    this.southernHemisphere = false,
   });
 }
 

@@ -107,6 +107,7 @@ const Map<String, String> embeddedAssets = {
       "namePool": "br",
       "reputation": 78,
       "climate": "tropical",
+      "south": true,
       "tiers": [
         {"clubs": 20, "promoted": 0, "relegated": 3, "nameKey": "tier1"},
         {"clubs": 20, "promoted": 3, "relegated": 0, "nameKey": "tier2"}
@@ -119,6 +120,7 @@ const Map<String, String> embeddedAssets = {
       "namePool": "ar",
       "reputation": 70,
       "climate": "temperate",
+      "south": true,
       "tiers": [
         {"clubs": 28, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]
@@ -186,6 +188,7 @@ const Map<String, String> embeddedAssets = {
       "namePool": "au",
       "reputation": 48,
       "climate": "arid",
+      "south": true,
       "tiers": [
         {"clubs": 12, "promoted": 0, "relegated": 0, "nameKey": "tier1"}
       ]

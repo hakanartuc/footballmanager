@@ -98,6 +98,11 @@ const Map<String, List<List<int>>> weatherWeights = {
   ],
 };
 
+/// The northern-hemisphere month whose season [month] corresponds to:
+/// [month] itself in the north, six months on in the south.
+int seasonMonth(int month, {required bool south}) =>
+    south ? ((month + 5) % 12) + 1 : month;
+
 /// Samples the conditions of [f] from [rng], which the caller forks as
 /// `SeededRng(w.seed).fork('conditions:${f.id}:${f.seasonYear}')`.
 MatchConditions sampleConditions({
@@ -107,10 +112,10 @@ MatchConditions sampleConditions({
 }) {
   final home = w.clubs[f.homeId]!;
   final away = w.clubs[f.awayId]!;
-  final climate = w.countries[w.leagues[f.leagueId]!.countryId]!.climate;
-  final month = f.date.month;
+  final country = w.countries[w.leagues[f.leagueId]!.countryId]!;
+  final month = seasonMonth(f.date.month, south: country.southernHemisphere);
 
-  final weights = weatherWeights[climate]![month - 1];
+  final weights = weatherWeights[country.climate]![month - 1];
   final weather = Weather
       .values[rng.weightedIndex([for (final x in weights) x.toDouble()])];
 

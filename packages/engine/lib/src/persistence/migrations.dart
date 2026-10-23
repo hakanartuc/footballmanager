@@ -58,9 +58,11 @@ void _addLeagueRules(Map<String, dynamic> league) {
   league['rules'] ??= matchRulesToJson(MatchRules.league);
 }
 
-/// Gives a country without `climate` the temperate climate.
+/// Gives a country without `climate` the temperate climate and without
+/// `south` the northern hemisphere.
 void _addCountryClimate(Map<String, dynamic> country) {
   country['climate'] ??= 'temperate';
+  country['south'] ??= false;
 }
 
 /// Replaces a club's `formation` with three balanced preset tactics
