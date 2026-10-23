@@ -97,13 +97,14 @@ final class Clearance extends MicroEvent {
   const Clearance(super.t, this.who, this.a, this.b);
 }
 
-/// One possession by [attackingId].
+/// One possession by [attackingId]; [seconds] is how long it lasted.
 class PossessionStep {
   int minute;
   int half;
   ClubId attackingId;
   Lane lane;
   bool counter;
+  double seconds;
   ChanceType? chance;
   double? xg;
   ShotOutcome? outcome;
@@ -118,6 +119,7 @@ class PossessionStep {
     required this.attackingId,
     required this.lane,
     required this.counter,
+    this.seconds = 0,
     this.chance,
     this.xg,
     this.outcome,

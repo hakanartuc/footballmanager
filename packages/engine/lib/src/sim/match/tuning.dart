@@ -1,3 +1,4 @@
+import '../../model/enums.dart';
 import '../../model/match_result.dart';
 import '../../model/tactic.dart';
 
@@ -56,6 +57,40 @@ abstract final class EngineTuning {
   /// Share of saves that give a corner (5.3 step 7).
   static const double cornerAfterSave = 0.30;
 
+  /// Share of the blocked band (its top) that is the post instead.
+  static const double postShare = 0.15;
+
+  /// xG ceiling after the finishing and keeper factors.
+  static const double xgMax = 0.95;
+
+  /// Attribute that weights shooter selection per chance type (5.3 step 5).
+  static const Map<ChanceType, Attr> shooterAttr = {
+    ChanceType.throughBall: Attr.finishing,
+    ChanceType.cross: Attr.heading,
+    ChanceType.longShot: Attr.longShots,
+    ChanceType.dribble: Attr.dribbling,
+    ChanceType.corner: Attr.heading,
+    ChanceType.freeKick: Attr.longShots,
+    ChanceType.penalty: Attr.finishing,
+  };
+
+  /// Shooter weight multiplier for forwards (st, aml, amc, amr) per chance
+  /// type; absent means 1.0.
+  static const Map<ChanceType, double> shooterForwardMul = {
+    ChanceType.throughBall: 3.0,
+    ChanceType.cross: 2.0,
+    ChanceType.dribble: 2.0,
+  };
+
+  /// Attribute that weights assister selection per chance type; a type
+  /// absent here has no assister (5.3 step 5).
+  static const Map<ChanceType, Attr> assistAttr = {
+    ChanceType.throughBall: Attr.passing,
+    ChanceType.longShot: Attr.passing,
+    ChanceType.cross: Attr.crossing,
+    ChanceType.corner: Attr.crossing,
+  };
+
   /// Penalties per match, spread over the steps (5.3 step 4).
   static const double penaltyPerMatch = 0.25;
 
@@ -70,11 +105,67 @@ abstract final class EngineTuning {
   /// Straight red probability per foul.
   static const double redPerFoul = 0.008;
 
-  /// Injury probability per step per player on the pitch.
-  static const double injuryPerStepPerPlayer = 0.0025;
+  /// Share of fouls inside the box; the attacking side's next possession is
+  /// a penalty (Task 5 resolution).
+  static const double boxFoulShare = 0.08;
+
+  /// Straight red reasons: this share is violent conduct, the next
+  /// [redLastManShare] a last-man foul, the rest a normal foul.
+  static const double redViolentShare = 0.10;
+  static const double redLastManShare = 0.20;
+
+  /// Injury probability per step for the one exposed player (spec 6.1:
+  /// 0.0025 per step per player-exposure → ~0.3 per match); the victim is
+  /// drawn weighted by the per-player multipliers below.
+  static const double injuryPerStep = 0.0025;
+
+  /// Injury proneness 1 → ×[injuryPronenessMin], 20 → ×[injuryPronenessMax].
+  static const double injuryPronenessMin = 0.5;
+  static const double injuryPronenessMax = 2.0;
+
+  /// Condition below [injuryLowCondition] ×[injuryLowConditionMul]; below
+  /// [injuryVeryLowCondition] ×[injuryVeryLowConditionMul] instead.
+  static const double injuryLowCondition = 70;
+  static const double injuryLowConditionMul = 1.5;
+  static const double injuryVeryLowCondition = 50;
+  static const double injuryVeryLowConditionMul = 2.5;
+
+  /// Age above [injuryOldAge] ×[injuryOldAgeMul].
+  static const int injuryOldAge = 31;
+  static const double injuryOldAgeMul = 1.3;
+
+  /// Own side on fast tempo ×[injuryFastTempoMul].
+  static const double injuryFastTempoMul = 1.2;
+
+  /// The player fouled this step ×[injuryFoulVictimMul].
+  static const double injuryFoulVictimMul = 4.0;
+
+  /// Injury severity bands (spec 6.2): inclusive day ranges and their
+  /// weights, normally and when caused by a foul (shifted toward serious).
+  static const List<(int, int)> injuryBandDays = [
+    (1, 7),
+    (8, 21),
+    (22, 56),
+    (57, 150),
+    (151, 360),
+  ];
+  static const List<double> injuryBandWeights = [45, 30, 15, 8, 2];
+  static const List<double> injuryBandWeightsFoul = [35, 32, 18, 12, 3];
 
   /// Condition lost per minute at average stamina.
   static const double conditionPerMinute = 0.25;
+
+  /// Condition lost per minute at stamina 20 and at stamina 5 (5.3 step 8);
+  /// linear between and beyond.
+  static const double drainAtStamina20 = 0.18;
+  static const double drainAtStamina5 = 0.35;
+
+  /// `conditionPerMinute × staminaDrainFactor(stamina)` is the drain per
+  /// minute of a player with [stamina].
+  static double staminaDrainFactor(int stamina) =>
+      (drainAtStamina5 +
+          (drainAtStamina20 - drainAtStamina5) * (stamina - 5) / 15) /
+      conditionPerMinute;
 
   /// Mid and def multiplier per missing player below eleven.
   static const double tenMenMul = 0.85;

@@ -48,12 +48,24 @@ class RngState {
   final int s3;
 }
 
+/// The random draws the match engine makes; [SeededRng] is the production
+/// implementation, tests script one.
+abstract interface class Rng {
+  int nextUint32();
+  int nextInt(int maxExclusive);
+  double nextDouble();
+  bool nextBool(double pTrue);
+  int weightedIndex(List<double> weights);
+  T pick<T>(List<T> items);
+  Rng fork(String name);
+}
+
 /// Deterministic xoshiro128** generator on four 32-bit words.
 ///
 /// All arithmetic is masked to 32 bits so sequences are identical on native
 /// and web. Named child streams are derived from the parent's *seed* via
 /// [fork], so forking never depends on how much the parent has consumed.
-class SeededRng {
+class SeededRng implements Rng {
   /// Creates a generator from [seed] (masked to 32 bits).
   SeededRng(int seed) : _seed = seed & _mask32 {
     _s0 = splitmix32(_seed);
@@ -70,9 +82,11 @@ class SeededRng {
   late int _s3;
 
   /// Independent stream named [name]: `seed' = splitmix32(seed ^ fnv1a32(name))`.
+  @override
   SeededRng fork(String name) => SeededRng(splitmix32(_seed ^ fnv1a32(name)));
 
   /// Next value in `0..0xFFFFFFFF`.
+  @override
   int nextUint32() {
     final result = mul32(_rotl32(mul32(_s1, 5), 7), 9);
     final t = (_s1 << 9) & _mask32;
@@ -86,6 +100,7 @@ class SeededRng {
   }
 
   /// Unbiased integer in `0..maxExclusive-1` (rejection sampling).
+  @override
   int nextInt(int maxExclusive) {
     if (maxExclusive <= 0 || maxExclusive > 0x100000000) {
       throw ArgumentError.value(
@@ -103,8 +118,10 @@ class SeededRng {
   }
 
   /// Uniform double in `[0, 1)`.
+  @override
   double nextDouble() => nextUint32() / _two32;
 
+  @override
   bool nextBool(double pTrue) => nextDouble() < pTrue;
 
   /// Normal deviate via Box-Muller; two fresh uniforms per call, no caching.
@@ -136,6 +153,7 @@ class SeededRng {
   }
 
   /// Index drawn proportionally to [weights] (all `>= 0`, sum `> 0`).
+  @override
   int weightedIndex(List<double> weights) {
     if (weights.isEmpty) throw ArgumentError('weights must not be empty');
     var sum = 0.0;
@@ -154,6 +172,7 @@ class SeededRng {
     return weights.lastIndexWhere((w) => w > 0);
   }
 
+  @override
   T pick<T>(List<T> items) => items[nextInt(items.length)];
 
   /// In-place Fisher-Yates shuffle.

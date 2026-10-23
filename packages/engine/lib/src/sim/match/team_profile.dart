@@ -223,20 +223,25 @@ class _Lanes {
 
 /// Compiles [tactic] and the players [onPitch] into a [TeamProfile].
 ///
-/// `onPitch[i]` occupies `tactic.slots[i]`; slots past the end of [onPitch]
-/// are absent. A player missing from [condition] uses its state condition.
-/// Ids in the tactic that are not on the pitch are ignored. [opponentTactic]
-/// supplies the opponent's marking and marked players.
+/// `onPitch[i]` occupies `tactic.slots[i]`; a null entry and slots past the
+/// end of [onPitch] are empty. A player missing from [condition] uses its
+/// state condition. Ids in the tactic that are not on the pitch are ignored.
+/// [opponentTactic] supplies the opponent's marking and marked players.
 TeamProfile buildProfile({
   required World w,
   required Tactic tactic,
-  required List<PlayerId> onPitch,
+  required List<PlayerId?> onPitch,
   required Map<PlayerId, double> condition,
   required bool home,
   required MatchConditions cond,
   Tactic? opponentTactic,
 }) {
-  final n = math.min(onPitch.length, tactic.slots.length);
+  final slotCount = math.min(onPitch.length, tactic.slots.length);
+  final playing = <PlayerId>[
+    for (var i = 0; i < slotCount; i++)
+      if (onPitch[i] != null) onPitch[i]!,
+  ];
+  final n = playing.length;
   final opponentMarksMan = opponentTactic?.marking == Marking.man;
 
   var midSum = 0.0;
@@ -249,8 +254,9 @@ TeamProfile buildProfile({
   final bySlot = <Position, PlayerId>{};
   final slotOf = <PlayerId, Position>{};
 
-  for (var i = 0; i < n; i++) {
+  for (var i = 0; i < slotCount; i++) {
     final id = onPitch[i];
+    if (id == null) continue;
     final slot = tactic.slots[i];
     final p = w.players[id]!;
     bySlot.putIfAbsent(slot, () => id);
@@ -382,8 +388,7 @@ TeamProfile buildProfile({
   }
 
   final boost = <PlayerId, double>{};
-  for (var i = 0; i < n; i++) {
-    final id = onPitch[i];
+  for (final id in playing) {
     var b = 1.0;
     if (id == tactic.playmaker) b *= EngineTuning.playmakerBoost;
     if (id == tactic.targetMan) b *= EngineTuning.playmakerBoost;
@@ -437,7 +442,7 @@ TeamProfile buildProfile({
     chanceWeights: chanceWeights,
     selectionBoost: boost,
     markedOpponents: marked,
-    onPitch: onPitch,
+    onPitch: playing,
     bySlot: bySlot,
     slotOf: slotOf,
   );
