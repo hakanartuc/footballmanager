@@ -98,6 +98,16 @@ abstract final class EngineTuning {
   /// Familiarity factor at familiarity 1; linear to 1.0 at 20.
   static const double familiarityMin = 0.6;
 
+  /// Condition factor: `conditionBase + conditionSpan × condition / 100`
+  /// (5.2: 100 → 1.0, 50 → 0.75). Only the match engine uses this curve;
+  /// `lineup.dart` keeps its own for auto-lineup ordering.
+  static const double conditionBase = 0.5;
+  static const double conditionSpan = 0.5;
+
+  /// The 5.2 condition curve for [condition] in 0..100.
+  static double conditionFactor(double condition) =>
+      conditionBase + conditionSpan * condition / 100;
+
   /// Sharpness factor: `sharpnessBase + sharpnessSpan × sharpness / 100`.
   static const double sharpnessBase = 0.9;
   static const double sharpnessSpan = 0.1;

@@ -146,16 +146,16 @@ void main() {
       p.familiarity = {Position.mc: 20};
     });
 
-    test('condition uses conditionFactor: 0.75 at 0, 1.0 at 100', () {
+    test('condition: 0.5 at 0, 0.75 at 50, 1.0 at 100 (spec 5.2)', () {
       p.state.condition = 0;
-      expect(playerEffectiveness(p, Attr.passing, Position.mc), 7.5);
+      expect(playerEffectiveness(p, Attr.passing, Position.mc), 5.0);
       p.state.condition = 50;
-      expect(playerEffectiveness(p, Attr.passing, Position.mc), 8.75);
+      expect(playerEffectiveness(p, Attr.passing, Position.mc), 7.5);
       p.state.condition = 100;
       expect(playerEffectiveness(p, Attr.passing, Position.mc), 10.0);
       expect(
         playerEffectiveness(p, Attr.passing, Position.mc, condition: 0),
-        7.5,
+        5.0,
       );
     });
 
@@ -218,13 +218,13 @@ void main() {
     test('condition map overrides state; missing entry reads state', () {
       final cond = {for (final id in _ids) id: 100.0}..[7] = 0.0;
       final p = _build(w442, t442(), condition: cond);
-      // mc 7 at ×0.75: mid (30 + 7.5) / 4, attC the same, set-piece
-      // defence (100 + 7.5) / 11.
-      _expectStrengths(p, mid: 9.375, attC: 9.375, setPieceDef: 107.5 / 11);
+      // mc 7 at ×0.5: mid (30 + 5) / 4, attC the same, set-piece
+      // defence (100 + 5) / 11.
+      _expectStrengths(p, mid: 8.75, attC: 8.75, setPieceDef: 105 / 11);
 
       w442.players[8]!.state.condition = 0;
       final q = _build(w442, t442(), condition: cond..remove(8));
-      _expectStrengths(q, mid: 8.75, attC: 8.75, setPieceDef: 105 / 11);
+      _expectStrengths(q, mid: 7.5, attC: 7.5, setPieceDef: 100 / 11);
       w442.players[8]!.state.condition = 100;
     });
   });

@@ -8,7 +8,6 @@ import '../../model/match_result.dart';
 import '../../model/player.dart';
 import '../../model/tactic.dart';
 import '../../model/world.dart';
-import '../lineup.dart';
 import 'tuning.dart';
 
 /// The factor every attribute of [p] is scaled by when playing [slot] at
@@ -18,7 +17,7 @@ double _playerFactor(Player p, Position slot, double condition) {
   final s = p.state;
   return (EngineTuning.familiarityMin +
           (1 - EngineTuning.familiarityMin) * (fam - 1) / 19) *
-      conditionFactor(condition) *
+      EngineTuning.conditionFactor(condition) *
       (EngineTuning.sharpnessBase +
           EngineTuning.sharpnessSpan * s.sharpness / 100) *
       (EngineTuning.moraleBase + EngineTuning.moraleSpan * s.morale / 100) *
