@@ -1,6 +1,5 @@
 import '../core/game_date.dart';
 import '../core/ids.dart';
-import '../sim/match/conditions.dart';
 import 'attributes.dart';
 import 'calendar.dart';
 import 'club.dart';
@@ -9,6 +8,7 @@ import 'enums.dart';
 import 'events.dart';
 import 'fixture.dart';
 import 'manager.dart';
+import 'match_conditions.dart';
 import 'match_rules.dart';
 import 'player.dart';
 import 'tactic.dart';
@@ -587,7 +587,7 @@ MatchConditions matchConditionsFromJson(Map<String, dynamic> j) =>
 Map<String, dynamic> matchEventToJson(MatchEvent e) => {
   't': switch (e) {
     Goal() => 'Goal',
-    Card() => 'Card',
+    Booking() => 'Booking',
     Injury() => 'Injury',
     Substitution() => 'Substitution',
     PenaltyMissed() => 'PenaltyMissed',
@@ -609,7 +609,7 @@ Map<String, dynamic> matchEventToJson(MatchEvent e) => {
       'isPenalty': e.isPenalty,
       'isOwnGoal': e.isOwnGoal,
     },
-    Card() => {
+    Booking() => {
       'playerId': e.playerId,
       'kind': e.kind.name,
       'reason': e.reason.name,
@@ -645,7 +645,7 @@ MatchEvent matchEventFromJson(Map<String, dynamic> j) {
       isPenalty: j['isPenalty'] as bool,
       isOwnGoal: j['isOwnGoal'] as bool,
     ),
-    'Card' => Card(
+    'Booking' => Booking(
       minute: minute,
       half: half,
       clubId: clubId,

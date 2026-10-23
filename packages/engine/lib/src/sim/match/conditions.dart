@@ -1,27 +1,7 @@
 import '../../core/rng.dart';
 import '../../model/fixture.dart';
+import '../../model/match_conditions.dart';
 import '../../model/world.dart';
-
-enum Weather { sunny, cloudy, rainy, heavyRain, snow, windy, hot }
-
-/// Match-day weather, pitch, crowd and the resulting home advantage.
-class MatchConditions {
-  final Weather weather;
-
-  /// 1..10.
-  final int pitch;
-  final int attendance;
-
-  /// 1.03..1.08.
-  final double homeAdvantage;
-
-  const MatchConditions({
-    required this.weather,
-    required this.pitch,
-    required this.attendance,
-    required this.homeAdvantage,
-  });
-}
 
 /// Weather weights per climate, one row per month (January first), columns
 /// in [Weather] order: sunny, cloudy, rainy, heavyRain, snow, windy, hot.

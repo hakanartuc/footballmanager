@@ -377,7 +377,7 @@ List<MatchEvent> _allMatchEvents() => [
     isPenalty: false,
     isOwnGoal: true,
   ),
-  Card(
+  Booking(
     minute: 30,
     half: 1,
     clubId: 2,
@@ -695,7 +695,7 @@ void main() {
       expect(back.conditions!.homeAdvantage, 1.065);
       expect((back.events[1] as Goal).isOwnGoal, isTrue);
       expect((back.events[0] as Goal).assistId, 9);
-      expect((back.events[2] as Card).kind, CardKind.secondYellow);
+      expect((back.events[2] as Booking).kind, CardKind.secondYellow);
       expect(back.homeShootout, 4);
       expect(back.abandoned, isTrue);
     });

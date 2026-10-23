@@ -22,6 +22,7 @@ export 'src/model/events.dart';
 export 'src/model/fixture.dart';
 export 'src/model/json.dart';
 export 'src/model/manager.dart';
+export 'src/model/match_conditions.dart';
 export 'src/model/match_log.dart';
 export 'src/model/match_result.dart';
 export 'src/model/match_rules.dart';

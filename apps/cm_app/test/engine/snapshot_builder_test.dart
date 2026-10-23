@@ -1,5 +1,6 @@
 import 'package:cm_app/engine/engine_gateway.dart';
 import 'package:cm_app/engine/snapshot_builder.dart';
+import 'package:cm_app/engine/snapshots.dart';
 import 'package:engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -78,6 +79,73 @@ void main() {
     expect(item.labels.leagueCountryCode, 'TR');
     expect(item.labels.leagueTier, 1);
     expect(item.labels.leagueName, s.world.leagues[leagueId]!.name);
+  });
+
+  group('injury, sending-off and suspension labels', () {
+    late PlayerId player;
+    late Fixture f;
+
+    setUp(() {
+      player = s.world.squadOf(club).first;
+      f = s
+          .world
+          .fixtures[s.world.fixturesOfClub(club, s.world.seasonYear).first]!;
+    });
+
+    InboxLabels labelsOf(GameEvent e) {
+      s.world.inbox.add(
+        InboxMessage(id: 1 << 30, date: s.world.date, event: e),
+      );
+      final item = b.inbox().first;
+      expect(item.event.runtimeType, e.runtimeType);
+      return item.labels;
+    }
+
+    String name(PlayerId id) {
+      final p = s.world.players[id]!;
+      return '${p.firstName} ${p.lastName}';
+    }
+
+    test('PlayerInjured', () {
+      final l = labelsOf(
+        PlayerInjured(
+          date: s.world.date,
+          playerId: player,
+          clubId: club,
+          days: 10,
+        ),
+      );
+      expect(l.clubName, s.world.clubs[club]!.name);
+      expect(l.playerNames, [name(player)]);
+    });
+
+    test('PlayerSentOff carries the fixture names', () {
+      final l = labelsOf(
+        PlayerSentOff(
+          date: s.world.date,
+          playerId: player,
+          clubId: club,
+          fixtureId: f.id,
+        ),
+      );
+      expect(l.clubName, s.world.clubs[club]!.name);
+      expect(l.playerNames, [name(player)]);
+      expect(l.homeName, s.world.clubs[f.homeId]!.name);
+      expect(l.awayName, s.world.clubs[f.awayId]!.name);
+    });
+
+    test('PlayerSuspended of a player who has left the world', () {
+      final l = labelsOf(
+        PlayerSuspended(
+          date: s.world.date,
+          playerId: 1 << 30,
+          clubId: club,
+          matches: 2,
+        ),
+      );
+      expect(l.clubName, s.world.clubs[club]!.name);
+      expect(l.playerNames, isEmpty);
+    });
   });
 
   test('leaguePosition equals the table rank after some matches', () {

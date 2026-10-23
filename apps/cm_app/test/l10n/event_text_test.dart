@@ -108,6 +108,32 @@ Map<String, (InboxItem, List<String>)> _cases(String code) {
       ),
       ['2027'],
     ),
+    'PlayerInjured': (
+      _item(
+        PlayerInjured(date: _date, playerId: 9, clubId: 2, days: 21),
+        const InboxLabels(clubName: 'Konyaspor', playerNames: ['Ali Yılmaz']),
+      ),
+      ['Ali Yılmaz', '21'],
+    ),
+    'PlayerSentOff': (
+      _item(
+        PlayerSentOff(date: _date, playerId: 9, clubId: 2, fixtureId: 7),
+        const InboxLabels(
+          clubName: 'Galatasaray',
+          playerNames: ['Ali Yılmaz'],
+          homeName: 'Galatasaray',
+          awayName: 'Fenerbahçe',
+        ),
+      ),
+      ['Ali Yılmaz', 'Galatasaray', 'Fenerbahçe'],
+    ),
+    'PlayerSuspended': (
+      _item(
+        PlayerSuspended(date: _date, playerId: 9, clubId: 2, matches: 3),
+        const InboxLabels(clubName: 'Kayserispor', playerNames: ['Ali Yılmaz']),
+      ),
+      ['Ali Yılmaz', '3'],
+    ),
   };
 }
 
@@ -169,6 +195,30 @@ void main() {
         final text = '${r.title}\n${r.body}';
         expect(text, isNot(contains('null')));
         expect(text, isNot(contains('{')));
+      });
+
+      test('injury, sending-off and suspension without a name', () {
+        for (final e in <GameEvent>[
+          PlayerInjured(date: _date, playerId: 9, clubId: 2, days: 4),
+          PlayerSentOff(date: _date, playerId: 9, clubId: 2, fixtureId: 7),
+          PlayerSuspended(date: _date, playerId: 9, clubId: 2, matches: 1),
+        ]) {
+          final r = EventText.describe(
+            _item(
+              e,
+              const InboxLabels(
+                clubName: 'Rizespor',
+                homeName: 'Rizespor',
+                awayName: 'Sivasspor',
+              ),
+            ),
+            l,
+          );
+          final text = '${r.title}\n${r.body}';
+          expect(r.title, contains(l.eventPlayerUnnamed));
+          expect(text, isNot(contains('null')));
+          expect(text, isNot(contains('{')));
+        }
       });
 
       test('YouthIntake whose players are all gone', () {

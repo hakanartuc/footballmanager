@@ -291,6 +291,64 @@
     }
   },
   "eventRetiredBodyFree": "He ends his career as a free agent.",
+  "eventPlayerUnnamed": "A player",
+  "@eventPlayerUnnamed": {
+    "description": "Inbox: stand-in when a player name is unknown"
+  },
+  "eventInjuredTitle": "{player} injured",
+  "@eventInjuredTitle": {
+    "description": "Inbox: injury headline",
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "eventInjuredBody": "Out for about {days} days.",
+  "@eventInjuredBody": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "eventSentOffTitle": "{player} sent off",
+  "@eventSentOffTitle": {
+    "description": "Inbox: red card headline",
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSentOffBody": "Dismissed in {home} v {away}.",
+  "@eventSentOffBody": {
+    "placeholders": {
+      "home": {
+        "type": "String"
+      },
+      "away": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSuspendedTitle": "{player} suspended",
+  "@eventSuspendedTitle": {
+    "description": "Inbox: suspension headline",
+    "placeholders": {
+      "player": {
+        "type": "String"
+      }
+    }
+  },
+  "eventSuspendedBody": "{matches, plural, =1{Banned for 1 match.} other{Banned for {matches} matches.}}",
+  "@eventSuspendedBody": {
+    "placeholders": {
+      "matches": {
+        "type": "int"
+      }
+    }
+  },
   "eventYouthIntakeTitle": "{count, plural, =1{1 youth player joins the academy} other{{count} youth players join the academy}}",
   "@eventYouthIntakeTitle": {
     "description": "Inbox: youth intake headline",

@@ -341,8 +341,8 @@ void _checkFixtures(World w, List<Violation> out) {
 }
 
 /// `inbox.size`, `inbox.ids` (unique and positive), `inbox.refs` (clubs,
-/// leagues and fixtures; player ids only for injuries, sendings-off and
-/// suspensions, since retired and released players leave the world).
+/// leagues and fixtures; player ids are exempt because players leave the
+/// world).
 void _checkInbox(World w, List<Violation> out) {
   if (w.inbox.length > inboxLimit) {
     out.add(Violation('inbox.size', '${w.inbox.length} messages'));
@@ -387,17 +387,6 @@ void _checkInbox(World w, List<Violation> out) {
       }
     }
 
-    void player(PlayerId id) {
-      if (!w.players.containsKey(id)) {
-        out.add(
-          Violation(
-            'inbox.refs',
-            '${m.event.runtimeType} on ${m.date.iso}: player $id missing',
-          ),
-        );
-      }
-    }
-
     switch (m.event) {
       case MatchPlayed(:final fixtureId):
         fixture(fixtureId);
@@ -416,13 +405,11 @@ void _checkInbox(World w, List<Violation> out) {
       case YouthIntake(:final clubId):
       case YouthReleased(:final clubId):
         club(clubId);
-      case PlayerInjured(:final playerId, :final clubId):
-      case PlayerSuspended(:final playerId, :final clubId):
+      case PlayerInjured(:final clubId):
+      case PlayerSuspended(:final clubId):
         club(clubId);
-        player(playerId);
-      case PlayerSentOff(:final playerId, :final clubId, :final fixtureId):
+      case PlayerSentOff(:final clubId, :final fixtureId):
         club(clubId);
-        player(playerId);
         fixture(fixtureId);
       case SeasonEnded() || NewSeasonStarted():
         break;

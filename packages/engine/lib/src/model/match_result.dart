@@ -1,5 +1,5 @@
 import '../core/ids.dart';
-import '../sim/match/conditions.dart';
+import 'match_conditions.dart';
 import 'tactic.dart';
 
 enum ChanceType {
@@ -92,12 +92,12 @@ final class Goal extends MatchEvent {
   });
 }
 
-final class Card extends MatchEvent {
+final class Booking extends MatchEvent {
   PlayerId playerId;
   CardKind kind;
   FoulKind reason;
 
-  Card({
+  Booking({
     required super.minute,
     required super.half,
     required super.clubId,

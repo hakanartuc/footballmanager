@@ -397,11 +397,28 @@ void main() {
         expect(_rules(w), contains('inbox.refs'));
       });
 
-      test('an injured player who does not exist', () {
+      test('player ids are exempt', () {
+        // The players may have retired or been released since.
         add(
           PlayerInjured(date: w.date, playerId: 999999, clubId: club, days: 3),
         );
-        expect(_rules(w), contains('inbox.refs'));
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: 999998,
+            clubId: club,
+            fixtureId: fixture,
+          ),
+        );
+        add(
+          PlayerSuspended(
+            date: w.date,
+            playerId: 999997,
+            clubId: club,
+            matches: 1,
+          ),
+        );
+        expect(_rules(w), isNot(contains('inbox.refs')));
       });
 
       test('a sending-off in a missing fixture', () {
