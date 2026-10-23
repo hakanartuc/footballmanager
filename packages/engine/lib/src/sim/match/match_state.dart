@@ -83,8 +83,11 @@ class MatchState {
   final Map<PlayerId, RatingAcc> ratings = {};
   ClubId? lastPossession;
 
-  /// The side whose corner, counter or penalty the next possession is.
+  /// The side whose corner, free kick, counter or penalty the next
+  /// possession is; resolved in the order penalty, corner, free kick,
+  /// counter.
   ClubId? pendingCorner;
+  ClubId? pendingFreeKick;
   ClubId? pendingCounter;
   ClubId? pendingPenalty;
   final MatchRules rules;

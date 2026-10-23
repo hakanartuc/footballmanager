@@ -428,6 +428,75 @@ void main() {
       expect((s.events.last as Goal).isPenalty, isTrue);
     });
 
+    test('free kick: the lane taker shoots, else a long-shots draw', () {
+      final w = uniformWorld();
+      final s = startMatch(
+        w,
+        homeTactic: Tactic.preset(Formation.f442)
+          ..setPieces = SetPieceTakers(freeKickLeft: 7, freeKickRight: 8),
+      );
+      s.pendingFreeKick = 1;
+      // Duration, lane 0.1 (left), outcome 0.99 (off), counter 0.99.
+      final rng = ScriptedRng([0.5, 0.1, 0.99, 0.99]);
+      final left = resolvePossession(s, w, rng, detail: false);
+      expect(left.chance, ChanceType.freeKick);
+      expect(left.lane, Lane.left);
+      expect(left.shooter, 7);
+      expect(left.assister, isNull);
+      expect(left.xg, closeTo(0.07, 1e-9));
+      expect(left.outcome, ShotOutcome.off);
+      expect(s.pendingFreeKick, isNull);
+      expect(s.home.stats.shots, 1);
+      expect(rng.used, 4);
+
+      s.pendingFreeKick = 1;
+      final centre = resolvePossession(
+        s,
+        w,
+        ScriptedRng([0.5, 0.5, 0.99, 0.99]),
+        detail: false,
+      );
+      expect(centre.lane, Lane.centre);
+      expect(centre.shooter, 8);
+
+      // No taker on the pitch: shooter drawn (0.0 → 2).
+      s.home.onPitch[7] = null;
+      s.pendingFreeKick = 1;
+      final drawn = resolvePossession(
+        s,
+        w,
+        ScriptedRng([0.5, 0.5, 0.0, 0.99, 0.99]),
+        detail: false,
+      );
+      expect(drawn.shooter, 2);
+    });
+
+    test('pending set pieces resolve penalty, corner, free kick, counter', () {
+      final w = uniformWorld();
+      final s = startMatch(w);
+      s.pendingPenalty = 1;
+      s.pendingCorner = 2;
+      s.pendingFreeKick = 1;
+      s.pendingCounter = 2;
+      ChanceType? next() => resolvePossession(
+        s,
+        w,
+        ScriptedRng([0.5, 0.5, 0.0, 0.99, 0.99, 0.99, 0.99]),
+        detail: false,
+      ).chance;
+      expect(next(), ChanceType.penalty);
+      expect(next(), ChanceType.corner);
+      expect(next(), ChanceType.freeKick);
+      final counter = resolvePossession(
+        s,
+        w,
+        ScriptedRng([0.5, 0.5, 0.99, 0.99]),
+        detail: false,
+      );
+      expect(counter.counter, isTrue);
+      expect(counter.attackingId, 2);
+    });
+
     test('offside trap: through-ball xG ×0.75, or ×1.6 when it fails', () {
       final w = uniformWorld();
       final s = startMatch(

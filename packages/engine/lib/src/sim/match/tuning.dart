@@ -91,9 +91,6 @@ abstract final class EngineTuning {
     ChanceType.corner: Attr.crossing,
   };
 
-  /// Penalties per match, spread over the steps (5.3 step 4).
-  static const double penaltyPerMatch = 0.25;
-
   // --- Side effects (spec 5.3 step 8) ---
 
   /// Foul probability per possession step.
@@ -106,17 +103,24 @@ abstract final class EngineTuning {
   static const double redPerFoul = 0.008;
 
   /// Share of fouls inside the box; the attacking side's next possession is
-  /// a penalty (Task 5 resolution).
-  static const double boxFoulShare = 0.08;
+  /// a penalty. With ~12 fouls per match this gives the spec's ~0.25
+  /// penalties per match (5.3 step 4).
+  static const double boxFoulShare = 0.02;
+
+  /// Share of the other fouls that give the attacking side a free-kick
+  /// chance as its next possession.
+  static const double freeKickShare = 0.25;
 
   /// Straight red reasons: this share is violent conduct, the next
   /// [redLastManShare] a last-man foul, the rest a normal foul.
   static const double redViolentShare = 0.10;
   static const double redLastManShare = 0.20;
 
-  /// Injury probability per step for the one exposed player (spec 6.1:
-  /// 0.0025 per step per player-exposure → ~0.3 per match); the victim is
-  /// drawn weighted by the per-player multipliers below.
+  /// Injury probability per step (spec 6.1: 0.0025 per step per
+  /// player-exposure → ~0.3 per match). One exposure per step, independent
+  /// of how many players are on the pitch: the probability is this × the
+  /// mean of the per-player multipliers below, and the victim is drawn
+  /// weighted by them.
   static const double injuryPerStep = 0.0025;
 
   /// Injury proneness 1 → ×[injuryPronenessMin], 20 → ×[injuryPronenessMax].
@@ -152,20 +156,16 @@ abstract final class EngineTuning {
   static const List<double> injuryBandWeights = [45, 30, 15, 8, 2];
   static const List<double> injuryBandWeightsFoul = [35, 32, 18, 12, 3];
 
-  /// Condition lost per minute at average stamina.
-  static const double conditionPerMinute = 0.25;
-
   /// Condition lost per minute at stamina 20 and at stamina 5 (5.3 step 8);
   /// linear between and beyond.
   static const double drainAtStamina20 = 0.18;
   static const double drainAtStamina5 = 0.35;
 
-  /// `conditionPerMinute × staminaDrainFactor(stamina)` is the drain per
-  /// minute of a player with [stamina].
-  static double staminaDrainFactor(int stamina) =>
-      (drainAtStamina5 +
-          (drainAtStamina20 - drainAtStamina5) * (stamina - 5) / 15) /
-      conditionPerMinute;
+  /// Condition lost per minute by a player with [stamina], before the
+  /// side's `conditionDrain`.
+  static double drainPerMinute(int stamina) =>
+      drainAtStamina5 +
+      (drainAtStamina20 - drainAtStamina5) * (stamina - 5) / 15;
 
   /// Mid and def multiplier per missing player below eleven.
   static const double tenMenMul = 0.85;

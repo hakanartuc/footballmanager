@@ -24,10 +24,13 @@ import 'tuning.dart';
 ///                 below `(redPerFoul + yellowPerFoul) × cardMul`.
 ///     5. reason — straight red only: violent / last man / normal shares.
 ///     6. box    — `nextDouble` against `boxFoulShare` → pending penalty.
-///  7. injury    — `nextDouble` against `injuryPerStep × mean(weights)` over
+///     7. free kick — only when not in the box: `nextDouble` against
+///                 `freeKickShare` → pending free kick. Either set piece
+///                 clears a pending counter.
+///  8. injury    — `nextDouble` against `injuryPerStep × mean(weights)` over
 ///                 everyone on the pitch (home first, slot order).
-///     8. victim — `weightedIndex` over those weights.
-///     9. table  — `rollInjury` (band, days, type).
+///     9. victim — `weightedIndex` over those weights.
+///    10. table  — `rollInjury` (band, days, type).
 void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   final att = s.side(step.attackingId);
   final def = s.opponent(step.attackingId);
@@ -68,6 +71,10 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
     }
     if (rng.nextDouble() < EngineTuning.boxFoulShare) {
       s.pendingPenalty = att.clubId;
+      s.pendingCounter = null;
+    } else if (rng.nextDouble() < EngineTuning.freeKickShare) {
+      s.pendingFreeKick = att.clubId;
+      s.pendingCounter = null;
     }
   }
 
@@ -98,7 +105,7 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
           half: s.half,
           clubId: side.clubId,
           playerId: id,
-          severityDays: inj.daysLeft,
+          injury: inj,
         ),
       );
       side.injuredOff.add(id);
@@ -111,8 +118,7 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
     for (final id in side.playing) {
       final drop =
           minutes *
-          EngineTuning.conditionPerMinute *
-          EngineTuning.staminaDrainFactor(w.players[id]!.attrs[Attr.stamina]) *
+          EngineTuning.drainPerMinute(w.players[id]!.attrs[Attr.stamina]) *
           side.profile.conditionDrain;
       side.condition[id] = math.max(0.0, (side.condition[id] ?? 100) - drop);
     }

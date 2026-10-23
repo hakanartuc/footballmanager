@@ -31,6 +31,7 @@ void main() {
     var openChances = 0;
     var counters = 0;
     var corners = 0;
+    var freeKicks = 0;
     var xg = 0.0;
     for (var m = 0; m < _matches; m++) {
       final s = startMatch(w, cond: conditions(homeAdvantage: _homeAdvantage));
@@ -41,9 +42,11 @@ void main() {
         if (step.chance != null) chances++;
         if (step.chance == ChanceType.penalty) penalties++;
         if (step.chance == ChanceType.corner) corners++;
+        if (step.chance == ChanceType.freeKick) freeKicks++;
         if (step.counter) counters++;
         if (!step.counter &&
             step.chance != ChanceType.corner &&
+            step.chance != ChanceType.freeKick &&
             step.chance != ChanceType.penalty) {
           openSteps++;
           if (step.chance != null) openChances++;
@@ -70,6 +73,7 @@ void main() {
       'open-play chance rate': openChances / openSteps,
       'counter share of steps': counters / steps,
       'corners per match': corners / perMatch,
+      'free kicks per match': freeKicks / perMatch,
       'xg per shot': xg / shots,
       'shots per side per match': shots / perMatch / 2,
       'home shots': homeShots / perMatch,
@@ -91,11 +95,12 @@ void main() {
     // fouls and injuries. The rest are sanity ranges around what the spec
     // constants produce before calibration (Task 12); the measured values
     // and their causes are in the task-5 report:
-    // - shots ≈ 12 open-play + counters (+0.6), corners (+1.1), penalties
-    //   (+0.5) per side, and ×1.06 home advantage on the home side;
+    // - shots ≈ 12 open-play + counters (+0.6), corners (+1.1), free kicks
+    //   (+1.5) per side, and ×1.06 home advantage on the home side;
     // - on-target share = mean xG (0.18) + saveBand 0.25 ≈ 0.43;
     // - yellows = 12 fouls × yellowPerFoul 0.12 / 2 sides ≈ 0.72;
-    // - penalties = 12 fouls × boxFoulShare 0.08 ≈ 0.95 (spec 0.25).
+    // - penalties = 12 fouls × boxFoulShare 0.02 ≈ 0.24 (spec 0.25);
+    //   free kicks = the other fouls × 0.25 ≈ 2.9.
     expect(openChances / openSteps, inInclusiveRange(0.17, 0.23));
     expect(chances / steps, inInclusiveRange(0.17, 0.27));
     expect(homeShots / perMatch, inInclusiveRange(10, 18));
@@ -104,6 +109,6 @@ void main() {
     expect(fouls / perMatch, inInclusiveRange(9, 15));
     expect(yellows / perMatch / 2, inInclusiveRange(0.5, 2.2));
     expect(injuries / perMatch / 2, inInclusiveRange(0.1, 0.25));
-    expect(penalties / perMatch, inInclusiveRange(0.4, 1.6));
+    expect(penalties / perMatch, inInclusiveRange(0.15, 0.4));
   });
 }

@@ -22,15 +22,12 @@ PossessionStep homeStep({ShotOutcome? outcome, PlayerId? shooter}) =>
 const quiet = [0.99, 0.99];
 
 /// Foul by the first away player on the first home player, then [card],
-/// then [box]; no injury.
-List<double> foul({double card = 0.5, double box = 0.5}) => [
-  0.0,
-  0.0,
-  0.0,
-  card,
-  box,
-  0.99,
-];
+/// [box] and [freeKick] (drawn only when [box] misses); no injury.
+List<double> foul({
+  double card = 0.5,
+  double box = 0.5,
+  double freeKick = 0.99,
+}) => [0.0, 0.0, 0.0, card, box, freeKick, 0.99];
 
 void main() {
   group('applySideEffects', () {
@@ -89,7 +86,8 @@ void main() {
       expect(s.home.stats.fouls, 0);
       expect(s.events, isEmpty);
       expect(s.pendingPenalty, isNull);
-      expect(rng.used, 6);
+      expect(s.pendingFreeKick, isNull);
+      expect(rng.used, 7);
     });
 
     test('the fouler is drawn by aggression from the defending side', () {
@@ -102,7 +100,7 @@ void main() {
         s,
         step,
         w,
-        ScriptedRng([0.0, 0.45, 0.0, 0.05, 0.5, 0.99]),
+        ScriptedRng([0.0, 0.45, 0.0, 0.05, 0.5, 0.99, 0.99]),
       );
       final b = step.events.single as Booking;
       expect(b.playerId, 105);
@@ -129,7 +127,7 @@ void main() {
         s,
         step,
         w,
-        ScriptedRng([0.12, 0.0, 0.0, 0.15, 0.5, 0.99]),
+        ScriptedRng([0.12, 0.0, 0.0, 0.15, 0.5, 0.99, 0.99]),
       );
       expect(s.away.stats.fouls, 1);
       expect(s.away.stats.yellows, 1);
@@ -168,12 +166,13 @@ void main() {
         final w = uniformWorld();
         final s = startMatch(w);
         final step = homeStep();
-        // Foul, fouler, victim, card 0.001 (red), reason, box, injury.
+        // Foul, fouler, victim, card 0.001 (red), reason, box, free kick,
+        // injury.
         applySideEffects(
           s,
           step,
           w,
-          ScriptedRng([0.0, 0.0, 0.0, 0.001, r, 0.5, 0.99]),
+          ScriptedRng([0.0, 0.0, 0.0, 0.001, r, 0.5, 0.99, 0.99]),
         );
         final b = step.events.single as Booking;
         expect(b.kind, CardKind.red);
@@ -189,14 +188,36 @@ void main() {
     test('a foul in the box queues a penalty for the attacking side', () {
       final w = uniformWorld();
       final s = startMatch(w);
-      applySideEffects(s, homeStep(), w, ScriptedRng(foul(box: 0.01)));
+      s.pendingCounter = 2;
+      // Box 0.01 < 0.02: no free-kick draw; the trailing 0.99 is the injury.
+      final rng = ScriptedRng(foul(box: 0.01));
+      applySideEffects(s, homeStep(), w, rng);
       expect(s.pendingPenalty, 1);
+      expect(s.pendingFreeKick, isNull);
+      expect(s.pendingCounter, isNull);
+      expect(rng.used, 6);
 
       final t = startMatch(w);
       final awayStep = homeStep()..attackingId = 2;
       applySideEffects(t, awayStep, w, ScriptedRng(foul(box: 0.01)));
       expect(t.pendingPenalty, 2);
       expect(t.home.stats.fouls, 1);
+    });
+
+    test('a quarter of the other fouls queue a free kick', () {
+      final w = uniformWorld();
+      final s = startMatch(w);
+      s.pendingCounter = 2;
+      applySideEffects(s, homeStep(), w, ScriptedRng(foul(freeKick: 0.24)));
+      expect(s.pendingFreeKick, 1);
+      expect(s.pendingPenalty, isNull);
+      expect(s.pendingCounter, isNull);
+
+      final t = startMatch(w);
+      t.pendingCounter = 2;
+      applySideEffects(t, homeStep(), w, ScriptedRng(foul(freeKick: 0.26)));
+      expect(t.pendingFreeKick, isNull);
+      expect(t.pendingCounter, 2);
     });
 
     test('an injury takes the player off with a severity in days', () {
@@ -217,6 +238,8 @@ void main() {
       expect(inj.playerId, 1);
       expect(inj.clubId, 1);
       expect(inj.severityDays, 1);
+      expect(inj.injury.daysLeft, 1);
+      expect(inj.injury.type, 'bruise');
       expect(inj.minute, 30);
       expect(s.events, [same(inj)]);
       expect(s.home.injuredOff, {1});
@@ -261,6 +284,7 @@ void main() {
             0.0,
             0.5,
             0.5,
+            0.99,
             hazard - 1e-6,
             0.0,
             0.0,
@@ -274,7 +298,7 @@ void main() {
           v,
           homeStep(),
           w,
-          ScriptedRng([0.0, 0.0, 0.0, 0.5, 0.5, hazard + 1e-6]),
+          ScriptedRng([0.0, 0.0, 0.0, 0.5, 0.5, 0.99, hazard + 1e-6]),
         );
         expect(v.home.injuredOff, isEmpty);
       },

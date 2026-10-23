@@ -385,7 +385,13 @@ List<MatchEvent> _allMatchEvents() => [
     kind: CardKind.secondYellow,
     reason: FoulKind.lastMan,
   ),
-  Injury(minute: 33, half: 1, clubId: 2, playerId: 13, severityDays: 14),
+  Injury(
+    minute: 33,
+    half: 1,
+    clubId: 2,
+    playerId: 13,
+    injury: InjuryStub(daysLeft: 14, type: 'hamstring'),
+  ),
   Substitution(
     minute: 34,
     half: 1,
@@ -696,6 +702,9 @@ void main() {
       expect((back.events[1] as Goal).isOwnGoal, isTrue);
       expect((back.events[0] as Goal).assistId, 9);
       expect((back.events[2] as Booking).kind, CardKind.secondYellow);
+      final injury = back.events[3] as Injury;
+      expect(injury.severityDays, 14);
+      expect(injury.injury.type, 'hamstring');
       expect(back.homeShootout, 4);
       expect(back.abandoned, isTrue);
     });

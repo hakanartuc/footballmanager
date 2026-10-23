@@ -1,5 +1,6 @@
 import '../core/ids.dart';
 import 'match_conditions.dart';
+import 'player.dart';
 import 'tactic.dart';
 
 enum ChanceType {
@@ -109,15 +110,17 @@ final class Booking extends MatchEvent {
 
 final class Injury extends MatchEvent {
   PlayerId playerId;
-  int severityDays;
+  InjuryStub injury;
 
   Injury({
     required super.minute,
     required super.half,
     required super.clubId,
     required this.playerId,
-    required this.severityDays,
+    required this.injury,
   });
+
+  int get severityDays => injury.daysLeft;
 }
 
 final class Substitution extends MatchEvent {

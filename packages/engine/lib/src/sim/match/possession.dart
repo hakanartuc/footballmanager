@@ -29,18 +29,21 @@ const _openPlayTypes = [
 ///  1. owner      — one `nextDouble` against
 ///                  `bypass / 2 + (1 − bypass) × logistic(k1 × Δ effectiveMid)`
 ///                  where `bypass` is the mean of both sides' `midBypass`;
-///                  skipped when a penalty, corner or counter is pending
-///                  (that side attacks; priority in that order).
+///                  skipped when a penalty, corner, free kick or counter is
+///                  pending (that side attacks; priority in that order).
 ///  2. duration   — `nextDouble`: `[stepSecondsMin, stepSecondsMax] / tempoMul`.
 ///  3. lane       — `weightedIndex` over the attacker's lane weights, always.
 ///  4. chance     — `nextDouble` against `logistic(k2 × (att − def) + base)`;
 ///                  on a counter att × `counterAttMul`, def × `counterDefMul`;
-///                  skipped (chance certain) for a corner or penalty.
+///                  skipped (chance certain) for a corner, free kick or
+///                  penalty.
 ///  5. type       — `weightedIndex` over through ball, cross, long shot,
 ///                  dribble (lane weights × profile weights); none for a set
 ///                  piece.
 ///  6. shooter    — `weightedIndex` over the outfield players; none when a
-///                  penalty has a designated taker on the pitch.
+///                  penalty or free kick (`freeKickLeft` for the left lane,
+///                  else `freeKickRight`) has a designated taker on the
+///                  pitch.
 ///  7. assister   — `weightedIndex` over the other outfield players for the
 ///                  types in `assistAttr`; none when a corner has a
 ///                  designated taker on the pitch.
@@ -68,6 +71,10 @@ PossessionStep resolvePossession(
     att = s.side(s.pendingCorner!);
     s.pendingCorner = null;
     setPiece = ChanceType.corner;
+  } else if (s.pendingFreeKick != null) {
+    att = s.side(s.pendingFreeKick!);
+    s.pendingFreeKick = null;
+    setPiece = ChanceType.freeKick;
   } else if (s.pendingCounter != null) {
     att = s.side(s.pendingCounter!);
     s.pendingCounter = null;
@@ -138,9 +145,15 @@ PossessionStep resolvePossession(
         if (att.profile.slotOf[id] != Position.gk) id,
     ];
     final pool = outfield.isEmpty ? att.playing : outfield;
-    final taker = att.tactic.setPieces.penalty;
+    final takers = att.tactic.setPieces;
+    final taker = switch (type) {
+      ChanceType.penalty => takers.penalty,
+      ChanceType.freeKick =>
+        lane == Lane.left ? takers.freeKickLeft : takers.freeKickRight,
+      _ => null,
+    };
     final PlayerId shooter;
-    if (type == ChanceType.penalty && taker != null && pool.contains(taker)) {
+    if (taker != null && pool.contains(taker)) {
       shooter = taker;
     } else {
       final forwardMul = EngineTuning.shooterForwardMul[type] ?? 1.0;

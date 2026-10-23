@@ -614,7 +614,7 @@ Map<String, dynamic> matchEventToJson(MatchEvent e) => {
       'kind': e.kind.name,
       'reason': e.reason.name,
     },
-    Injury() => {'playerId': e.playerId, 'severityDays': e.severityDays},
+    Injury() => {'playerId': e.playerId, 'injury': injuryStubToJson(e.injury)},
     Substitution() => {
       'outId': e.outId,
       'inId': e.inId,
@@ -658,7 +658,7 @@ MatchEvent matchEventFromJson(Map<String, dynamic> j) {
       half: half,
       clubId: clubId,
       playerId: j['playerId'] as int,
-      severityDays: j['severityDays'] as int,
+      injury: injuryStubFromJson(_obj(j['injury'])),
     ),
     'Substitution' => Substitution(
       minute: minute,
