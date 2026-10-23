@@ -596,6 +596,10 @@
   },
   "morale": "Morale",
   "form": "Form",
+  "formationCustom": "Custom",
+  "@formationCustom": {
+    "description": "Label of a custom (non-preset) formation"
+  },
   "roundLabel": "Round {round}",
   "@roundLabel": {
     "description": "Fixture list: league round number",

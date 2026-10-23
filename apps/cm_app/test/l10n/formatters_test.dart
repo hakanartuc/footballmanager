@@ -27,17 +27,20 @@ void main() {
   });
 
   test('formationLabel', () {
-    expect(
-      {for (final f in Formation.values) f: formationLabel(f)},
-      {
-        Formation.f442: '4-4-2',
-        Formation.f433: '4-3-3',
-        Formation.f451: '4-5-1',
-        Formation.f352: '3-5-2',
-        Formation.f4231: '4-2-3-1',
-        Formation.f532: '5-3-2',
-      },
-    );
+    for (final (l, custom) in [(tr, 'Özel'), (en, 'Custom')]) {
+      expect(
+        {for (final f in Formation.values) f: formationLabel(f, l)},
+        {
+          Formation.f442: '4-4-2',
+          Formation.f433: '4-3-3',
+          Formation.f451: '4-5-1',
+          Formation.f352: '3-5-2',
+          Formation.f4231: '4-2-3-1',
+          Formation.f532: '5-3-2',
+          Formation.custom: custom,
+        },
+      );
+    }
   });
 
   test('money', () {
