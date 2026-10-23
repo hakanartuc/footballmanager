@@ -100,7 +100,61 @@ Club _club(ClubId id, LeagueId leagueId, {ManagerId? managerId}) => Club(
           bench: [12, 13],
         )
       : null,
-  formation: Formation.values[id % Formation.values.length],
+  tactics: [
+    id == 1 ? _richTactic() : Tactic.preset(Formation.f4231, name: 'one'),
+    Tactic.preset(Formation.values[id % 6], name: 'two'),
+    Tactic.preset(Formation.f352, name: 'three'),
+  ],
+  activeTactic: id % 3,
+);
+
+/// A custom 3-4-3 with every optional field set; instructions and arrows
+/// are inserted out of id order to prove key sorting.
+Tactic _richTactic() => Tactic.custom(
+  const [
+    Position.gk,
+    Position.dc,
+    Position.dc,
+    Position.dc,
+    Position.ml,
+    Position.mc,
+    Position.mc,
+    Position.mr,
+    Position.aml,
+    Position.amr,
+    Position.st,
+  ],
+  name: 'Custom',
+  mentality: Mentality.attacking,
+  passing: PassingStyle.direct,
+  tempo: Tempo.fast,
+  width: Width.wide,
+  pressing: Pressing.high,
+  tackling: Tackling.hard,
+  marking: Marking.man,
+  offsideTrap: true,
+  counterAttack: true,
+  playmaker: 6,
+  targetMan: 11,
+  captain: 2,
+  viceCaptain: 3,
+  setPieces: SetPieceTakers(
+    cornerLeft: 8,
+    cornerRight: 9,
+    freeKickLeft: 6,
+    penalty: 11,
+  ),
+  instructions: {
+    10: PlayerInstructions(forwardRuns: true, crossFrom: CrossTarget.far),
+    2: PlayerInstructions(holdUpBall: true, freeRole: true),
+    7: PlayerInstructions(
+      runWithBall: true,
+      longShots: true,
+      throughBalls: true,
+      crossFrom: CrossTarget.near,
+    ),
+  },
+  arrows: {9: Arrow.forward, 1: Arrow.none, 4: Arrow.back},
 );
 
 Fixture _fixture(FixtureId id, LeagueId leagueId, ClubId home, ClubId away) =>
@@ -369,6 +423,110 @@ void main() {
     test('familiarity is keyed by position name in Position.values order', () {
       final j = playerToJson(_player(1));
       expect((j['familiarity'] as Map).keys.toList(), ['dl', 'dc', 'st']);
+    });
+  });
+
+  group('tactic json', () {
+    test('club carries tactics and activeTactic in place of formation', () {
+      final j = clubToJson(_club(2, 1));
+      expect(j.keys, isNot(contains('formation')));
+      expect(j.keys.toList().sublist(j.keys.length - 3), [
+        'lineup',
+        'tactics',
+        'activeTactic',
+      ]);
+      expect((j['tactics'] as List), hasLength(3));
+      expect(j['activeTactic'], 2);
+    });
+
+    test('keys are in declaration order', () {
+      final j = tacticToJson(_richTactic());
+      expect(j.keys.toList(), [
+        'name',
+        'formation',
+        'slots',
+        'mentality',
+        'passing',
+        'tempo',
+        'width',
+        'pressing',
+        'tackling',
+        'marking',
+        'offsideTrap',
+        'counterAttack',
+        'playmaker',
+        'targetMan',
+        'captain',
+        'viceCaptain',
+        'setPieces',
+        'instructions',
+        'arrows',
+      ]);
+      expect(j['formation'], 'custom');
+      expect((j['slots'] as List).take(2), ['gk', 'dc']);
+      expect((j['setPieces'] as Map).keys.toList(), [
+        'cornerLeft',
+        'cornerRight',
+        'freeKickLeft',
+        'freeKickRight',
+        'penalty',
+        'longThrow',
+      ]);
+      expect((j['setPieces'] as Map)['freeKickRight'], isNull);
+      expect((j['instructions'] as Map).keys.toList(), ['2', '7', '10']);
+      expect(((j['instructions'] as Map)['10'] as Map).keys.toList(), [
+        'forwardRuns',
+        'runWithBall',
+        'longShots',
+        'throughBalls',
+        'holdUpBall',
+        'freeRole',
+        'crossFrom',
+      ]);
+      expect((j['arrows'] as Map), {'1': 'none', '4': 'back', '9': 'forward'});
+    });
+
+    test('a rich custom tactic round-trips', () {
+      final t = _richTactic();
+      final r = tacticFromJson(
+        jsonDecode(jsonEncode(tacticToJson(t))) as Map<String, dynamic>,
+      );
+      expect(r.name, 'Custom');
+      expect(r.formation, Formation.custom);
+      expect(r.slots, t.slots);
+      expect(r.mentality, Mentality.attacking);
+      expect(r.passing, PassingStyle.direct);
+      expect(r.tempo, Tempo.fast);
+      expect(r.width, Width.wide);
+      expect(r.pressing, Pressing.high);
+      expect(r.tackling, Tackling.hard);
+      expect(r.marking, Marking.man);
+      expect(r.offsideTrap, isTrue);
+      expect(r.counterAttack, isTrue);
+      expect(r.playmaker, 6);
+      expect(r.targetMan, 11);
+      expect(r.captain, 2);
+      expect(r.viceCaptain, 3);
+      expect(r.setPieces.cornerLeft, 8);
+      expect(r.setPieces.cornerRight, 9);
+      expect(r.setPieces.freeKickLeft, 6);
+      expect(r.setPieces.freeKickRight, isNull);
+      expect(r.setPieces.penalty, 11);
+      expect(r.setPieces.longThrow, isNull);
+      expect(r.instructions.keys.toList(), [2, 7, 10]);
+      final i10 = r.instructions[10]!;
+      expect(i10.forwardRuns, isTrue);
+      expect(i10.runWithBall, isFalse);
+      expect(i10.crossFrom, CrossTarget.far);
+      final i7 = r.instructions[7]!;
+      expect(i7.runWithBall, isTrue);
+      expect(i7.longShots, isTrue);
+      expect(i7.throughBalls, isTrue);
+      expect(i7.crossFrom, CrossTarget.near);
+      expect(r.instructions[2]!.holdUpBall, isTrue);
+      expect(r.instructions[2]!.freeRole, isTrue);
+      expect(r.arrows, {1: Arrow.none, 4: Arrow.back, 9: Arrow.forward});
+      expect(jsonEncode(tacticToJson(r)), jsonEncode(tacticToJson(t)));
     });
   });
 

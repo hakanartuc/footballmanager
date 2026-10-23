@@ -19,7 +19,9 @@ int Function(Player, Player) _byDesc(num Function(Player) key) => (a, b) {
   return c != 0 ? c : a.id.compareTo(b.id);
 };
 
-/// Picks [c]'s best lineup for [formation] (default: the club's formation).
+/// Picks [c]'s best lineup for [formation] (default: the club's active
+/// tactic, whose `slots` are used; a custom tactic gives a
+/// [Formation.custom] lineup).
 ///
 /// Each slot in turn takes the unused candidate with the highest
 /// `ca × familiarity / 20 × conditionFactor`. Candidates are the available
@@ -29,7 +31,9 @@ int Function(Player, Player) _byDesc(num Function(Player) key) => (a, b) {
 /// available candidates by CA, with the best unused goalkeeper swapped in
 /// for the last place when none made it.
 Lineup autoLineup(World w, ClubId c, {Formation? formation}) {
-  final f = formation ?? w.clubs[c]!.formation;
+  final tactic = w.clubs[c]!.tactic;
+  final f = formation ?? tactic.formation;
+  final slots = formation == null ? tactic.slots : formationSlots(formation);
   final seniors = [for (final id in w.squadOf(c)) w.players[id]!];
   final youth = [for (final id in w.youthOf(c)) w.players[id]!];
 
@@ -40,7 +44,7 @@ Lineup autoLineup(World w, ClubId c, {Formation? formation}) {
   }
 
   final starters = <PlayerId>[];
-  for (final slot in formationSlots(f)) {
+  for (final slot in slots) {
     final unused = pool.where((p) => !starters.contains(p.id));
     final fit = unused.where(_available);
     final ranked = (fit.isNotEmpty ? fit : unused).toList()

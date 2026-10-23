@@ -23,8 +23,19 @@ Uint8List _gzipJson(Object? value) =>
 TypeMatcher<SaveError> _saveError(SaveErrorKind kind) =>
     isA<SaveError>().having((e) => e.kind, 'kind', kind);
 
+/// Rewrites [w]'s clubs to the pre-v3 shape: `formation` (the first
+/// tactic's) instead of `tactics`/`activeTactic`.
+void _downgradeClubs(Map<String, dynamic> w) {
+  for (final c in (w['clubs'] as Map<String, dynamic>).values) {
+    final club = c as Map<String, dynamic>;
+    final tactics = club.remove('tactics') as List;
+    club.remove('activeTactic');
+    club['formation'] = (tactics.first as Map)['formation'];
+  }
+}
+
 /// [bytes] rewritten as the schema v1 save of the same world: no inbox
-/// message ids and no `inbox` id counter.
+/// message ids, no `inbox` id counter and pre-v3 clubs.
 Uint8List _asV1(Uint8List bytes) {
   final env =
       jsonDecode(utf8.decode(GZipDecoder().decodeBytes(bytes)))
@@ -34,6 +45,7 @@ Uint8List _asV1(Uint8List bytes) {
     (m as Map).remove('id');
   }
   (w['ids'] as Map).remove('inbox');
+  _downgradeClubs(w);
   env['schemaVersion'] = 1;
   w['schemaVersion'] = 1;
   return _gzipJson(env);
@@ -146,6 +158,7 @@ void main() {
   test('decode applies an injected migration before worldFromJson', () {
     final v0World = worldToJson(world);
     v0World['oldSeed'] = v0World.remove('seed');
+    _downgradeClubs(v0World);
     v0World['schemaVersion'] = 0;
     final v0 = _gzipJson({'schemaVersion': 0, 'world': v0World});
     final migrating = JsonGzipSaveCodec(

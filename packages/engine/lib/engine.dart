@@ -23,6 +23,7 @@ export 'src/model/fixture.dart';
 export 'src/model/json.dart';
 export 'src/model/manager.dart';
 export 'src/model/player.dart';
+export 'src/model/tactic.dart';
 export 'src/model/world.dart';
 export 'src/persistence/migrations.dart';
 export 'src/persistence/save_codec.dart';

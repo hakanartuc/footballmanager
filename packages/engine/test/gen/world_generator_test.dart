@@ -155,6 +155,20 @@ void main() {
     expect(small.fixtures.values.every((f) => f.result == null), isTrue);
   });
 
+  test('every club has three preset tactics with the first active', () {
+    for (final club in small.clubs.values) {
+      expect(club.tactics, hasLength(3));
+      expect(club.activeTactic, 0);
+      expect(club.tactics.map((t) => t.name), ['1', '2', '3']);
+      expect(club.tactics.map((t) => t.formation), [
+        Formation.f442,
+        Formation.f433,
+        Formation.f532,
+      ]);
+      expect(club.formation, Formation.f442);
+    }
+  });
+
   test('every club has an AI manager near its reputation', () {
     expect(small.managers, hasLength(small.clubs.length));
     expect(small.userManagerId, 0);

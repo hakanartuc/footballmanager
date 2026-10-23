@@ -1,5 +1,6 @@
 import '../core/ids.dart';
 import 'enums.dart';
+import 'tactic.dart';
 
 /// Shirt colours as ARGB ints.
 class Kit {
@@ -70,8 +71,9 @@ class Club {
   double boardConfidence;
   Lineup? lineup;
 
-  /// The club's current preferred formation.
-  Formation formation;
+  /// Exactly three tactic slots; [activeTactic] indexes the one in use.
+  List<Tactic> tactics;
+  int activeTactic;
 
   Club({
     required this.id,
@@ -93,6 +95,24 @@ class Club {
     this.managerId,
     this.boardConfidence = 50,
     this.lineup,
-    this.formation = Formation.f442,
-  });
+    List<Tactic>? tactics,
+    this.activeTactic = 0,
+  }) : tactics = tactics ?? defaultTactics(Formation.f442) {
+    if (this.tactics.length != 3) {
+      throw ArgumentError.value(this.tactics, 'tactics', 'must be exactly 3');
+    }
+    if (activeTactic < 0 || activeTactic > 2) {
+      throw ArgumentError.value(activeTactic, 'activeTactic', 'must be 0..2');
+    }
+  }
+
+  Tactic get tactic => tactics[activeTactic];
+
+  /// The active tactic's formation.
+  Formation get formation => tactic.formation;
+
+  /// Replaces the active tactic with the [f] preset, keeping its name.
+  set formation(Formation f) {
+    tactics[activeTactic] = Tactic.preset(f, name: tactic.name);
+  }
 }

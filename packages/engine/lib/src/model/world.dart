@@ -26,8 +26,9 @@ class SeasonArchive {
 /// every save envelope and the target of the persistence migrations.
 ///
 /// History: v1 Faz 0A; v2 inbox messages carry an `id` and `ids` has an
-/// `inbox` counter.
-const int currentSchemaVersion = 2;
+/// `inbox` counter; v3 (Faz 1a) clubs carry `tactics`/`activeTactic` in
+/// place of `formation`.
+const int currentSchemaVersion = 3;
 
 /// The whole game state.
 ///

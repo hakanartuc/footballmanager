@@ -9,6 +9,7 @@ import 'events.dart';
 import 'fixture.dart';
 import 'manager.dart';
 import 'player.dart';
+import 'tactic.dart';
 import 'world.dart';
 
 // Hand-written JSON codec for the whole model: the save format and the
@@ -193,7 +194,8 @@ Map<String, dynamic> clubToJson(Club c) => {
   'expectation': c.expectation.name,
   'boardConfidence': c.boardConfidence,
   'lineup': c.lineup == null ? null : lineupToJson(c.lineup!),
-  'formation': c.formation.name,
+  'tactics': [for (final t in c.tactics) tacticToJson(t)],
+  'activeTactic': c.activeTactic,
 };
 
 Club clubFromJson(Map<String, dynamic> j) => Club(
@@ -216,7 +218,98 @@ Club clubFromJson(Map<String, dynamic> j) => Club(
   expectation: BoardExpectation.values.byName(j['expectation'] as String),
   boardConfidence: _double(j['boardConfidence']),
   lineup: j['lineup'] == null ? null : lineupFromJson(_obj(j['lineup'])),
+  tactics: [for (final t in j['tactics'] as List) tacticFromJson(_obj(t))],
+  activeTactic: j['activeTactic'] as int,
+);
+
+// ---- tactic ----
+
+Map<String, dynamic> playerInstructionsToJson(PlayerInstructions i) => {
+  'forwardRuns': i.forwardRuns,
+  'runWithBall': i.runWithBall,
+  'longShots': i.longShots,
+  'throughBalls': i.throughBalls,
+  'holdUpBall': i.holdUpBall,
+  'freeRole': i.freeRole,
+  'crossFrom': i.crossFrom.name,
+};
+
+PlayerInstructions playerInstructionsFromJson(Map<String, dynamic> j) =>
+    PlayerInstructions(
+      forwardRuns: j['forwardRuns'] as bool,
+      runWithBall: j['runWithBall'] as bool,
+      longShots: j['longShots'] as bool,
+      throughBalls: j['throughBalls'] as bool,
+      holdUpBall: j['holdUpBall'] as bool,
+      freeRole: j['freeRole'] as bool,
+      crossFrom: CrossTarget.values.byName(j['crossFrom'] as String),
+    );
+
+Map<String, dynamic> setPieceTakersToJson(SetPieceTakers s) => {
+  'cornerLeft': s.cornerLeft,
+  'cornerRight': s.cornerRight,
+  'freeKickLeft': s.freeKickLeft,
+  'freeKickRight': s.freeKickRight,
+  'penalty': s.penalty,
+  'longThrow': s.longThrow,
+};
+
+SetPieceTakers setPieceTakersFromJson(Map<String, dynamic> j) => SetPieceTakers(
+  cornerLeft: j['cornerLeft'] as int?,
+  cornerRight: j['cornerRight'] as int?,
+  freeKickLeft: j['freeKickLeft'] as int?,
+  freeKickRight: j['freeKickRight'] as int?,
+  penalty: j['penalty'] as int?,
+  longThrow: j['longThrow'] as int?,
+);
+
+Map<String, dynamic> tacticToJson(Tactic t) => {
+  'name': t.name,
+  'formation': t.formation.name,
+  'slots': [for (final p in t.slots) p.name],
+  'mentality': t.mentality.name,
+  'passing': t.passing.name,
+  'tempo': t.tempo.name,
+  'width': t.width.name,
+  'pressing': t.pressing.name,
+  'tackling': t.tackling.name,
+  'marking': t.marking.name,
+  'offsideTrap': t.offsideTrap,
+  'counterAttack': t.counterAttack,
+  'playmaker': t.playmaker,
+  'targetMan': t.targetMan,
+  'captain': t.captain,
+  'viceCaptain': t.viceCaptain,
+  'setPieces': setPieceTakersToJson(t.setPieces),
+  'instructions': _idMapToJson(t.instructions, playerInstructionsToJson),
+  'arrows': _idMapToJson(t.arrows, (a) => a.name),
+};
+
+Tactic tacticFromJson(Map<String, dynamic> j) => Tactic(
+  name: j['name'] as String,
   formation: Formation.values.byName(j['formation'] as String),
+  slots: [
+    for (final p in j['slots'] as List) Position.values.byName(p as String),
+  ],
+  mentality: Mentality.values.byName(j['mentality'] as String),
+  passing: PassingStyle.values.byName(j['passing'] as String),
+  tempo: Tempo.values.byName(j['tempo'] as String),
+  width: Width.values.byName(j['width'] as String),
+  pressing: Pressing.values.byName(j['pressing'] as String),
+  tackling: Tackling.values.byName(j['tackling'] as String),
+  marking: Marking.values.byName(j['marking'] as String),
+  offsideTrap: j['offsideTrap'] as bool,
+  counterAttack: j['counterAttack'] as bool,
+  playmaker: j['playmaker'] as int?,
+  targetMan: j['targetMan'] as int?,
+  captain: j['captain'] as int?,
+  viceCaptain: j['viceCaptain'] as int?,
+  setPieces: setPieceTakersFromJson(_obj(j['setPieces'])),
+  instructions: _idMapFromJson(
+    j['instructions'],
+    (v) => playerInstructionsFromJson(_obj(v)),
+  ),
+  arrows: _idMapFromJson(j['arrows'], (v) => Arrow.values.byName(v as String)),
 );
 
 // ---- player ----

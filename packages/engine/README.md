@@ -129,11 +129,11 @@ Tuned during implementation; the tests in `test/gen` pin them.
 
 ## Saves
 
-`JsonGzipSaveCodec` writes `gzip(utf8(jsonEncode({"schemaVersion": 2,
+`JsonGzipSaveCodec` writes `gzip(utf8(jsonEncode({"schemaVersion": 3,
 "world": worldToJson(world)})))` at gzip level 6. The JSON is byte-stable
 and is the determinism oracle; the gzip bytes may differ between platforms
 (native zlib vs. pure Dart). `decode` runs the `migrations` registry up to
-`currentSchemaVersion` (2, defined in `model/world.dart`) and throws
+`currentSchemaVersion` (3, defined in `model/world.dart`) and throws
 `SaveError` (`corrupt`, `newerSchema`) otherwise.
 
 Schema history:
@@ -144,6 +144,15 @@ Schema history:
   across an isolate boundary (`EngineSession.markReadById`). Migration
   1 -> 2 numbers the stored messages `1..n` in order and sets `ids.inbox`
   to `n`.
+- v3 (Faz 1a, unshipped: tactics + rules + result extensions land in the
+  same step): every club carries `tactics` (exactly three `Tactic`
+  objects, keys in field order; `instructions`/`arrows` keyed by decimal
+  player id ascending) and `activeTactic` (0..2) in place of `formation`
+  (`Club.formation` stays as a getter over the active tactic).
+  `Formation.custom` tactics carry their own 11 `slots`. Migration 2 -> 3
+  gives each club `'1'` = balanced preset on its old formation, `'2'`
+  4-3-3, `'3'` 5-3-2 and `activeTactic: 0`, then drops the `formation`
+  key.
 
 `FileSaveStore` keeps one directory per slot (spec §18.3, Faz 0 subset):
 
