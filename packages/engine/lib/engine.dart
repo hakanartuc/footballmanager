@@ -37,6 +37,8 @@ export 'src/sim/commands.dart';
 export 'src/sim/day_loop.dart';
 export 'src/sim/lineup.dart';
 export 'src/sim/match/conditions.dart';
+export 'src/sim/match/team_profile.dart';
+export 'src/sim/match/tuning.dart';
 export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
 export 'src/sim/poisson_match.dart';
