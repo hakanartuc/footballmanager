@@ -99,6 +99,45 @@ final class NewSeasonStarted extends GameEvent {
   NewSeasonStarted({required super.date, required this.seasonYear});
 }
 
+final class PlayerInjured extends GameEvent {
+  PlayerId playerId;
+  ClubId clubId;
+  int days;
+
+  PlayerInjured({
+    required super.date,
+    required this.playerId,
+    required this.clubId,
+    required this.days,
+  });
+}
+
+final class PlayerSentOff extends GameEvent {
+  PlayerId playerId;
+  ClubId clubId;
+  FixtureId fixtureId;
+
+  PlayerSentOff({
+    required super.date,
+    required this.playerId,
+    required this.clubId,
+    required this.fixtureId,
+  });
+}
+
+final class PlayerSuspended extends GameEvent {
+  PlayerId playerId;
+  ClubId clubId;
+  int matches;
+
+  PlayerSuspended({
+    required super.date,
+    required this.playerId,
+    required this.clubId,
+    required this.matches,
+  });
+}
+
 class InboxMessage {
   /// Unique per world, issued by `ids.next('inbox')`; stable across saves,
   /// so hosts can refer to a message without holding the instance.

@@ -1,31 +1,8 @@
 import '../core/game_date.dart';
 import '../core/ids.dart';
+import 'match_result.dart';
 
-class GoalEvent {
-  int minute;
-  PlayerId scorerId;
-  ClubId clubId;
-
-  GoalEvent({
-    required this.minute,
-    required this.scorerId,
-    required this.clubId,
-  });
-}
-
-class MatchResult {
-  int homeGoals;
-  int awayGoals;
-  List<GoalEvent> goals;
-  int matchSeed;
-
-  MatchResult({
-    required this.homeGoals,
-    required this.awayGoals,
-    required this.goals,
-    required this.matchSeed,
-  });
-}
+export 'match_result.dart';
 
 class Fixture {
   FixtureId id;

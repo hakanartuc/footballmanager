@@ -352,7 +352,113 @@ List<GameEvent> _allEvents() => [
   YouthIntake(date: _d, clubId: 2, playerIds: [41, 42, 43]),
   YouthReleased(date: _d, clubId: 2, playerIds: [44]),
   NewSeasonStarted(date: _d, seasonYear: 2027),
+  PlayerInjured(date: _d, playerId: 5, clubId: 1, days: 21),
+  PlayerSentOff(date: _d, playerId: 6, clubId: 1, fixtureId: 7),
+  PlayerSuspended(date: _d, playerId: 6, clubId: 1, matches: 2),
 ];
+
+List<MatchEvent> _allMatchEvents() => [
+  Goal(
+    minute: 12,
+    half: 1,
+    clubId: 1,
+    scorerId: 10,
+    assistId: 9,
+    type: ChanceType.throughBall,
+    isPenalty: false,
+  ),
+  Goal(
+    minute: 40,
+    half: 1,
+    clubId: 1,
+    scorerId: 15,
+    assistId: null,
+    type: ChanceType.cross,
+    isPenalty: false,
+    isOwnGoal: true,
+  ),
+  Card(
+    minute: 30,
+    half: 1,
+    clubId: 2,
+    playerId: 14,
+    kind: CardKind.secondYellow,
+    reason: FoulKind.lastMan,
+  ),
+  Injury(minute: 33, half: 1, clubId: 2, playerId: 13, severityDays: 14),
+  Substitution(
+    minute: 34,
+    half: 1,
+    clubId: 2,
+    outId: 13,
+    inId: 20,
+    reason: SubReason.injury,
+  ),
+  HalfTime(minute: 45, half: 1, clubId: 1),
+  PenaltyMissed(
+    minute: 60,
+    half: 2,
+    clubId: 2,
+    playerId: 19,
+    outcome: ShotOutcome.post,
+  ),
+  TacticChange(
+    minute: 70,
+    half: 2,
+    clubId: 2,
+    mentality: Mentality.veryAttacking,
+  ),
+  FullTime(minute: 90, half: 2, clubId: 1),
+  ExtraTimeStart(minute: 90, half: 3, clubId: 1),
+  ShootoutStart(minute: 120, half: 5, clubId: 1),
+  ShootoutKick(minute: 120, half: 5, clubId: 1, playerId: 10, scored: true),
+];
+
+MatchResult _fullResult() => MatchResult(
+  homeGoals: 2,
+  awayGoals: 2,
+  goals: [
+    GoalEvent(minute: 12, scorerId: 10, clubId: 1),
+    GoalEvent(minute: 40, scorerId: 15, clubId: 1),
+  ],
+  matchSeed: 77,
+  homeStats: TeamStats(
+    shots: 14,
+    onTarget: 6,
+    blocked: 3,
+    corners: 7,
+    fouls: 11,
+    yellows: 2,
+    reds: 0,
+    offsides: 3,
+    possessionPct: 55,
+    xg: 1.85,
+  ),
+  awayStats: TeamStats(
+    shots: 8,
+    onTarget: 3,
+    blocked: 1,
+    corners: 2,
+    fouls: 15,
+    yellows: 3,
+    reds: 1,
+    offsides: 1,
+    possessionPct: 45,
+    xg: 0.9,
+  ),
+  events: _allMatchEvents(),
+  ratings: {15: 6.5, 9: 7.25, 10: 8.0},
+  manOfTheMatch: 10,
+  conditions: const MatchConditions(
+    weather: Weather.rainy,
+    pitch: 6,
+    attendance: 31500,
+    homeAdvantage: 1.065,
+  ),
+  homeShootout: 4,
+  awayShootout: 3,
+  abandoned: true,
+);
 
 void main() {
   group('world json', () {
@@ -530,10 +636,107 @@ void main() {
     });
   });
 
+  group('match result json', () {
+    test('a v2 result decodes with defaults and re-encodes every key', () {
+      final r = matchResultFromJson({
+        'homeGoals': 1,
+        'awayGoals': 0,
+        'goals': [
+          {'minute': 5, 'scorerId': 3, 'clubId': 1},
+        ],
+        'matchSeed': 9,
+      });
+      expect(r.homeStats, isNull);
+      expect(r.awayStats, isNull);
+      expect(r.events, isEmpty);
+      expect(r.ratings, isEmpty);
+      expect(r.manOfTheMatch, isNull);
+      expect(r.conditions, isNull);
+      expect(r.homeShootout, isNull);
+      expect(r.awayShootout, isNull);
+      expect(r.abandoned, isFalse);
+      expect(matchResultToJson(r), {
+        'homeGoals': 1,
+        'awayGoals': 0,
+        'goals': [
+          {'minute': 5, 'scorerId': 3, 'clubId': 1},
+        ],
+        'matchSeed': 9,
+        'homeStats': null,
+        'awayStats': null,
+        'events': <Object>[],
+        'ratings': <String, Object>{},
+        'manOfTheMatch': null,
+        'conditions': null,
+        'homeShootout': null,
+        'awayShootout': null,
+        'abandoned': false,
+      });
+    });
+
+    test('a full result round-trips byte-identically', () {
+      final events = _allMatchEvents();
+      expect(
+        events.map((e) => e.runtimeType).toSet(),
+        hasLength(11), // every MatchEvent subtype
+      );
+      final j = matchResultToJson(_fullResult());
+      final encoded = jsonEncode(j);
+      final back = matchResultFromJson(
+        jsonDecode(encoded) as Map<String, dynamic>,
+      );
+      expect(jsonEncode(matchResultToJson(back)), encoded);
+      expect(back.events.map((e) => e.runtimeType).toList(), [
+        for (final e in events) e.runtimeType,
+      ]);
+      expect(back.ratings, {9: 7.25, 10: 8.0, 15: 6.5});
+      expect(back.homeStats!.xg, 1.85);
+      expect(back.conditions!.weather, Weather.rainy);
+      expect(back.conditions!.homeAdvantage, 1.065);
+      expect((back.events[1] as Goal).isOwnGoal, isTrue);
+      expect((back.events[0] as Goal).assistId, 9);
+      expect((back.events[2] as Card).kind, CardKind.secondYellow);
+      expect(back.homeShootout, 4);
+      expect(back.abandoned, isTrue);
+    });
+
+    test('ratings are keyed by ascending player id, events by type', () {
+      final j = matchResultToJson(_fullResult());
+      expect((j['ratings'] as Map).keys.toList(), ['9', '10', '15']);
+      expect(
+        [for (final e in j['events'] as List) (e as Map)['t']],
+        [for (final e in _allMatchEvents()) e.runtimeType.toString()],
+      );
+      expect((j['events'] as List).first, {
+        't': 'Goal',
+        'minute': 12,
+        'half': 1,
+        'clubId': 1,
+        'scorerId': 10,
+        'assistId': 9,
+        'type': 'throughBall',
+        'isPenalty': false,
+        'isOwnGoal': false,
+      });
+    });
+
+    test('unknown match event type throws FormatException', () {
+      expect(
+        () => matchEventFromJson({
+          't': 'Nope',
+          'minute': 1,
+          'half': 1,
+          'clubId': 1,
+        }),
+        throwsFormatException,
+      );
+    });
+  });
+
   group('event json', () {
     test('every GameEvent subtype round-trips', () {
       final events = _allEvents();
-      expect(events.map((e) => e.runtimeType).toSet(), hasLength(9));
+      expect(events.map((e) => e.runtimeType).toSet(), hasLength(12));
       for (final e in events) {
         final j = eventToJson(e);
         expect(j['t'], e.runtimeType.toString());

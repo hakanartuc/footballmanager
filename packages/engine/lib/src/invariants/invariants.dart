@@ -1,6 +1,7 @@
 import '../core/ids.dart';
 import '../model/enums.dart';
 import '../model/events.dart';
+import '../model/match_result.dart';
 import '../model/world.dart';
 import '../sim/day_loop.dart';
 import '../sim/lineup.dart';
@@ -280,6 +281,34 @@ void _checkFixtures(World w, List<Violation> out) {
           ),
         );
       }
+      // Match events, when present, must agree too: a Goal counts for its
+      // clubId (for an own goal, the club that benefits).
+      if (r.events.isNotEmpty) {
+        var eh = 0, ea = 0;
+        for (final e in r.events) {
+          if (e is! Goal) continue;
+          if (e.clubId == f.homeId) {
+            eh++;
+          } else if (e.clubId == f.awayId) {
+            ea++;
+          } else {
+            out.add(
+              Violation(
+                'fixture.goals',
+                'fixture ${f.id}: Goal event for club ${e.clubId} not in the fixture',
+              ),
+            );
+          }
+        }
+        if (eh != r.homeGoals || ea != r.awayGoals) {
+          out.add(
+            Violation(
+              'fixture.goals',
+              'fixture ${f.id}: Goal match events $eh-$ea, result ${r.homeGoals}-${r.awayGoals}',
+            ),
+          );
+        }
+      }
     }
     final played = r != null;
     if (f.date.isBefore(w.date) != played) {
@@ -312,8 +341,8 @@ void _checkFixtures(World w, List<Violation> out) {
 }
 
 /// `inbox.size`, `inbox.ids` (unique and positive), `inbox.refs` (clubs,
-/// leagues and fixtures; player ids are exempt because players leave the
-/// world).
+/// leagues and fixtures; player ids only for injuries, sendings-off and
+/// suspensions, since retired and released players leave the world).
 void _checkInbox(World w, List<Violation> out) {
   if (w.inbox.length > inboxLimit) {
     out.add(Violation('inbox.size', '${w.inbox.length} messages'));
@@ -347,16 +376,31 @@ void _checkInbox(World w, List<Violation> out) {
       }
     }
 
+    void fixture(FixtureId id) {
+      if (!w.fixtures.containsKey(id)) {
+        out.add(
+          Violation(
+            'inbox.refs',
+            '${m.event.runtimeType} on ${m.date.iso}: fixture $id missing',
+          ),
+        );
+      }
+    }
+
+    void player(PlayerId id) {
+      if (!w.players.containsKey(id)) {
+        out.add(
+          Violation(
+            'inbox.refs',
+            '${m.event.runtimeType} on ${m.date.iso}: player $id missing',
+          ),
+        );
+      }
+    }
+
     switch (m.event) {
       case MatchPlayed(:final fixtureId):
-        if (!w.fixtures.containsKey(fixtureId)) {
-          out.add(
-            Violation(
-              'inbox.refs',
-              'MatchPlayed on ${m.date.iso}: fixture $fixtureId missing',
-            ),
-          );
-        }
+        fixture(fixtureId);
       case LeagueChampion(:final leagueId, :final clubId):
         league(leagueId);
         club(clubId);
@@ -372,6 +416,14 @@ void _checkInbox(World w, List<Violation> out) {
       case YouthIntake(:final clubId):
       case YouthReleased(:final clubId):
         club(clubId);
+      case PlayerInjured(:final playerId, :final clubId):
+      case PlayerSuspended(:final playerId, :final clubId):
+        club(clubId);
+        player(playerId);
+      case PlayerSentOff(:final playerId, :final clubId, :final fixtureId):
+        club(clubId);
+        player(playerId);
+        fixture(fixtureId);
       case SeasonEnded() || NewSeasonStarted():
         break;
     }

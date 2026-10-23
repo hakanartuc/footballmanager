@@ -190,6 +190,51 @@ void main() {
       f.result!.goals.single.scorerId = 999999;
       expect(_rules(w), contains('fixture.goals'));
     });
+
+    Goal goal(ClubId club) => Goal(
+      minute: 10,
+      half: 1,
+      clubId: club,
+      scorerId: w.squadOf(f.homeId).first,
+      assistId: null,
+      type: ChanceType.dribble,
+      isPenalty: false,
+    );
+
+    test('consistent match events pass', () {
+      f.result!.events.addAll([
+        goal(f.homeId),
+        HalfTime(minute: 45, half: 1, clubId: f.homeId),
+        FullTime(minute: 90, half: 2, clubId: f.homeId),
+      ]);
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+
+    test('an own goal counts for the club it is credited to', () {
+      f.result!.events.add(
+        Goal(
+          minute: 10,
+          half: 1,
+          clubId: f.homeId,
+          scorerId: w.squadOf(f.awayId).first,
+          assistId: null,
+          type: ChanceType.cross,
+          isPenalty: false,
+          isOwnGoal: true,
+        ),
+      );
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+
+    test('Goal events disagreeing with the score', () {
+      f.result!.events.addAll([goal(f.homeId), goal(f.awayId)]);
+      expect(_rules(w), contains('fixture.goals'));
+    });
+
+    test('Goal events credited to the wrong club', () {
+      f.result!.events.add(goal(f.awayId));
+      expect(_rules(w), contains('fixture.goals'));
+    });
   });
 
   test('calendar.noDoubleBooking', () {
@@ -295,6 +340,105 @@ void main() {
         ),
       ]);
       expect(_rules(w), isNot(contains('inbox.refs')));
+    });
+
+    test('injury, sending-off and suspension refs pass', () {
+      final w = _world();
+      final club = _firstClub(w).id;
+      final player = w.squadOf(club).first;
+      final fixture = w.fixturesOfClub(club, w.seasonYear).first;
+      w.inbox.addAll([
+        for (final e in <GameEvent>[
+          PlayerInjured(date: w.date, playerId: player, clubId: club, days: 9),
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            fixtureId: fixture,
+          ),
+          PlayerSuspended(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            matches: 1,
+          ),
+        ])
+          InboxMessage(id: w.ids.next('inbox'), date: w.date, event: e),
+      ]);
+      expect(_rules(w), isNot(contains('inbox.refs')));
+    });
+
+    group('injury, sending-off and suspension', () {
+      late World w;
+      late ClubId club;
+      late PlayerId player;
+      late FixtureId fixture;
+
+      setUp(() {
+        w = _world();
+        club = _firstClub(w).id;
+        player = w.squadOf(club).first;
+        fixture = w.fixturesOfClub(club, w.seasonYear).first;
+      });
+
+      void add(GameEvent e) => w.inbox.add(
+        InboxMessage(id: w.ids.next('inbox'), date: w.date, event: e),
+      );
+
+      test('an injury at a missing club', () {
+        add(
+          PlayerInjured(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            days: 3,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('an injured player who does not exist', () {
+        add(
+          PlayerInjured(date: w.date, playerId: 999999, clubId: club, days: 3),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('a sending-off in a missing fixture', () {
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            fixtureId: 999999,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('a sending-off at a missing club', () {
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            fixtureId: fixture,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('a suspension at a missing club', () {
+        add(
+          PlayerSuspended(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            matches: 1,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
     });
 
     test('a youth release at a missing club', () {

@@ -331,6 +331,29 @@ void main() {
         isUserRelevant(w, YouthReleased(date: d, clubId: c, playerIds: [1])),
         isTrue,
       );
+      for (final (club, relevant) in [(c, isTrue), (rival.id, isFalse)]) {
+        expect(
+          isUserRelevant(
+            w,
+            PlayerInjured(date: d, playerId: 1, clubId: club, days: 7),
+          ),
+          relevant,
+        );
+        expect(
+          isUserRelevant(
+            w,
+            PlayerSentOff(date: d, playerId: 1, clubId: club, fixtureId: 1),
+          ),
+          relevant,
+        );
+        expect(
+          isUserRelevant(
+            w,
+            PlayerSuspended(date: d, playerId: 1, clubId: club, matches: 1),
+          ),
+          relevant,
+        );
+      }
       expect(
         isUserRelevant(
           w,
