@@ -110,7 +110,7 @@ void _substitute(
   final injured = side.injuredOff.contains(c.outId);
   if (slot == -1 && injured) {
     final former = side.formerSlot[c.outId];
-    if (former != null && _injuredAt(side, former) != null) slot = former;
+    if (former != null && _injuredAt(side, former) == c.outId) slot = former;
   }
   if (slot == -1) {
     throw CommandError(CommandErrorKind.notOnPitch, '${c.outId} not on pitch');
@@ -179,6 +179,7 @@ Tactic _withMentality(Tactic t, Mentality mentality) => Tactic(
 PlayerId? _injuredAt(SideState side, int i) {
   if (side.onPitch[i] != null) return null;
   if (side.sentOff.any((id) => side.formerSlot[id] == i)) return null;
+  // Latest occupant wins; injuredOff is insertion-ordered.
   PlayerId? found;
   for (final id in side.injuredOff) {
     if (side.formerSlot[id] == i) found = id;

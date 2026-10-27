@@ -245,6 +245,44 @@ void main() {
       );
     });
 
+    test(
+      'same slot injured again after a refill: only the latest id works',
+      () {
+        final w = benchWorld();
+        final s = benchMatch(w);
+        injureOff(s, 10);
+        applyCommand(
+          s,
+          w,
+          MatchRules.league,
+          const Substitute(1, outId: 10, inId: 15),
+        );
+        injureOff(s, 15);
+        expect(s.home.onPitch[9], isNull);
+
+        expect(
+          () => applyCommand(
+            s,
+            w,
+            MatchRules.league,
+            const Substitute(1, outId: 10, inId: 13),
+          ),
+          commandError(CommandErrorKind.notOnPitch),
+        );
+        expect(s.home.onPitch[9], isNull);
+
+        applyCommand(
+          s,
+          w,
+          MatchRules.league,
+          const Substitute(1, outId: 15, inId: 13),
+        );
+        expect(s.home.onPitch[9], 13);
+        expect((s.events.last as Substitution).outId, 15);
+        expect((s.events.last as Substitution).reason, SubReason.injury);
+      },
+    );
+
     test('a slot whose substitute was then sent off stays empty', () {
       final w = benchWorld();
       final s = benchMatch(w);
