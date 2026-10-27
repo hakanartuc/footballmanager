@@ -247,6 +247,9 @@ void main() {
 
       s.ratings[105]!.value = 8.1;
       expect(manOfTheMatch(s), 105);
+
+      s.ratings.clear();
+      expect(manOfTheMatch(s), isNull);
     });
   });
 

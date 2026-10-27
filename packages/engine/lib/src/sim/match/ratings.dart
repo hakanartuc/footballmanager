@@ -109,9 +109,9 @@ Map<PlayerId, int> _slots(MatchState s, SideState side) {
 }
 
 /// The player of the match over the finalised [s.ratings]: highest
-/// rating, then more goals (own goals do not count), then the lower id.
-/// Throws [StateError] when nobody has a rating.
-PlayerId manOfTheMatch(MatchState s) {
+/// rating, then more goals (own goals do not count), then the lower id;
+/// null when nobody has a rating.
+PlayerId? manOfTheMatch(MatchState s) {
   final goals = <PlayerId, int>{};
   for (final e in s.events) {
     if (e is Goal && !e.isOwnGoal) {
@@ -125,5 +125,5 @@ PlayerId manOfTheMatch(MatchState s) {
       final byGoals = (goals[b] ?? 0).compareTo(goals[a] ?? 0);
       return byGoals != 0 ? byGoals : a.compareTo(b);
     });
-  return ids.first;
+  return ids.isEmpty ? null : ids.first;
 }
