@@ -88,6 +88,13 @@ class MatchState {
 
   /// 1 or 2, 3 or 4 in extra time, 5 in the shootout.
   int half = 1;
+
+  /// Set by `startExtraTime`; adds a substitution and scales the drain.
+  bool extraTime = false;
+
+  /// Shootout score, set by `playShootout`; null when there was none.
+  int? homeShootout;
+  int? awayShootout;
   int addedTime = 0;
   double clockSeconds = 0;
   final List<MatchEvent> events = [];
@@ -169,6 +176,14 @@ class MatchState {
   }
 
   SideState side(ClubId c) => c == home.clubId ? home : away;
+
+  /// The club that won the shootout; null before one is played.
+  ClubId? get shootoutWinner {
+    final h = homeShootout;
+    final a = awayShootout;
+    if (h == null || a == null) return null;
+    return h > a ? home.clubId : away.clubId;
+  }
 
   SideState opponent(ClubId c) => c == home.clubId ? away : home;
 

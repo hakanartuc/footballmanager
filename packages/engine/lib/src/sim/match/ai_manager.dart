@@ -5,6 +5,7 @@ import '../../model/match_rules.dart';
 import '../../model/player.dart';
 import '../../model/tactic.dart';
 import '../../model/world.dart';
+import 'extra_time.dart';
 import 'match_state.dart';
 import 'tuning.dart';
 
@@ -118,7 +119,7 @@ void _substitute(
   if (!side.bench.contains(c.inId)) {
     throw CommandError(CommandErrorKind.notOnBench, '${c.inId} not on bench');
   }
-  if (side.subsUsed >= rules.substitutions) {
+  if (side.subsUsed >= subsAllowed(s, rules)) {
     throw CommandError(CommandErrorKind.noSubsLeft, 'no substitutions left');
   }
   if (w.players[c.inId]!.state.injury != null) {
@@ -204,7 +205,7 @@ List<MatchCommand> aiDecide(
   MatchRules rules,
 ) {
   final out = <MatchCommand>[];
-  var subsLeft = rules.substitutions - side.subsUsed;
+  var subsLeft = subsAllowed(s, rules) - side.subsUsed;
   final bench = [
     for (final id in side.bench)
       if (w.players[id]!.state.injury == null) id,

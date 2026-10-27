@@ -13,7 +13,8 @@ import 'ratings.dart';
 import 'tuning.dart';
 
 /// Spec 5.3 step 8 after [step]: foul and cards (with their rating
-/// deltas), one injury exposure, and condition drain. Events go to both `s.events` and `step.events`; a
+/// deltas), one injury exposure, and condition drain (× `extraTimeDrainMul`
+/// in extra time). Events go to both `s.events` and `step.events`; a
 /// sent-off or injured player leaves the pitch (slot nulled) but the
 /// profile is not rebuilt here — the session does that.
 ///
@@ -115,12 +116,14 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   }
 
   final minutes = step.seconds / 60;
+  final extraTimeMul = s.extraTime ? EngineTuning.extraTimeDrainMul : 1.0;
   for (final side in [s.home, s.away]) {
     for (final id in side.playing) {
       final drop =
           minutes *
           EngineTuning.drainPerMinute(w.players[id]!.attrs[Attr.stamina]) *
-          side.profile.conditionDrain;
+          side.profile.conditionDrain *
+          extraTimeMul;
       side.condition[id] = math.max(0.0, (side.condition[id] ?? 100) - drop);
     }
   }

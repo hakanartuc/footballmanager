@@ -197,6 +197,17 @@ abstract final class EngineTuning {
   /// Goals awarded to the other side when a match is abandoned.
   static const int abandonScore = 3;
 
+  // --- Extra time and shootout (spec ruling 14-4) ---
+
+  /// Condition drain multiplier in extra time.
+  static const double extraTimeDrainMul = 1.2;
+
+  /// A shootout kick scores with `xgBase[penalty]` times the 5.3 step 6
+  /// [finishingCoef] and [keeperCoef] factors, clamped to
+  /// [shootoutMin]..[shootoutMax].
+  static const double shootoutMin = 0.40;
+  static const double shootoutMax = 0.95;
+
   // --- Ratings (spec 5.3, player match rating) ---
 
   /// Every player's rating at kick-off.
