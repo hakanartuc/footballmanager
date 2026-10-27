@@ -551,8 +551,8 @@ Her faz oynanabilir bir ürün bırakır.
 | **0. İskelet** | Veri modeli (ülke, lig piramidi, kulüp, oyuncu, menajer), kurgusal dünya üretici (çok ülkeli, forma/logo dahil), oyun başlangıcı (menajer profili, dünya boyutu, kulüp seçimi/işsiz), kayıt yuvaları, gün döngüsü, fikstür, puan tablosu, geçici Poisson maç, minimal arayüz, performans ölçümü | Bir sezon baştan sona "Devam"la oynanıyor; tablo mantıklı; büyük dünyada gün süresi bütçede |
 | **1a. Maç motoru** | Bölüm 5 motoru (uzatma 30 dk + penaltı atışları, mikro-olay dizisi dahil), tam taktik seti (16.1), hava/zemin, yarışma kuralları (değişiklik hakkı, kart eşikleri), kalibrasyon düzeneği, anlatım (TR+EN), metin tabanlı maç ekranı | Kalibrasyon testleri yeşil; kullanıcı maçı metinle izleyip müdahale ediyor |
 | **1b. 2D saha** | Bölüm 5.7 koreografi katmanı, boncuklar (forma renkli), top, hız kontrolü, izleme modları (tam / geniş özet / önemli anlar / sadece anlatım / sadece sonuç), görsel kabul listesi | Bir maç her modda akıcı izleniyor |
-| **2. Oyuncu durumu ve takvim** | Kondisyon, sakatlık, moral, form, ceza, AI rotasyon, antrenman programı (16.2), pozisyon eğitimi, yerli kupa(lar) + süper kupa, hazırlık dönemi ve dostluk maçı ayarlama, milli aralar (takvimde boşluk) | Sezonluk sakatlık/kondisyon testleri yeşil; rotasyon zorunlu hissediliyor |
-| **3. Transfer (tam)** | Değer modeli, AI kulüp davranışı, teklif akışı, taksit/takas/maddeler, sözleşme ayrıntıları (bonus, serbest kalma bedeli, statü), kiralık, ön sözleşme, kulüplere teklif, söylentiler, huzursuz oyuncu, yabancı sınırı ve lisans kuralları (16.3) | 10 sezon piyasa sağlık testi yeşil; kiralık oranı hedefte |
+| **2. Oyuncu durumu ve takvim** | Kondisyon, sakatlık, moral, form, ceza, AI rotasyon, antrenman programı (16.2), pozisyon eğitimi, yerli kupa(lar) + süper kupa, hazırlık dönemi ve dostluk maçı ayarlama, milli aralar (takvimde boşluk), dünya üreticisinin kamuya açık olgulara göre kalibrasyonu (20.2) | Sezonluk sakatlık/kondisyon testleri yeşil; rotasyon zorunlu hissediliyor; ülke başına veri bantları yeşil |
+| **3. Transfer (tam)** | Değer modeli, AI kulüp davranışı, teklif akışı, taksit/takas/maddeler, sözleşme ayrıntıları (bonus, serbest kalma bedeli, statü), kiralık, ön sözleşme, kulüplere teklif, söylentiler, huzursuz oyuncu, yabancı sınırı ve lisans kuralları (16.3), kullanıcı veri paketi (mod) sistemi (20.3) | 10 sezon piyasa sağlık testi yeşil; kiralık oranı hedefte; örnek bir veri paketi yüklenip sezon oynanıyor |
 | **4. Yaşam döngüsü ve kariyer** | Gelişim/yaşlanma, emeklilik, kariyeri bitiren sakatlık, altyapı dalgası, kulüp itibarı kayması, sezon devri, küme düşme/çıkma, tam finans (16.9), yönetim güveni/istekler/kovulma, kulüp satın alınması, AI menajerler ve iş piyasası, ödüller, tarih ve rekorlar (16.10) | 30 sezon uzun vade testleri yeşil; AI menajerler kovulup işe alınıyor |
 | **5. Personel, gözlemci, altyapı** | Personel rolleri ve piyasası (16.4), gözlemci görevleri ve raporları (16.5), altyapı yönetimi (tesis, antrenör, yükseltme/eleme), antrenman kalitesi personele bağlanır | Personel kalitesinin gelişim ve sakatlık üzerinde ölçülebilir etkisi var |
 | **6. Dünya** | Çoklu ülke tam aktif, kıta kupaları (iki kademe, katsayı), kıtalararası kupa, milli takımlar: çağrılar, elemeler, turnuvalar, kullanıcının milli takım yönetimi (16.6-16.7) | 4 yıllık uluslararası döngü hatasız dönüyor; milli takımdan sakat dönme haberleri |
@@ -654,7 +654,7 @@ Belge bağımsız bir "yapımcı gözüyle" okutuldu; şu boşluklar bulundu ve 
 Bu belge aşağıdaki varsayımlarla yazıldı. Her biri yapılacak işi değiştirir:
 
 1. ~~Maç sunumu~~ **Karar verildi:** 2D boncuklu saha + metin anlatım (Bölüm 5.7).
-2. ~~Veri~~ **Karar verildi:** Her şey kurgusal (isimler, formalar, logolar), dilden bağımsız. Kullanıcı veri paketi yükleme: hedef dışı.
+2. ~~Veri~~ **Karar verildi:** Her şey kurgusal (isimler, formalar, logolar), dilden bağımsız. ~~Kullanıcı veri paketi yükleme: hedef dışı.~~ **Güncellendi (2026-10-27):** kullanıcı veri paketi (mod) yükleme kapsamda, Bölüm 20.
 3. ~~Kapsam~~ **Karar verildi:** 1 ülke, 2-3 kademe lig + 1 kupa ile başlanır.
 4. ~~Gerçekçilik seviyesi~~ **Karar verildi:** tam finans modeli, yönetim yönetir, kullanıcı görür ve ister (16.9).
 5. **Lig takvimi:** Ağustos-Mayıs varsayılan; ülke verisi yaz ligi (Mart-Kasım) tanımlayabilir (16.6).
@@ -663,7 +663,7 @@ Bu belge aşağıdaki varsayımlarla yazıldı. Her biri yapılacak işi değiş
 8. ~~Dil~~ **Karar verildi:** Türkçe + İngilizce baştan.
 9. ~~İsimler~~ **Karar verildi:** dilden bağımsız.
 10. **Lig yapısı sabittir** (varsayım): kulüp hangi ligde oynayacağını seçmez, küme düşer/çıkar. Kıta kupasına katılım sıralamayla kazanılır (Faz 6). Hazırlık maçlarını kullanıcı ayarlar; ayarlamazsa yardımcı antrenör ayarlar (16.2, 16.4).
-11. ~~Ülke adları~~ **Karar verildi:** gerçek ülke adları; bayrak ve federasyon logosu kurgusal.
+11. ~~Ülke adları~~ **Karar verildi:** gerçek ülke ve şehir adları; bayraklar gerçek (kamu malı); federasyon logosu kurgusal (Bölüm 20).
 12. ~~Para birimi~~ **Karar verildi:** soyut tek birim, sembol ayardan seçilir; kur yok.
 13. **Platform:** iOS ve Android telefon, dikey; tablet düzeni sonraki iş (varsayım). Teknoloji seçimiyle birlikte netleşir.
 14. **Monetizasyon:** Faz 7'de ürün kararı. Tasarım pay-to-win'e kapalı; tek seferlik ücret, reklam veya kozmetik seçenekleri tasarımı değiştirmez.
@@ -992,3 +992,50 @@ Anti-hedef sabit: **oyun içinde avantaj satılmaz.** Satılmayacaklar: oyun iç
 **Öneri:** B + D (+ E isteğe bağlı). Ücretsiz indirme; ilk sezon tam özellikli ve küçük dünyada ücretsiz; tek ödemeyle sınırsız sezon ve orta dünya; büyük dünya ve ek ülke paketleri ayrı. PC/web'de A (tek fiyat, her şey dahil). Reklam yok; istenirse daha sonra C'nin ödül reklamı sadece kozmetik için eklenebilir.
 
 **Faz 0'a etkisi (küçük):** "yetki" (entitlement) kavramı: dünya boyutu ve sezon sayısı sınırı kayıtta değil, cihaz yetki durumundan okunur; yeni oyun ekranı ve sezon devri bunu kontrol eder. Çevrimdışı doğrulama (mağaza makbuzu önbelleği). Başka hiçbir sistem monetizasyonu bilmez.
+
+---
+
+## 20. Veri kaynakları, lisans ve kullanıcı veri paketleri (karar 2026-10-27)
+
+Hukuki görüş değildir; mağazaya çıkmadan önce bir avukat kontrolü planlanır.
+
+### 20.1 Gönderilen veride ne gerçek, ne kurgusal
+
+| Veri | Durum | Gerekçe |
+|---|---|---|
+| Ülke ve şehir adları, bayraklar | Gerçek | Kamuya açık olgu / kamu malı |
+| Lig adları, federasyon logoları | Kurgusal | Marka hakkı (SMK 6769 ve muadilleri) |
+| Kulüp adları, logoları, formaları, stadyum adları | Kurgusal | Marka hakkı; "benzer ad" (ör. Galata SK) karıştırma riski taşır, kullanılmaz |
+| Oyuncu, teknik direktör, başkan, personel adları ve görüntüleri | Kurgusal | Kişi hakları (TMK 24–26, FSEK 86); "kim olduğu anlaşılan benzer ad" tam olarak yasaklanan şeydir, kullanılmaz |
+| Başka oyunların veri tabanları (ör. FM nitelik puanları) | Kullanılmaz | Tekil nitelik puanları yaratıcı eserdir; isim değiştirmek kopyayı meşrulaştırmaz |
+| Oyun kuralları, takvim yapıları, lig formatları | Gerçek | Olgu; telife tabi değil |
+
+Anti-hedef (Bölüm 2) aynen geçerli: gönderilen pakette gerçek kulüp/oyuncu/personel yoktur.
+
+### 20.2 Gerçekçilik: kamuya açık olgulardan kalibrasyon (Faz 2)
+
+Kurgusal dünyanın "gerçek gibi" hissetmesi tekil verilerden değil dağılımlardan gelir. Dünya üreticisi (Faz 0) ülke başına şu hedef bantlara karşı kalibre edilir; bantlar kamuya açık olgulardan türetilir (federasyon kadro kuralları, UEFA/FIFA katsayı ve sıralamaları, kamuya açık transfer/maaş ölçekleri, Wikipedia lig yapıları):
+
+- Lig piramidi: kademe sayısı, kademe başına kulüp sayısı, küme düşme/çıkma sayıları.
+- Kadro: kulüp başına oyuncu sayısı bandı, mevki dağılımı, yaş profili (Bölüm 9 bantları ülke başına özelleşebilir), yabancı oranı.
+- Kalite kademeleri: kademeler arası ortalama CA farkı, bir ligde "dünya sınıfı" (CA ≥ 170) oyuncu sayısı bandı, ülke itibarı sıralaması.
+- Ekonomi: kademe başına bütçe/maaş/transfer ölçeği (soyut para biriminde oranlar korunur), stadyum kapasitesi bandı.
+- Altyapı akışı: yılda kulüp başına çıkan oyuncu sayısı ve kalitesi.
+
+Her bant bir test olur (Bölüm 17 katmanı: uzun simülasyon + üretim anı). Bantlar `docs/data/calibration/<ülke>.md` altında kaynağıyla birlikte yazılır; sayılar olgu, kaynak gösterilir.
+
+### 20.3 Kullanıcı veri paketleri — mod sistemi (Faz 3)
+
+Kullanıcı, kurgusal dünyanın üstüne kendi veri paketini yükleyebilir. Gerçek isimli paketleri topluluk yapar ve dağıtır; **biz hiçbir gerçek isimli paketi üretmez, barındırmaz, mağazada sunmayız.** Sorumluluk paketi yapan ve yükleyendedir; paket yükleme ekranı bunu açıkça söyler (TR/EN).
+
+**Paket kapsamı (kademeli):**
+1. **İsim paketi:** ülke, lig, kulüp, stadyum, oyuncu, personel adlarını değiştirir; motor kimlikleri (id) değişmez. Yeni oyunda uygulanır, mevcut kayıtlara da uygulanabilir (isimler kayıtta değil, kimlik haritasında tutulur).
+2. **Görsel paketi:** logo ve forma tanımları (forma şablonu + renkler veya küçük PNG; Bölüm 18 boyut sınırı).
+3. **Dünya paketi:** lig yapısı, kulüp listesi, kadrolar ve nitelikler (tam dünya tanımı). Yalnızca yeni oyunda; üretici bu paketi çekirdek olarak alıp eksikleri (altyapı, alt ligler) kurgusal üretir.
+
+**Biçim:** tek dosya (zip içinde JSON + görseller), şema sürümlü; motor şeması gibi geçiş (migration) kuralı. Doğrulama: zorunlu alanlar, kimlik tutarlılığı, boyut sınırları, nitelik aralıkları (1–20), toplam oyuncu sayısı dünya boyutu üst sınırı içinde. Geçersiz paket yüklenmez, hata listesi gösterilir.
+
+**Motor etkisi:** yalnızca dünya üreticisine "çekirdek tanım" girişi ve isim/görsel çözümlemeye bir dolaylama katmanı. Simülasyon, kalibrasyon ve determinizm paketten bağımsız kalır (aynı paket + aynı seed = aynı dünya).
+
+**Testler:** örnek paket yükle → şema doğrulama → sezon oyna → değişmezler yeşil; bozuk paket örnekleri reddedilir; isim paketi uygulanmış kayıt eski sürümle açılır (geriye uyumluluk).
+
