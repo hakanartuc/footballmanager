@@ -36,6 +36,7 @@ export 'src/session/engine_session.dart';
 export 'src/sim/commands.dart';
 export 'src/sim/day_loop.dart';
 export 'src/sim/lineup.dart';
+export 'src/sim/match/ai_manager.dart';
 export 'src/sim/match/conditions.dart';
 export 'src/sim/match/injury_table.dart';
 export 'src/sim/match/match_state.dart';

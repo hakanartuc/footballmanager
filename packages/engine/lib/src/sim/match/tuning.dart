@@ -173,6 +173,30 @@ abstract final class EngineTuning {
   /// Extra att multiplier with nine or fewer players (Task 4 resolution).
   static const double nineMenAttMul = 0.9;
 
+  // --- In-match AI (spec 5.3 step 9) ---
+
+  /// Match minutes between AI checks.
+  static const int aiCheckInterval = 5;
+
+  /// From this minute a side that is behind raises its mentality one step.
+  static const int aiBehindMinute = 60;
+
+  /// From this minute a side that is ahead lowers its mentality one step.
+  static const int aiAheadMinute = 75;
+
+  /// An outfield player below this condition is substituted.
+  static const double aiFatigueCondition = 65;
+
+  /// Familiarity in the slot that makes a bench player a fit for it when
+  /// nobody on the bench has that main position.
+  static const int aiFamiliarityMin = 12;
+
+  /// A side with fewer players than this on the pitch forfeits.
+  static const int abandonBelow = 7;
+
+  /// Goals awarded to the other side when a match is abandoned.
+  static const int abandonScore = 3;
+
   // --- Clock and venue (spec 5.3, 5.2) ---
 
   /// Shortest possession step in seconds at normal tempo.

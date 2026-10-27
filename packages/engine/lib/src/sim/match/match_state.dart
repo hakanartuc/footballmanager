@@ -7,6 +7,7 @@ import '../../model/match_rules.dart';
 import '../../model/tactic.dart';
 import '../../model/world.dart';
 import 'team_profile.dart';
+import 'tuning.dart';
 
 /// A player's running match rating; Task 7 fills it.
 class RatingAcc {
@@ -26,6 +27,10 @@ class SideState {
   final Map<PlayerId, int> yellows = {};
   final Set<PlayerId> sentOff = {};
   final Set<PlayerId> injuredOff = {};
+
+  /// The slot index each sent-off or injured player left; a substitute
+  /// for an injured player takes that slot.
+  final Map<PlayerId, int> formerSlot = {};
   int subsUsed = 0;
   final TeamStats stats = TeamStats(
     shots: 0,
@@ -43,6 +48,11 @@ class SideState {
   TeamProfile profile;
   bool userManaged = false;
 
+  /// Whether the AI has already made its one mentality step up (behind)
+  /// or down (ahead); set by `aiDecide` when it issues the command.
+  bool aiShiftedUp = false;
+  bool aiShiftedDown = false;
+
   /// Seconds in possession; the session turns it into `possessionPct`.
   double possessionSeconds = 0;
 
@@ -58,10 +68,13 @@ class SideState {
   /// The players on the pitch, in slot order.
   List<PlayerId> get playing => [for (final id in onPitch) ?id];
 
-  /// Empties [id]'s slot.
+  /// Empties [id]'s slot and records it in [formerSlot].
   void removeFromPitch(PlayerId id) {
     final i = onPitch.indexOf(id);
-    if (i != -1) onPitch[i] = null;
+    if (i != -1) {
+      onPitch[i] = null;
+      formerSlot[id] = i;
+    }
   }
 }
 
@@ -92,6 +105,10 @@ class MatchState {
   ClubId? pendingPenalty;
   final MatchRules rules;
   final MatchConditions conditions;
+
+  /// Set by [checkAbandon] when a side drops below
+  /// [EngineTuning.abandonBelow] players.
+  bool abandoned = false;
 
   MatchState({
     required this.home,
@@ -170,4 +187,22 @@ class MatchState {
       opponentTactic: opponent(clubId).tactic,
     );
   }
+}
+
+/// Abandons the match when either side has fewer than
+/// [EngineTuning.abandonBelow] players on the pitch: sets
+/// [MatchState.abandoned], awards [EngineTuning.abandonScore]–0 against the
+/// short side (0–0 when both are short) and appends a [FullTime] event.
+/// Returns whether the match is abandoned; a second call on an abandoned
+/// match returns true without changing anything.
+bool checkAbandon(MatchState s) {
+  if (s.abandoned) return true;
+  final homeShort = s.home.playing.length < EngineTuning.abandonBelow;
+  final awayShort = s.away.playing.length < EngineTuning.abandonBelow;
+  if (!homeShort && !awayShort) return false;
+  s.abandoned = true;
+  s.home.goals = homeShort ? 0 : EngineTuning.abandonScore;
+  s.away.goals = awayShort ? 0 : EngineTuning.abandonScore;
+  s.events.add(FullTime(minute: s.minute, half: s.half, clubId: s.home.clubId));
+  return true;
 }

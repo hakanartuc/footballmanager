@@ -125,18 +125,20 @@ Fixture fixture() => Fixture(
 );
 
 /// A started match of club 1 (home) against club 2 on [w]; no home
-/// advantage unless [cond] says so.
+/// advantage unless [cond] says so. Benches are empty unless given.
 MatchState startMatch(
   World w, {
   Tactic? homeTactic,
   Tactic? awayTactic,
   MatchConditions? cond,
   Formation formation = Formation.f442,
+  List<PlayerId> homeBench = const [],
+  List<PlayerId> awayBench = const [],
 }) => MatchState.start(
   w: w,
   f: fixture(),
-  homeLineup: Lineup(formation: formation, starters: homeIds, bench: []),
-  awayLineup: Lineup(formation: formation, starters: awayIds, bench: []),
+  homeLineup: Lineup(formation: formation, starters: homeIds, bench: homeBench),
+  awayLineup: Lineup(formation: formation, starters: awayIds, bench: awayBench),
   homeTactic: homeTactic ?? Tactic.preset(formation),
   awayTactic: awayTactic ?? Tactic.preset(formation),
   rules: MatchRules.league,
