@@ -41,6 +41,7 @@ export 'src/sim/match/conditions.dart';
 export 'src/sim/match/injury_table.dart';
 export 'src/sim/match/match_state.dart';
 export 'src/sim/match/possession.dart';
+export 'src/sim/match/ratings.dart';
 export 'src/sim/match/side_effects.dart';
 export 'src/sim/match/team_profile.dart';
 export 'src/sim/match/tuning.dart';

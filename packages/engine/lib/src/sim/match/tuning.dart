@@ -197,6 +197,32 @@ abstract final class EngineTuning {
   /// Goals awarded to the other side when a match is abandoned.
   static const int abandonScore = 3;
 
+  // --- Ratings (spec 5.3, player match rating) ---
+
+  /// Every player's rating at kick-off.
+  static const double ratingBase = 6.0;
+
+  /// Rating deltas per event (`RatingEvent`).
+  static const double ratingGoal = 1.0;
+  static const double ratingAssist = 0.5;
+  static const double ratingSave = 0.1;
+  static const double ratingPossessionLost = -0.05;
+  static const double ratingCriticalError = -0.5;
+  static const double ratingYellow = -0.3;
+  static const double ratingRed = -1.0;
+
+  /// Full-time bonuses: every player of the winning side; keeper and
+  /// defence slots of a side that conceded nothing.
+  static const double ratingWinBonus = 0.3;
+  static const double ratingCleanSheetBonus = 0.5;
+
+  /// Final ratings are clamped to [ratingMin]..[ratingMax].
+  static const double ratingMin = 1.0;
+  static const double ratingMax = 10.0;
+
+  /// Players with fewer minutes than this get no rating.
+  static const int ratingMinMinutes = 10;
+
   // --- Clock and venue (spec 5.3, 5.2) ---
 
   /// Shortest possession step in seconds at normal tempo.

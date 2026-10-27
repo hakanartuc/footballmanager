@@ -9,10 +9,11 @@ import '../../model/tactic.dart';
 import '../../model/world.dart';
 import 'injury_table.dart';
 import 'match_state.dart';
+import 'ratings.dart';
 import 'tuning.dart';
 
-/// Spec 5.3 step 8 after [step]: foul and cards, one injury exposure, and
-/// condition drain. Events go to both `s.events` and `step.events`; a
+/// Spec 5.3 step 8 after [step]: foul and cards (with their rating
+/// deltas), one injury exposure, and condition drain. Events go to both `s.events` and `step.events`; a
 /// sent-off or injured player leaves the pitch (slot nulled) but the
 /// profile is not rebuilt here — the session does that.
 ///
@@ -158,6 +159,8 @@ double _injuryWeight(
       (fouled ? EngineTuning.injuryFoulVictimMul : 1.0);
 }
 
+/// Emits the [Booking] and credits [id] a yellow, or a red for a second
+/// yellow or a straight red.
 void _book(
   MatchState s,
   PossessionStep step,
@@ -165,18 +168,25 @@ void _book(
   PlayerId id,
   CardKind kind,
   FoulKind reason,
-) => _emit(
-  s,
-  step,
-  Booking(
-    minute: s.minute,
-    half: s.half,
-    clubId: side.clubId,
-    playerId: id,
-    kind: kind,
-    reason: reason,
-  ),
-);
+) {
+  _emit(
+    s,
+    step,
+    Booking(
+      minute: s.minute,
+      half: s.half,
+      clubId: side.clubId,
+      playerId: id,
+      kind: kind,
+      reason: reason,
+    ),
+  );
+  creditRating(
+    s,
+    id,
+    kind == CardKind.yellow ? RatingEvent.yellow : RatingEvent.red,
+  );
+}
 
 void _sendOff(SideState side, PlayerId id) {
   side.stats.reds++;

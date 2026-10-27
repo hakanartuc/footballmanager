@@ -9,9 +9,10 @@ import '../../model/world.dart';
 import 'team_profile.dart';
 import 'tuning.dart';
 
-/// A player's running match rating; Task 7 fills it.
+/// A player's running match rating; `creditRating` moves it and
+/// `finaliseRatings` turns it into the final 1..10 rating.
 class RatingAcc {
-  double value = 6.0;
+  double value = EngineTuning.ratingBase;
 }
 
 /// One side's mutable state during a match.
@@ -94,6 +95,9 @@ class MatchState {
   /// Kept only in detailed mode; the session appends each step.
   List<PossessionStep>? log;
   final Map<PlayerId, RatingAcc> ratings = {};
+
+  /// Set by `finaliseRatings`; a second call changes nothing.
+  bool ratingsFinalised = false;
   ClubId? lastPossession;
 
   /// The side whose corner, free kick, counter or penalty the next

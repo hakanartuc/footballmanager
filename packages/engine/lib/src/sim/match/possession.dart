@@ -8,6 +8,7 @@ import '../../model/match_result.dart';
 import '../../model/tactic.dart';
 import '../../model/world.dart';
 import 'match_state.dart';
+import 'ratings.dart';
 import 'team_profile.dart';
 import 'tuning.dart';
 
@@ -21,9 +22,9 @@ const _openPlayTypes = [
 ];
 
 /// One possession step (spec 5.3 steps 1–7). Mutates the clock, possession
-/// seconds, stats, goals, events and the pending flags of [s]; returns the
-/// step with `micro` empty (Task 10 fills it in detailed mode). [detail] is
-/// kept for that; it gates nothing here.
+/// seconds, stats, goals, events, ratings and the pending flags of [s];
+/// returns the step with `micro` empty (Task 10 fills it in detailed mode).
+/// [detail] is kept for that; it gates nothing here.
 ///
 /// Draw order on [rng] (fixed; the session's equivalence relies on it):
 ///  1. owner      — one `nextDouble` against
@@ -253,8 +254,17 @@ PossessionStep resolvePossession(
             isPenalty: type == ChanceType.penalty,
           ),
         );
+        creditRating(s, shooter, RatingEvent.goal);
+        if (assister != null) creditRating(s, assister, RatingEvent.assist);
+        // Above xG the goal came out of the save band: the keeper's error.
+        final keeper = _keeper(def);
+        if (r >= xg && keeper != null) {
+          creditRating(s, keeper, RatingEvent.criticalError);
+        }
       case ShotOutcome.saved:
         stats.onTarget++;
+        final keeper = _keeper(def);
+        if (keeper != null) creditRating(s, keeper, RatingEvent.save);
         // 10. Corner.
         if (rng.nextDouble() < EngineTuning.cornerAfterSave) {
           s.pendingCorner = att.clubId;
@@ -299,6 +309,12 @@ double _eff(World w, SideState side, PlayerId id, Attr a) {
     side.profile.slotOf[id] ?? p.mainPosition,
     condition: side.condition[id],
   );
+}
+
+/// The player in [side]'s keeper slot, if any.
+PlayerId? _keeper(SideState side) {
+  final i = side.tactic.slots.indexOf(Position.gk);
+  return i == -1 ? null : side.onPitch[i];
 }
 
 void _emit(MatchState s, PossessionStep step, MatchEvent e) {
