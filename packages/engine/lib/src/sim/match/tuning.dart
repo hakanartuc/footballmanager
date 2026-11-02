@@ -372,7 +372,8 @@ abstract final class EngineTuning {
 
   /// Share of the contested possessions (see [midContestShare]) that the
   /// passing style takes away from the midfield contest, per style (spec
-  /// 16.1); long ball leaves the least to the midfield.
+  /// 16.1); long ball leaves the least to the midfield. Step 1 decides who
+  /// owns the ball, so the two sides' values are averaged into one share.
   static const Map<PassingStyle, double> midBypass = {
     PassingStyle.short: 0.0,
     PassingStyle.mixed: 0.1,

@@ -143,7 +143,7 @@ etkinlik = nitelik
          × form_faktörü(0.95–1.05)
 ```
 
-Ev sahibi avantajı: ev sahibinin tüm hücum ve orta saha değerlerine ×1.06 (kalibre edilecek; gerçek futbolda ev galibiyeti ~%45, beraberlik ~%25, deplasman ~%30).
+Ev sahibi avantajı: ev sahibinin tüm hücum ve orta saha değerlerine ×1.06 (kalibre edilecek; gerçek futbolda ev galibiyeti ~%45, beraberlik ~%25, deplasman ~%30). (Faz 1a kararı: çarpan yalnız hücumda; orta sahada ev avantajı 1. adımda toplamsal log-odds terimi `homeLogOdds` olarak uygulanır — bkz. engine README "Tuning constants that differ from the spec".)
 
 ### 5.3 Maç döngüsü
 
@@ -154,6 +154,9 @@ Her hücum adımı:
 ```
 1. TOPA SAHİP OLAN TAKIM
    p_ev = logistic( k1 × (MID_ev − MID_dep) )        // k1 ≈ 0.25; eşit takımlarda %50
+   (Faz 1a kararı: p_ev = (1−c)/2 + c × logistic(k1 × ΔMID + homeLogOdds × ev payı),
+    c = midContestShare × (1 − ortalama midBypass); k1 1.0 — spec eğrisi 5.6 ancak
+    sınırlı bir orta saha payıyla tutuyor; bkz. engine README.)
    Bazı hücumlar bir önceki hücumun doğal devamıdır (korner, taç, top kaybı sonrası
    kontra). Kontra: topu kaybeden takımın hücumu bittiğinde %15 ihtimalle diğer takım
    "kontra" bayrağıyla hücum eder; kontrada savunma değeri ×0.8.

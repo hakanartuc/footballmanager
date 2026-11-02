@@ -56,4 +56,4 @@ export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
 export 'src/sim/season_rollover.dart';
 
-const engineVersion = '0.0.1';
+const engineVersion = '0.2.0';

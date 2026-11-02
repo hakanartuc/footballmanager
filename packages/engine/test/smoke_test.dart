@@ -3,6 +3,6 @@ import 'package:test/test.dart';
 
 void main() {
   test('package imports', () {
-    expect(engineVersion, '0.0.1');
+    expect(engineVersion, '0.2.0');
   });
 }
