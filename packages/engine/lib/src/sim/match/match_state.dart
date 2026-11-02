@@ -85,8 +85,8 @@ class SideState {
     required this.bench,
     required this.condition,
     required this.profile,
-    Map<PlayerId, PlayerMatchConsts>? consts,
-  }) : consts = consts ?? {};
+    required this.consts,
+  });
 
   /// The players on the pitch, in slot order.
   List<PlayerId> get playing => [for (final id in onPitch) ?id];

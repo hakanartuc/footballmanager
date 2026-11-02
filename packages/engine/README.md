@@ -201,7 +201,7 @@ win %; 2 000–4 000 matches per probe, 10 000 for the final row):
 | 3 | counterProb .35 (k2 .2) | 3.00 | 43/25/32 | 14.6/12.2 | 2.94 | 0.23 | 0.30 | 18.5 | 53 / 68 / 92 |
 | 4 | possessionK1 .8, chanceK2 .15, midBypass .4–.7 | 2.58 | 45/24/31 | 12.8/10.3 | 2.96 | 0.22 | 0.31 | 12.2 | 53 / 65 / 83 |
 | 5 | + counterProb .3, counterDefMul .7 (floor) | 2.81 | 43/26/31 | 13.6/11.4 | 2.97 | 0.21 | 0.29 | 15.1 | 50 / 61 / 80 |
-| 6 | possessionK1 1.2, midBypass .5–.8 | 2.59 | 46/24/30 | 13.0/10.1 | 2.95 | 0.22 | 0.30 | 12.2 | 53 / 64 / 82 |
+| 6 | possessionK1 1.2, midBypass .5–.8; row 5's counter floor reverted (counterProb .15, counterDefMul .80) | 2.59 | 46/24/30 | 13.0/10.1 | 2.95 | 0.22 | 0.30 | 12.2 | 53 / 64 / 82 |
 | 7 | possessionK1 1.4, chanceK2 .13 | 2.59 | 45/24/30 | 13.1/9.9 | 2.96 | 0.23 | 0.30 | 12.7 | 53 / 65 / 81 |
 | 8 | chanceK2 .14, chanceBase ln(.187/.813), xgBase ×0.95, yellowPerFoul .285 | 2.58 | 46/25/29 | 13.7/10.3 | 3.10 | 0.26 | 0.30 | 12.1 | 53 / 65 / 82 |
 | 9 | xgBase ×0.99, yellowPerFoul .28, redPerFoul .001, shooterForwardMul 4/3/3 (final) | 2.56 | 45.9/25.2/28.9 | 13.7/10.3 | 3.05 | 0.24 | 0.30 | 11.6 | 52.9 / 65.0 / 81.2 |

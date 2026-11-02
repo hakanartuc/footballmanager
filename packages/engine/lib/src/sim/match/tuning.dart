@@ -121,6 +121,9 @@ abstract final class EngineTuning {
   /// already give ≈ 0.23 second yellows; the straight reds are cut to
   /// 0.001 to keep sendings-off inside the spec's 0.15–0.25 (see the
   /// Task 12 report on second yellows).
+  // TODO(T13): damp yellows for already-booked players (side_effects), then
+  // restore redPerFoul to ≈ 0.006–0.008 so straight reds are ~35 % of
+  // sendings-off instead of ~5 %.
   static const double redPerFoul = 0.001;
 
   /// Share of fouls inside the box; the attacking side's next possession is

@@ -142,7 +142,7 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
       if (id == null) continue;
       final drop =
           minutes *
-          _consts(w, side, id).drain *
+          _consts(side, id).drain *
           side.profile.conditionDrain *
           extraTimeMul;
       side.condition[id] = math.max(0.0, (side.condition[id] ?? 100) - drop);
@@ -150,10 +150,8 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   }
 }
 
-/// [id]'s match constants, computed on the spot for a player who was in
-/// neither the starters nor the bench.
-PlayerMatchConsts _consts(World w, SideState side, PlayerId id) =>
-    side.consts[id] ?? playerMatchConsts(w, w.players[id]!);
+/// [id]'s match constants; every starter and bench player has them.
+PlayerMatchConsts _consts(SideState side, PlayerId id) => side.consts[id]!;
 
 /// Spec 6.1 multipliers for [id] of [side] against [opp].
 double _injuryWeight(
@@ -163,7 +161,7 @@ double _injuryWeight(
   PlayerId id, {
   required bool fouled,
 }) {
-  final c = _consts(w, side, id);
+  final c = _consts(side, id);
   final condition = side.condition[id] ?? w.players[id]!.state.condition;
   final conditionMul = condition < EngineTuning.injuryVeryLowCondition
       ? EngineTuning.injuryVeryLowConditionMul
