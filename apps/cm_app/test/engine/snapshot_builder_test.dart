@@ -52,8 +52,7 @@ void main() {
     });
     final f = s.world.fixtures[fixtureId]!;
 
-    final item = b.inbox().first;
-    expect(item.event, isA<MatchPlayed>());
+    final item = b.inbox().singleWhere((i) => i.event is MatchPlayed);
     expect(item.labels.homeName, s.world.clubs[f.homeId]!.name);
     expect(item.labels.awayName, s.world.clubs[f.awayId]!.name);
     expect(item.labels.homeGoals, f.result!.homeGoals);
