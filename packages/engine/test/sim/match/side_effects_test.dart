@@ -115,6 +115,27 @@ void main() {
       expect(s.away.sentOff, isEmpty);
     });
 
+    test('a foul records the fouler and the fouled on the step', () {
+      final w = uniformWorld();
+      w.players[105]!.attrs.set(Attr.aggression, 20);
+      final s = startMatch(w);
+      // Fouler 105 as above; victim 0.5 × 11 → index 5 → id 6; no card.
+      final step = homeStep();
+      applySideEffects(
+        s,
+        step,
+        w,
+        ScriptedRng([0.0, 0.45, 0.5, 0.5, 0.5, 0.99, 0.99]),
+      );
+      expect(step.fouler, 105);
+      expect(step.fouled, 6);
+
+      final quietStep = homeStep();
+      applySideEffects(s, quietStep, w, ScriptedRng(quiet));
+      expect(quietStep.fouler, isNull);
+      expect(quietStep.fouled, isNull);
+    });
+
     test('foul and card rates scale with tackling', () {
       final w = uniformWorld();
       final s = startMatch(

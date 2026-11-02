@@ -14,9 +14,10 @@ import 'tuning.dart';
 
 /// Spec 5.3 step 8 after [step]: foul and cards (with their rating
 /// deltas), one injury exposure, and condition drain (× `extraTimeDrainMul`
-/// in extra time). Events go to both `s.events` and `step.events`; a
-/// sent-off or injured player leaves the pitch (slot nulled) but the
-/// profile is not rebuilt here — the session does that.
+/// in extra time). Events go to both `s.events` and `step.events`; a foul
+/// sets `step.fouler` and `step.fouled`; a sent-off or injured player
+/// leaves the pitch (slot nulled) but the profile is not rebuilt here —
+/// the session does that.
 ///
 /// Draw order on [rng]:
 ///  1. foul      — `nextDouble` against `foulPerStep × foulMul` (defender).
@@ -46,6 +47,9 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
             w.players[id]!.attrs[Attr.aggression].toDouble(),
         ])];
     fouled = rng.pick(att.playing);
+    step
+      ..fouler = fouler
+      ..fouled = fouled;
     def.stats.fouls++;
 
     final r = rng.nextDouble();

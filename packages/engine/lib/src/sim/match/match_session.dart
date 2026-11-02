@@ -1,4 +1,5 @@
 import '../../core/ids.dart';
+import '../../core/rng.dart';
 import '../../model/club.dart';
 import '../../model/match_conditions.dart';
 import '../../model/match_log.dart';
@@ -10,6 +11,7 @@ import '../match_simulator.dart';
 import 'ai_manager.dart';
 import 'extra_time.dart';
 import 'match_state.dart';
+import 'micro_events.dart';
 import 'possession.dart';
 import 'ratings.dart';
 import 'side_effects.dart';
@@ -34,9 +36,13 @@ import 'tuning.dart';
 /// the first step that reaches `halfEnd(half)` — one
 /// `nextInt(addedTimeDieSides)` for the half's added time; at the end of
 /// a level half 4 (or half 2 without extra time) `playShootout`'s draws.
-/// `aiDecide` draws nothing. `ctx.rng` is never forked here.
+/// `aiDecide` draws nothing. The constructor forks `ctx.rng.fork('visual')`
+/// for the coordinates (a fork depends on the seed only, so it consumes
+/// nothing); `buildMicroEvents` draws only from that fork, so the detail
+/// level never changes the result.
 ///
-/// One [step]: `resolvePossession` → `applySideEffects` → rebuild the
+/// One [step]: `resolvePossession` → `applySideEffects` → in
+/// `MatchDetail.full`, `buildMicroEvents` into `step.micro` → rebuild the
 /// profile of every side that lost a player (injury, red, second yellow)
 /// → `checkAbandon` (abandoned ends the match) → AI check, home then away
 /// → half boundary → the step goes to [log] in `MatchDetail.full`.
@@ -64,7 +70,8 @@ class MatchSession {
   MatchSession(MatchContext ctx)
     : _ctx = ctx,
       rules = ctx.rules ?? MatchRules.league,
-      matchSeed = ctx.rng.nextUint32() {
+      matchSeed = ctx.rng.nextUint32(),
+      _visualRng = ctx.rng.fork('visual') {
     final w = ctx.world;
     final f = ctx.fixture;
     state = MatchState.start(
@@ -89,6 +96,9 @@ class MatchSession {
   final int matchSeed;
   late final MatchState state;
 
+  /// The detailed mode's coordinate stream; never drawn otherwise.
+  final Rng _visualRng;
+
   /// The possession steps so far; non-null only in `MatchDetail.full`.
   late final MatchLog? log;
   late final Map<ClubId, int> _lastAiMinute;
@@ -102,8 +112,8 @@ class MatchSession {
   int get minute => state.minute;
 
   /// Advances up to [count] steps, fewer when the match ends; returns the
-  /// steps taken (`micro` stays empty until the detailed mode's
-  /// coordinates exist). Nothing happens on a finished match.
+  /// steps taken (`micro` is filled only in `MatchDetail.full`). Nothing
+  /// happens on a finished match.
   List<PossessionStep> step({int count = 1}) {
     final out = <PossessionStep>[];
     for (var i = 0; i < count && !_finished; i++) {
@@ -197,6 +207,14 @@ class MatchSession {
       detail: _ctx.detail == MatchDetail.full,
     );
     applySideEffects(s, step, w, rng);
+    if (_ctx.detail == MatchDetail.full) {
+      step.micro = buildMicroEvents(
+        step,
+        s.side(step.attackingId),
+        s.opponent(step.attackingId),
+        _visualRng,
+      );
+    }
 
     final lostPlayer = <ClubId>{};
     final injured = <ClubId>{};

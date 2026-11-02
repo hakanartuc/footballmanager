@@ -42,6 +42,7 @@ export 'src/sim/match/extra_time.dart';
 export 'src/sim/match/injury_table.dart';
 export 'src/sim/match/match_session.dart';
 export 'src/sim/match/match_state.dart';
+export 'src/sim/match/micro_events.dart';
 export 'src/sim/match/possession.dart';
 export 'src/sim/match/possession_match_simulator.dart';
 export 'src/sim/match/ratings.dart';

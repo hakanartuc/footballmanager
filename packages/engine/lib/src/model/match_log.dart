@@ -110,6 +110,11 @@ class PossessionStep {
   ShotOutcome? outcome;
   PlayerId? shooter;
   PlayerId? assister;
+
+  /// The defender who fouled and the attacker fouled, when the step's
+  /// side effects rolled a foul.
+  PlayerId? fouler;
+  PlayerId? fouled;
   List<MicroEvent> micro;
   List<MatchEvent> events;
 
@@ -125,6 +130,8 @@ class PossessionStep {
     this.outcome,
     this.shooter,
     this.assister,
+    this.fouler,
+    this.fouled,
     List<MicroEvent>? micro,
     List<MatchEvent>? events,
   }) : micro = micro ?? [],
