@@ -722,6 +722,7 @@ Map<String, dynamic> matchResultToJson(MatchResult r) => {
   'homeShootout': r.homeShootout,
   'awayShootout': r.awayShootout,
   'abandoned': r.abandoned,
+  'finalCondition': _idMapToJson(r.finalCondition, (v) => v),
 };
 
 MatchResult matchResultFromJson(Map<String, dynamic> j) => MatchResult(
@@ -747,6 +748,9 @@ MatchResult matchResultFromJson(Map<String, dynamic> j) => MatchResult(
   homeShootout: j['homeShootout'] as int?,
   awayShootout: j['awayShootout'] as int?,
   abandoned: (j['abandoned'] ?? false) as bool,
+  finalCondition: j['finalCondition'] == null
+      ? {}
+      : _idMapFromJson(j['finalCondition'], _double),
 );
 
 Map<String, dynamic> fixtureToJson(Fixture f) => {

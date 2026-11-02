@@ -113,6 +113,37 @@ void main() {
     expect(_rules(w), contains('lineup.valid'));
   });
 
+  test('lineup.valid covers a banned or injured player on the bench', () {
+    final w = _world();
+    final c = _firstClub(w);
+    c.lineup = autoLineup(w, c.id);
+    expect(_rules(w), isNot(contains('lineup.valid')));
+    final bench = w.players[c.lineup!.bench.first]!;
+    bench.state.suspensionMatches = 1;
+    expect(
+      checkInvariants(w).map((v) => v.toString()),
+      contains('lineup.valid: club ${c.id}: ineligible'),
+    );
+    bench.state.suspensionMatches = 0;
+    bench.state.injury = InjuryStub(daysLeft: 3, type: 'sprain');
+    expect(_rules(w), contains('lineup.valid'));
+    bench.state.injury = null;
+    expect(_rules(w), isNot(contains('lineup.valid')));
+  });
+
+  test('stats.consistent', () {
+    final w = _world();
+    final p = w.players[w.squadOf(_firstClub(w).id).first]!;
+    p.season.goals = 1;
+    expect(_rules(w), contains('stats.consistent'));
+    p.season.goals = 0;
+    p.season.apps = 1;
+    p.season.ratingSum = 10.5;
+    expect(_rules(w), contains('stats.consistent'));
+    p.season.ratingSum = 10;
+    expect(_rules(w), isNot(contains('stats.consistent')));
+  });
+
   test('player.ranges', () {
     final w = _world();
     final p = w.players[w.squadOf(_firstClub(w).id).first]!;
@@ -234,6 +265,59 @@ void main() {
     test('Goal events credited to the wrong club', () {
       f.result!.events.add(goal(f.awayId));
       expect(_rules(w), contains('fixture.goals'));
+    });
+
+    test('an awarded abandoned result is not held to its Goal events', () {
+      f.result!
+        ..abandoned = true
+        ..homeGoals = 3
+        ..goals.clear()
+        ..events.add(goal(f.awayId));
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+  });
+
+  group('result.extended', () {
+    late World w;
+    late Fixture f;
+
+    TeamStats stats() => TeamStats(
+      shots: 0,
+      onTarget: 0,
+      blocked: 0,
+      corners: 0,
+      fouls: 0,
+      yellows: 0,
+      reds: 0,
+      offsides: 0,
+      possessionPct: 50,
+      xg: 0,
+    );
+
+    setUp(() {
+      w = _world();
+      f = _fixtureAt(w, 0);
+      w.date = f.date.addDays(1);
+      f.result = MatchResult(
+        homeGoals: 0,
+        awayGoals: 0,
+        goals: [],
+        matchSeed: 0,
+        homeStats: stats(),
+        awayStats: stats(),
+        events: [FullTime(minute: 90, half: 2, clubId: f.homeId)],
+      );
+      expect(_rules(w), isNot(contains('result.extended')));
+    });
+
+    test('missing statistics', () {
+      f.result!.awayStats = null;
+      expect(_rules(w), contains('result.extended'));
+    });
+
+    test('no FullTime event', () {
+      f.result!.events.clear();
+      expect(_rules(w), contains('result.extended'));
     });
   });
 
@@ -507,7 +591,6 @@ void main() {
       daily = [];
       tableMismatches = [];
       final runner = DayRunner(
-        const PoissonMatchSimulator(),
         rollover: (w, rng) {
           tableMismatches = _tableMismatches(w);
           return rolloverSeason(w, rng);

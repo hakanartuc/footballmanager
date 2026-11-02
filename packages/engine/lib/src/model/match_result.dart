@@ -220,6 +220,10 @@ class MatchResult {
   int? awayShootout;
   bool abandoned;
 
+  /// Condition at the final whistle of every player in either match squad
+  /// (starters and bench); the day loop writes it back to the players.
+  Map<PlayerId, double> finalCondition;
+
   MatchResult({
     required this.homeGoals,
     required this.awayGoals,
@@ -234,6 +238,8 @@ class MatchResult {
     this.homeShootout,
     this.awayShootout,
     this.abandoned = false,
+    Map<PlayerId, double>? finalCondition,
   }) : events = events ?? [],
-       ratings = ratings ?? {};
+       ratings = ratings ?? {},
+       finalCondition = finalCondition ?? {};
 }

@@ -9,6 +9,7 @@ import '../gen/world_generator.dart';
 import '../invariants/invariants.dart';
 import '../model/events.dart';
 import '../model/json.dart';
+import '../model/match_result.dart';
 import '../session/engine_session.dart';
 import '../sim/new_game.dart';
 
@@ -176,6 +177,8 @@ class _SimulateCommand extends _NewGameCommand {
       double pct(bool Function(int h, int a) p) => n == 0
           ? 0
           : 100 * played.where((r) => p(r.homeGoals, r.awayGoals)).length / n;
+      int count(bool Function(MatchEvent e) p) =>
+          played.fold(0, (s, r) => s + r.events.where(p).length);
       report.add({
         'seasonYear': year,
         'champions': {
@@ -188,6 +191,10 @@ class _SimulateCommand extends _NewGameCommand {
         'homeWinPct': pct((h, a) => h > a),
         'drawPct': pct((h, a) => h == a),
         'awayWinPct': pct((h, a) => h < a),
+        'yellows': count((e) => e is Booking && e.kind == CardKind.yellow),
+        'reds': count((e) => e is Booking && e.kind != CardKind.yellow),
+        'injuries': count((e) => e is Injury),
+        'substitutions': count((e) => e is Substitution),
         'violations': 0,
         'days': days,
         'msTotal': watch.elapsedMilliseconds,

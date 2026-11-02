@@ -193,6 +193,11 @@ class MatchSession {
       homeShootout: s.homeShootout,
       awayShootout: s.awayShootout,
       abandoned: s.abandoned,
+      finalCondition: {
+        for (final side in [s.home, s.away])
+          for (final id in side.condition.keys.toList()..sort())
+            id: side.condition[id]!,
+      },
     );
   }
 

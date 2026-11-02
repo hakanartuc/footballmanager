@@ -45,7 +45,6 @@ class _Snapshot {
 class _SeasonRun {
   _SeasonRun(this.w) {
     final runner = DayRunner(
-      const PoissonMatchSimulator(),
       rollover: (w, rng) {
         before = _Snapshot(w);
         events = rolloverSeason(w, rng);

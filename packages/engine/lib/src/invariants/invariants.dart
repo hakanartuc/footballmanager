@@ -53,8 +53,10 @@ void _checkIds(World w, List<Violation> out) {
   check('fixture', w.fixtures, (f) => f.id);
 }
 
-/// `squad.size`, `lineup.valid`, `manager.seat`. Returns the reverse squad
-/// index: player id to (club id, isYouth) from the clubs' squad views.
+/// `squad.size`, `lineup.valid` (also `player.suspended`: a banned or
+/// injured player in a stored lineup is its `ineligible` error),
+/// `manager.seat`. Returns the reverse squad index: player id to (club id,
+/// isYouth) from the clubs' squad views.
 Map<PlayerId, (ClubId, bool)> _checkClubs(World w, List<Violation> out) {
   final index = <PlayerId, (ClubId, bool)>{};
   for (final club in w.clubs.values) {
@@ -132,7 +134,8 @@ Map<PlayerId, (ClubId, bool)> _checkClubs(World w, List<Violation> out) {
   return index;
 }
 
-/// `player.oneClub`, `player.ranges`, `contract.dates`.
+/// `player.oneClub`, `player.ranges`, `contract.dates`, `stats.consistent`
+/// (season goals and rating sum at most 10 per appearance).
 void _checkPlayers(
   World w,
   Map<PlayerId, (ClubId, bool)> index,
@@ -203,11 +206,22 @@ void _checkPlayers(
         out.add(Violation('player.ranges', 'player ${p.id} $name = $v'));
       }
     }
+    final season = p.season;
+    if (season.goals > season.apps * 10 ||
+        season.ratingSum > season.apps * 10) {
+      out.add(
+        Violation(
+          'stats.consistent',
+          'player ${p.id}: ${season.goals} goals, rating sum ${season.ratingSum} in ${season.apps} apps',
+        ),
+      );
+    }
   }
 }
 
 /// `league.fixtures`, `fixture.goals`, `calendar.noDoubleBooking`,
-/// `fixture.result`, all for the current season.
+/// `fixture.result`, `result.extended` (a result carries both sides'
+/// statistics and a `FullTime` event), all for the current season.
 void _checkFixtures(World w, List<Violation> out) {
   final members = {for (final l in w.leagues.values) l.id: l.clubIds.toSet()};
   final pairs = {
@@ -273,11 +287,22 @@ void _checkFixtures(World w, List<Violation> out) {
           );
         }
       }
-      if (home != r.homeGoals || away != r.awayGoals) {
+      // An abandoned match is awarded; its goals are not credited.
+      if (!r.abandoned && (home != r.homeGoals || away != r.awayGoals)) {
         out.add(
           Violation(
             'fixture.goals',
             'fixture ${f.id}: goal events $home-$away, result ${r.homeGoals}-${r.awayGoals}',
+          ),
+        );
+      }
+      if (r.homeStats == null ||
+          r.awayStats == null ||
+          !r.events.any((e) => e is FullTime)) {
+        out.add(
+          Violation(
+            'result.extended',
+            'fixture ${f.id}: result lacks statistics or a FullTime event',
           ),
         );
       }
@@ -300,7 +325,7 @@ void _checkFixtures(World w, List<Violation> out) {
             );
           }
         }
-        if (eh != r.homeGoals || ea != r.awayGoals) {
+        if (!r.abandoned && (eh != r.homeGoals || ea != r.awayGoals)) {
           out.add(
             Violation(
               'fixture.goals',

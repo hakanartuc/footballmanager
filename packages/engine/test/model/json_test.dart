@@ -464,6 +464,7 @@ MatchResult _fullResult() => MatchResult(
   homeShootout: 4,
   awayShootout: 3,
   abandoned: true,
+  finalCondition: {10: 70.0, 9: 61.5},
 );
 
 void main() {
@@ -661,6 +662,7 @@ void main() {
       expect(r.homeShootout, isNull);
       expect(r.awayShootout, isNull);
       expect(r.abandoned, isFalse);
+      expect(r.finalCondition, isEmpty);
       expect(matchResultToJson(r), {
         'homeGoals': 1,
         'awayGoals': 0,
@@ -677,6 +679,7 @@ void main() {
         'homeShootout': null,
         'awayShootout': null,
         'abandoned': false,
+        'finalCondition': <String, Object>{},
       });
     });
 
@@ -707,6 +710,7 @@ void main() {
       expect(injury.injury.type, 'hamstring');
       expect(back.homeShootout, 4);
       expect(back.abandoned, isTrue);
+      expect(back.finalCondition, {9: 61.5, 10: 70.0});
     });
 
     test('ratings are keyed by ascending player id, events by type', () {

@@ -1,7 +1,8 @@
 # engine
 
-Pure-Dart football-manager simulation engine (Faz 0A). Hosts (the Flutter
-app, the CLI in `bin/cm.dart`) talk to it only through `EngineSession`.
+Pure-Dart football-manager simulation engine (Faz 0A + Faz 1a match
+engine). Hosts (the Flutter app, the CLI in `bin/cm.dart`) talk to it only
+through `EngineSession`.
 
 ## Running the tests
 
@@ -29,25 +30,25 @@ All gates are real assertions. Thresholds are Faz 0 bounds; the spec's
 | `test/slow/perf_test.dart` | large, seed 1, 400 days | Generation < 8 s; match-day `summary.elapsed` p95 < 300 ms and non-match-day p95 < 50 ms (nearest-rank percentile; the first 5 match days are JIT warm-up and are left out); `save()` < 15 MB and < 2 s; `EngineSession.fromBytes` < 2 s. Peak RSS is not measured here (Faz 0B measures on device). |
 | `test/slow/world_generator_perf_test.dart` | large, seed 1 | Generation < 8 s. |
 | `test/slow/invariants_perf_test.dart` | large, seed 1 | One `checkInvariants` pass < 50 ms. |
-| `test/slow/poisson_stats_test.dart` | 20k matches per case | Equal sides: goals 2.5..2.9, home 43..47 %, draw 24..28 %, away 27..31 %; +40 strength gap: stronger side wins 74..82 %. |
+| `test/slow/possession_stats_test.dart` | 20k possession steps | Per-step sanity bands of the possession engine (chances, shots, fouls, cards, injuries, xG). |
 
-Measured on an Apple Silicon Mac (JIT, `dart test`): large world generates
-in ~120 ms; match day p50 2.3 ms / p95 3 ms, other day p50 0.9 ms / p95
-1.1 ms; save 1.97 MB in ~0.4 s, load ~0.3 s. Small world, 5 seasons with
-daily invariant checks: ~6 s.
+Measured on an Apple Silicon Mac (JIT, `dart test`) with the possession
+engine: large world generates in ~125 ms; match day p50 191 ms / p95 215
+ms (up to ~250 matches a day), other day p50 1.8 ms / p95 2.4 ms; save
+7.5 MB in ~1.2 s, load ~0.9 s (results now carry events, statistics and
+ratings). Small world, 5 seasons with daily invariant checks: ~19 s.
 
 ### Band notes
 
-- **Goals per match 2.5..3.0.** Spec §9's 2.5..2.9 is a single-match,
-  equal-strength target and is enforced as such in `poisson_stats_test`.
-  A league season mixes sides of different strength and the Poisson
-  placeholder's `exp(slope × d)` is convex, so with the generator's
-  within-league strength spread (sd ≈ 13 strength points, stable across
-  seasons) a season's expectation is ≈ 2.87 with σ ≈ 0.03 for ~3000
-  matches; seed 11 gave 2.83, 2.93, 2.90, 2.88, 2.88. The 3.0 ceiling is a
-  Faz 0 placeholder bound; the Faz 1a engine gets its own calibration.
-- **Home wins 43..47 %** is a ±2σ band around 45 % for ~3000 matches
-  (σ ≈ 0.9 points); seed 11 gave 45.8, 44.6, 45.1, 45.8, 46.1.
+- **Goals per match and home wins** are measured on the uncalibrated
+  possession engine until Task 12 (calibration) restores the spec bands
+  (goals 2.5..3.0, home wins 43..47 %; the gates carry `TODO(T12)`
+  markers). Seed 11, 5 seasons, uncalibrated: goals/match 3.88, 3.72,
+  3.77, 3.85, 3.71; home/draw/away ≈ 47/17/36 %; yellows ≈ 1.1 and reds
+  ≈ 0.11 per match; injuries 6.4..6.9 per club-season; bans issued 441,
+  762, 983, 885, 993 (yellow totals are not reset at the rollover, so the
+  10 and 15 thresholds bite from season 2). Gates until Task 12: goals
+  2.5..4.0, home wins 43..49 %.
 - **Population gates are post-transient.** The generated world is not at
   steady state (senior squads 22..26 against the cap of 28, youth cohorts
   fill over three seasons), so the player count at the end of season 5 is
@@ -74,9 +75,12 @@ daily invariant checks: ~6 s.
 ### Data growth
 
 Old-season fixtures are kept in `world.fixtures` until Faz 4 archiving.
-Measured on the large world: the gzip save grows by about 0.53 MB per
-season (uncompressed JSON about 5 MB per season) and `save()` takes about
-100 ms longer per season on desktop. The daily cost is flat: the day loop
+Measured on the large world under the Poisson placeholder: the gzip save
+grew by about 0.53 MB per season (uncompressed JSON about 5 MB per
+season) and `save()` took about 100 ms longer per season on desktop. With
+the possession engine every result carries its events, statistics and
+ratings: after 400 days the save is 7.5 MB (was 1.97 MB), so the
+per-season growth is roughly 5 MB until Faz 4 archives old seasons. The daily cost is flat: the day loop
 and `computeTable` read the per-season indexes (`fixturesOn`,
 `fixturesOfClub`, `fixturesOfLeagueSeason`), never the whole fixture map.
 
@@ -99,20 +103,52 @@ comparison between native and web (dart2js) output must be structural
 with `dart test -p chrome test/determinism_test.dart` run alongside the
 VM suite.
 
-## Match model (Faz 0 placeholder)
+## Match engine (Faz 1a)
 
-`lib/src/sim/poisson_match.dart`: independent Poisson goal counts with
+`lib/src/sim/match/`: the possession engine of spec §5. `MatchSession`
+plays one `MatchContext` possession step by possession step (team
+profiles from the lineups and tactics, chance creation and xG, fouls,
+cards, injuries, condition drain, AI substitutions and mentality shifts,
+extra time and penalties, player ratings); `PossessionMatchSimulator` runs
+a session to the end and is the default `MatchSimulator` of `DayRunner`
+and `EngineSession`. The Faz 0 Poisson placeholder is gone.
 
-```
-d        = (strength_home − strength_away) / 20
-λ_home   = baseHome × exp(strengthSlope × d) × homeAdvantage
-λ_away   = baseAway × exp(−strengthSlope × d)
-baseHome 1.45   baseAway 1.20   homeAdvantage 1.06   strengthSlope 0.33
-```
+The day loop (`lib/src/sim/day_loop.dart`) builds every fixture's context
+with `DayRunner.contextFor`: the stored lineups (auto-picked on the
+club's active tactic, custom formations on the tactic's own slots), the
+league's `MatchRules`, conditions from `sampleConditions` on the fork
+`conditions:<fixtureId>:<seasonYear>`, both clubs' tactics and the match
+stream `match:<fixtureId>:<seasonYear>`. After each match
+`DayRunner.settleMatch` serves a match of every ban of a player left out
+of the squad, then `applyPostMatch` (`lib/src/sim/discipline.dart`)
+credits appearances, goals, assists, cards, `ratingSum`, form (an EMA of
+the ratings, weight 0.2) and sharpness (+5 per appearance), accumulates
+yellows against the league's thresholds (the i-th threshold bans `i + 1`
+matches), bans sent-off players (`redBanSecondYellow`, `redBanFoul`,
+`redBanViolent`), stores injuries (days ×1.15 over age 30) and writes
+the final condition of every squad member back from
+`MatchResult.finalCondition`. `startOfDay` runs `dailyRecovery` after the
+condition recovery: injuries count down and heal with sharpness 40,
+everyone else gains 1 sharpness per day. Yellow-card totals and bans are
+kept across the season rollover (only the season statistics reset).
 
-`strengthSlope` was planned as 0.55; that made a +40 gap win 94 %, so it
-was lowered to 0.33 (78 % measured). Scorers are drawn by `positionWeight`
-times finishing.
+The user's match can be played interactively through
+`EngineSession.startUserMatch` / `finishUserMatch`: the first starts the
+day and returns the `MatchSession` of the user's fixture (built with the
+same `contextFor`), the second takes its result and plays the rest of
+the day. With the AI left on (`userManaged: false`) and no commands the
+pair is identical to `advanceDay` (world JSON equal). `save()` during a
+match holds the started day with the fixture unplayed; the session itself
+is not saved.
+
+## CLI
+
+`dart run bin/cm.dart simulate --seed 1 --size small --seasons 1
+[--invariants] [--report r.json]` prints one JSON object per season:
+`champions`, `matches`, `goals`, `goalsPerMatch`, `homeWinPct`,
+`drawPct`, `awayWinPct`, `yellows`, `reds` (second yellows included),
+`injuries`, `substitutions`, `violations`, `days`, `msTotal`. `generate`,
+`bench` and `inspect` are described by `cm help`.
 
 ## Generator values that differ from the plan
 
@@ -125,7 +161,6 @@ Tuned during implementation; the tests in `test/gen` pin them.
   symmetric, instead of the planned upward-biased `g(0, 2)`; the biased
   form shifted CA by about +4 and broke the `ca == computeCa(attrs)`
   calibration. Irrelevant attributes stay at `ca/10 − 4 + g(0, 2)`.
-- `strengthSlope` 0.33 (above).
 
 ## Saves
 

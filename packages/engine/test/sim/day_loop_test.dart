@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:engine/engine.dart';
 import 'package:test/test.dart';
 
@@ -27,8 +29,19 @@ DaySummary _advanceThrough(DayRunner runner, World w, GameDate date) {
   return last;
 }
 
+/// Runs the possession engine and keeps every context it was given.
+class _CapturingSimulator implements MatchSimulator {
+  final contexts = <MatchContext>[];
+
+  @override
+  MatchResult simulate(MatchContext ctx) {
+    contexts.add(ctx);
+    return const PossessionMatchSimulator().simulate(ctx);
+  }
+}
+
 void main() {
-  final runner = DayRunner(const PoissonMatchSimulator());
+  final runner = DayRunner();
 
   group('advanceDay', () {
     test('increments the date by one day per call', () {
@@ -77,7 +90,11 @@ void main() {
           w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!.date;
       _advanceThrough(runner, w, matchDay);
 
-      expect(w.clubs[c]!.lineup!.starters, custom.starters);
+      final f = w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!;
+      expect(
+        f.result!.finalCondition.keys,
+        containsAll([...custom.starters, ...custom.bench]),
+      );
       for (final id in custom.starters) {
         expect(w.players[id]!.season.apps, 1);
       }
@@ -117,9 +134,16 @@ void main() {
           w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!.date;
       _advanceThrough(runner, w, matchDay);
 
-      final used = w.clubs[c]!.lineup!;
-      expect(used.starters, hasLength(11));
-      expect(validateLineup(w, c, used), isEmpty);
+      final f = w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!;
+      final squad = w.squadOf(c).toSet();
+      final used = f.result!.finalCondition.keys.where(squad.contains);
+      expect(used, hasLength(18));
+      expect(
+        w.players.values.where(
+          (p) => p.season.apps == 1 && squad.contains(p.id),
+        ),
+        hasLength(greaterThanOrEqualTo(11)),
+      );
     });
 
     test('match results update appearances and goals', () {
@@ -130,18 +154,19 @@ void main() {
       _advanceThrough(runner, w, first);
 
       var goals = 0;
+      var appearances = 0;
       for (final id in w.fixturesOn(first)) {
-        final f = w.fixtures[id]!;
-        for (final clubId in [f.homeId, f.awayId]) {
-          for (final p in w.clubs[clubId]!.lineup!.starters) {
-            expect(w.players[p]!.season.apps, 1);
-          }
-        }
-        goals += f.result!.goals.length;
+        final r = w.fixtures[id]!.result!;
+        goals += r.events.whereType<Goal>().where((g) => !g.isOwnGoal).length;
+        appearances += 22 + r.events.whereType<Substitution>().length;
       }
       expect(goals, greaterThan(0));
       final tallied = w.players.values.fold(0, (n, p) => n + p.season.goals);
       expect(tallied, goals);
+      expect(
+        w.players.values.fold(0, (n, p) => n + p.season.apps),
+        appearances,
+      );
     });
 
     test('applies daily condition recovery', () {
@@ -194,6 +219,162 @@ void main() {
     });
   });
 
+  group('availability', () {
+    /// The user's club, its first two fixtures and its best senior.
+    (World, ClubId, Fixture, Fixture, Player) setup() {
+      final c = _firstTrClub();
+      final w = _world(startClubId: c);
+      final ids = w.fixturesOfClub(c, w.seasonYear);
+      final best = w
+          .squadOf(c)
+          .map((id) => w.players[id]!)
+          .reduce((a, b) => a.ca >= b.ca ? a : b);
+      return (w, c, w.fixtures[ids[0]]!, w.fixtures[ids[1]]!, best);
+    }
+
+    test('a banned player misses exactly the next fixture', () {
+      final (w, _, first, second, p) = setup();
+      p.state.suspensionMatches = 1;
+      _advanceThrough(runner, w, first.date);
+      expect(first.result!.finalCondition.keys, isNot(contains(p.id)));
+      expect(p.state.suspensionMatches, 0);
+      _advanceThrough(runner, w, second.date);
+      expect(second.result!.finalCondition.keys, contains(p.id));
+    });
+
+    test('an injured player is not picked until healed', () {
+      final (w, _, first, second, p) = setup();
+      // Heals on the morning after the first fixture.
+      p.state.injury = InjuryStub(
+        daysLeft: first.date.dayIndex - w.date.dayIndex + 2,
+        type: 'sprain',
+      );
+      _advanceThrough(runner, w, first.date);
+      expect(first.result!.finalCondition.keys, isNot(contains(p.id)));
+      expect(p.state.injury!.daysLeft, 1);
+      runner.advanceDay(w, const []);
+      expect(p.state.injury, isNull);
+      expect(p.state.sharpness, DisciplineTuning.returnSharpness);
+      _advanceThrough(runner, w, second.date);
+      expect(second.result!.finalCondition.keys, contains(p.id));
+    });
+
+    test('condition carries over from the final whistle', () {
+      final (w, _, first, _, _) = setup();
+      final s = _advanceThrough(runner, w, first.date);
+      expect(s.playedFixtures, contains(first.id));
+      final r = first.result!;
+      expect(r.finalCondition, isNotEmpty);
+      expect(r.finalCondition.values.any((v) => v < 100 - 12), isTrue);
+      for (final MapEntry(key: id, value: v) in r.finalCondition.entries) {
+        expect(w.players[id]!.state.condition, v);
+      }
+      // The next day's start adds one recovery on top.
+      runner.advanceDay(w, const []);
+      for (final MapEntry(key: id, value: v) in r.finalCondition.entries) {
+        expect(
+          w.players[id]!.state.condition,
+          closeTo(math.min(100, v + conditionRecoveryPerDay), 1e-9),
+        );
+      }
+    });
+  });
+
+  group('playMatches', () {
+    test('every result carries statistics, events and final conditions', () {
+      final w = _world();
+      final until = w.date.addDays(45);
+      while (w.date.isBefore(until)) {
+        runner.advanceDay(w, const []);
+      }
+      final results = [
+        for (final f in w.fixtures.values)
+          if (f.result != null) f.result!,
+      ];
+      expect(results.length, greaterThan(50));
+      for (final r in results) {
+        expect(r.homeStats, isNotNull);
+        expect(r.awayStats, isNotNull);
+        expect(r.events.last, isA<FullTime>());
+        expect(r.finalCondition.length, greaterThanOrEqualTo(22));
+        expect(r.conditions, isNotNull);
+      }
+    });
+
+    test('the context carries league rules, conditions and tactics', () {
+      final w = _world();
+      final capture = _CapturingSimulator();
+      final capturing = DayRunner(sim: capture);
+      final first = w.fixtures.values
+          .map((f) => f.date)
+          .reduce((a, b) => a.isBefore(b) ? a : b);
+      _advanceThrough(capturing, w, first);
+      expect(capture.contexts, isNotEmpty);
+      for (final ctx in capture.contexts) {
+        final f = ctx.fixture;
+        expect(ctx.rules, same(w.leagues[f.leagueId]!.rules));
+        expect(ctx.homeTactic, same(w.clubs[f.homeId]!.tactic));
+        expect(ctx.awayTactic, same(w.clubs[f.awayId]!.tactic));
+        expect(ctx.detail, MatchDetail.result);
+        final expected = sampleConditions(
+          w: w,
+          f: f,
+          rng: SeededRng(w.seed).fork('conditions:${f.id}:${w.seasonYear}'),
+        );
+        expect(ctx.conditions!.weather, expected.weather);
+        expect(ctx.conditions!.pitch, expected.pitch);
+        expect(ctx.conditions!.attendance, expected.attendance);
+        expect(ctx.conditions!.homeAdvantage, expected.homeAdvantage);
+        expect(f.result!.conditions!.attendance, expected.attendance);
+      }
+    });
+  });
+
+  group('startOfDay', () {
+    test('re-picks a stored lineup on another formation than the tactic', () {
+      final c = _firstTrClub();
+      final w = _world(startClubId: c);
+      final club = w.clubs[c]!;
+      final stored = autoLineup(w, c);
+      expect(stored.formation, Formation.f442);
+      club.lineup = stored;
+      club.formation = Formation.f433;
+
+      final matchDay =
+          w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!.date;
+      final capture = _CapturingSimulator();
+      _advanceThrough(DayRunner(sim: capture), w, matchDay);
+      final ctx = capture.contexts.singleWhere(
+        (x) => x.fixture.homeId == c || x.fixture.awayId == c,
+      );
+      final used = ctx.fixture.homeId == c ? ctx.home : ctx.away;
+      expect(used, isNot(same(stored)));
+      expect(used.formation, Formation.f433);
+    });
+
+    test('a custom tactic plays on its own slots', () {
+      final c = _firstTrClub();
+      final w = _world(startClubId: c);
+      final club = w.clubs[c]!;
+      final slots = List.of(formationSlots(Formation.f442))
+        ..[10] = Position.amc;
+      club.tactics[club.activeTactic] = Tactic.custom(slots, name: 'own');
+
+      final f = w.fixtures[w.fixturesOfClub(c, w.seasonYear).first]!;
+      final capture = _CapturingSimulator();
+      _advanceThrough(DayRunner(sim: capture), w, f.date);
+      expect(f.result, isNotNull);
+      final ctx = capture.contexts.singleWhere((x) => x.fixture.id == f.id);
+      final used = ctx.fixture.homeId == c ? ctx.home : ctx.away;
+      expect(used.formation, Formation.custom);
+      expect(used.starters, hasLength(11));
+      expect(
+        (ctx.fixture.homeId == c ? ctx.homeTactic : ctx.awayTactic)!.slots,
+        slots,
+      );
+    });
+  });
+
   group('endOfDay', () {
     test('keeps at most the 300 most recent inbox messages', () {
       final w = _world();
@@ -231,7 +412,6 @@ void main() {
       final w = _world();
       final calls = <int>[];
       final hooked = DayRunner(
-        const PoissonMatchSimulator(),
         rollover: (w, rng) {
           calls.add(w.seasonYear);
           return [SeasonEnded(date: w.date, seasonYear: w.seasonYear)];

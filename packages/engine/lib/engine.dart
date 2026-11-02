@@ -35,6 +35,7 @@ export 'src/persistence/save_store.dart';
 export 'src/session/engine_session.dart';
 export 'src/sim/commands.dart';
 export 'src/sim/day_loop.dart';
+export 'src/sim/discipline.dart';
 export 'src/sim/lineup.dart';
 export 'src/sim/match/ai_manager.dart';
 export 'src/sim/match/conditions.dart';
@@ -51,7 +52,6 @@ export 'src/sim/match/team_profile.dart';
 export 'src/sim/match/tuning.dart';
 export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
-export 'src/sim/poisson_match.dart';
 export 'src/sim/season_rollover.dart';
 
 const engineVersion = '0.0.1';

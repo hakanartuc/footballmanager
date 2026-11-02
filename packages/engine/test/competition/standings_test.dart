@@ -162,7 +162,7 @@ void main() {
           startClubId: null,
         ),
       );
-      final runner = DayRunner(const PoissonMatchSimulator());
+      final runner = DayRunner();
       final seasonEnd = w.calendar.seasonEnd;
       while (!w.date.isAfter(seasonEnd)) {
         runner.advanceDay(w, const []);

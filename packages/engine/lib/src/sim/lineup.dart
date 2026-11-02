@@ -78,18 +78,20 @@ Lineup autoLineup(World w, ClubId c, {Formation? formation}) {
   );
 }
 
-/// Everything wrong with [l] as [c]'s lineup, in [LineupError] order.
+/// Everything wrong with [l] as [c]'s lineup, in [LineupError] order;
+/// `ineligible` is an injured or banned player among the starters or on
+/// the bench.
 List<LineupError> validateLineup(World w, ClubId c, Lineup l) {
   final all = [...l.starters, ...l.bench];
   final club = {...w.squadOf(c), ...w.youthOf(c)};
   final starters = [for (final id in l.starters) w.players[id]];
+  final named = [for (final id in all) w.players[id]];
   return [
     if (l.starters.length != 11) LineupError.notEleven,
     if (all.toSet().length != all.length) LineupError.duplicate,
     if (!club.containsAll(all)) LineupError.notInClub,
     if (!starters.any((p) => p?.mainPosition == Position.gk))
       LineupError.noGoalkeeper,
-    if (starters.any((p) => p != null && !_available(p)))
-      LineupError.ineligible,
+    if (named.any((p) => p != null && !_available(p))) LineupError.ineligible,
   ];
 }
