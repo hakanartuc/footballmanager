@@ -39,6 +39,8 @@ const int youthReleaseAge = 19;
 /// 1. archive: final tables, `SeasonArchive` in `history`, `LeagueChampion`;
 /// 2. promotion/relegation per country (`Promoted`, `Relegated`);
 /// 3. career lines for players who appeared and for employed managers;
+///    season statistics and yellow-card totals reset (spec 16.8), bans
+///    carry over;
 ///    every player's `season` is reset;
 /// 4. retirement of every player aged [retirementAge] or more
 ///    (`PlayerRetired`);
@@ -147,6 +149,7 @@ void _recordCareers(World w) {
       );
     }
     p.season = SeasonStats();
+    p.state.yellowCards = 0;
   }
   for (final id in w.managers.keys.toList()..sort()) {
     final m = w.managers[id]!;

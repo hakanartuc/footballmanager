@@ -178,12 +178,14 @@ class EngineSession {
     return null;
   }
 
-  /// The world encoded by the session's codec. Allowed during a user
-  /// match: the bytes hold the world as the day started (lineups picked,
-  /// recovery applied, the fixture unplayed); the in-memory
-  /// [MatchSession] is not saved, so a session restored from them starts
-  /// the day again.
-  Uint8List save() => _codec.encode(_world);
+  /// The world encoded by the session's codec. The world is saved only
+  /// between days: throws [StateError] while a user match is in progress
+  /// (hosts guard their autosave with [userMatchInProgress]), so a quit
+  /// mid-match resumes from that morning.
+  Uint8List save() {
+    _noUserMatch();
+    return _codec.encode(_world);
+  }
 
   /// [computeTable] of [l] for the current season.
   List<TableRow> table(LeagueId l) =>

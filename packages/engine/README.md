@@ -45,10 +45,9 @@ ratings). Small world, 5 seasons with daily invariant checks: ~19 s.
   (goals 2.5..3.0, home wins 43..47 %; the gates carry `TODO(T12)`
   markers). Seed 11, 5 seasons, uncalibrated: goals/match 3.88, 3.72,
   3.77, 3.85, 3.71; home/draw/away ≈ 47/17/36 %; yellows ≈ 1.1 and reds
-  ≈ 0.11 per match; injuries 6.4..6.9 per club-season; bans issued 441,
-  762, 983, 885, 993 (yellow totals are not reset at the rollover, so the
-  10 and 15 thresholds bite from season 2). Gates until Task 12: goals
-  2.5..4.0, home wins 43..49 %.
+  ≈ 0.11 per match; injuries 6.4..6.9 per club-season; bans issued
+  441, 374, 427, 410, 428 (yellow totals reset at the rollover). Gates until
+  Task 12: goals 2.5..4.0, home wins 43..49 %.
 - **Population gates are post-transient.** The generated world is not at
   steady state (senior squads 22..26 against the cap of 28, youth cohorts
   fill over three seasons), so the player count at the end of season 5 is
@@ -129,8 +128,8 @@ matches), bans sent-off players (`redBanSecondYellow`, `redBanFoul`,
 the final condition of every squad member back from
 `MatchResult.finalCondition`. `startOfDay` runs `dailyRecovery` after the
 condition recovery: injuries count down and heal with sharpness 40,
-everyone else gains 1 sharpness per day. Yellow-card totals and bans are
-kept across the season rollover (only the season statistics reset).
+everyone else gains 1 sharpness per day. The season rollover resets the
+yellow-card totals with the season statistics; bans carry over.
 
 The user's match can be played interactively through
 `EngineSession.startUserMatch` / `finishUserMatch`: the first starts the
@@ -138,8 +137,8 @@ day and returns the `MatchSession` of the user's fixture (built with the
 same `contextFor`), the second takes its result and plays the rest of
 the day. With the AI left on (`userManaged: false`) and no commands the
 pair is identical to `advanceDay` (world JSON equal). `save()` during a
-match holds the started day with the fixture unplayed; the session itself
-is not saved.
+match throws `StateError` (the world is saved only between days; hosts
+guard their autosave with `userMatchInProgress`).
 
 ## CLI
 

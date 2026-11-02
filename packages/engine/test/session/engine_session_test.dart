@@ -357,23 +357,13 @@ void main() {
       expect(_json(b), isNot(_json(a)));
     });
 
-    test('save during a match holds the started day without the match', () {
+    test('save throws during a match and works again after it', () {
       final s = atMatchDay();
       final before = s.save();
       s.startUserMatch();
-      final during = s.save();
-      expect(during, isNot(before));
-
-      // The same bytes as the day's start on a twin world.
-      final twin = EngineSession.fromBytes(before).world;
-      DayRunner().startOfDay(twin, const []);
-      expect(during, const JsonGzipSaveCodec().encode(twin));
-
-      final restored = EngineSession.fromBytes(during);
-      expect(restored.nextUserMatchDate(), restored.world.date);
-      expect(userFixture(restored).result, isNull);
-      expect(restored.userMatchInProgress, isFalse);
+      expect(s.save, throwsStateError);
       s.finishUserMatch();
+      expect(s.save(), isNot(before));
     });
   });
 

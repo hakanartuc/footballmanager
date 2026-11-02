@@ -307,6 +307,18 @@ void main() {
     });
   });
 
+  test('resets yellow-card totals, bans carry over', () {
+    final w3 = _world();
+    w3.date = w3.calendar.seasonEnd;
+    final p = w3.players[w3.squadOf(w3.clubs.keys.first).first]!;
+    p.state
+      ..yellowCards = 7
+      ..suspensionMatches = 2;
+    rolloverSeason(w3, SeededRng(w3.seed).fork('rollover:${w3.seasonYear}'));
+    expect(p.state.yellowCards, 0);
+    expect(p.state.suspensionMatches, 2);
+  });
+
   group('rollover edge cases', () {
     late _SeasonRun run2;
     late World w2;
