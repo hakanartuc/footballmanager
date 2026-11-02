@@ -9,14 +9,14 @@ const _seasons = 5;
 /// Spec §9's 2.5..2.9 goals, 43..47 % home wins and 24..28 % draws are
 /// single-match, equal-strength targets (`calibration_test` holds them).
 /// A league with the generator's strength spread and fatigue scores a
-/// little more (ceiling 3.0), draws less, and feels the home advantage
-/// less: the possession logistic is already saturated by the strength
-/// gap in most fixtures, so the home mid boost adds little there. Seed 11
-/// measures home 42.4..44.7 % and draws 22.4..24.2 % (Task 12 report), so
-/// the league bands are 41..47 and 21..30.
+/// little more (ceiling 3.0) and draws less. The home edge is additive
+/// log-odds in the possession draw since Task 13, so it no longer fades
+/// with the strength gap: seed 11 measures home 43.2..44.4 % and draws
+/// 23.1..24.2 % (was 42.4..44.7 / 22.4..24.2 with the home mid boost), so
+/// the home band is the spec's 43..47 and draws 22..30.
 const _goalsBand = (2.5, 3.0);
-const _homeBand = (41.0, 47.0);
-const _drawBand = (21.0, 30.0);
+const _homeBand = (43.0, 47.0);
+const _drawBand = (22.0, 30.0);
 
 typedef _Buckets = ({double u20, double u25, double u30, double over30});
 

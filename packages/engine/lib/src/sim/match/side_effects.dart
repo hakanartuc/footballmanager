@@ -24,7 +24,9 @@ import 'tuning.dart';
 ///     2. fouler — `weightedIndex` by aggression over the defenders.
 ///     3. victim — `pick` over the attackers.
 ///     4. card   — `nextDouble`: red below `redPerFoul × cardMul`, yellow
-///                 below `(redPerFoul + yellowPerFoul) × cardMul`.
+///                 below `(redPerFoul + yellowPerFoul) × cardMul`; a fouler
+///                 who already holds a yellow has `yellowPerFoul` ×
+///                 `bookedYellowMul` there.
 ///     5. reason — straight red only: violent / last man / normal shares.
 ///     6. box    — `nextDouble` against `boxFoulShare` → pending penalty.
 ///     7. free kick — only when not in the box: `nextDouble` against
@@ -61,6 +63,10 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
           (EngineTuning.redPerFoul + EngineTuning.yellowPerFoul) * cardMul <= 1,
       'card bands at cardMul $cardMul',
     );
+    final booked = (def.yellows[fouler] ?? 0) > 0;
+    final yellowPerFoul =
+        EngineTuning.yellowPerFoul *
+        (booked ? EngineTuning.bookedYellowMul : 1);
     if (r < EngineTuning.redPerFoul * cardMul) {
       final q = rng.nextDouble();
       final reason = q < EngineTuning.redViolentShare
@@ -70,8 +76,7 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
           : FoulKind.normal;
       _book(s, step, def, fouler, CardKind.red, reason);
       _sendOff(def, fouler);
-    } else if (r <
-        (EngineTuning.redPerFoul + EngineTuning.yellowPerFoul) * cardMul) {
+    } else if (r < (EngineTuning.redPerFoul + yellowPerFoul) * cardMul) {
       final n = (def.yellows[fouler] ?? 0) + 1;
       def.yellows[fouler] = n;
       def.stats.yellows++;

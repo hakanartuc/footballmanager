@@ -358,6 +358,8 @@ TeamProfile buildProfile({
       tactic.passing == PassingStyle.direct ||
       tactic.passing == PassingStyle.longBall;
   final shortHanded = math.pow(EngineTuning.tenMenMul, 11 - n).toDouble();
+  // Home advantage scales att only; in possession it is the additive
+  // `EngineTuning.homeLogOdds` (spec 5.3 step 1 as tuned in Task 13).
   final homeMul = home ? cond.homeAdvantage : 1.0;
 
   final attMul =
@@ -378,7 +380,6 @@ TeamProfile buildProfile({
                 ? EngineTuning.wetLongBallMul
                 : EngineTuning.wetShortPassMul)
           : 1.0) *
-      homeMul *
       shortHanded;
 
   final chanceWeights = {for (final t in ChanceType.values) t: 1.0};

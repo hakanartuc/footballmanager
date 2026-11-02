@@ -59,6 +59,11 @@ void main() {
     expect(r.injuries, inInclusiveRange(0.25, 0.4));
   });
 
+  test('straight reds are at least 30 % of the sendings-off', () {
+    expect(r.reds, closeTo(r.secondYellows + r.straightReds, 1e-9));
+    expect(r.straightReds / r.reds, greaterThanOrEqualTo(0.30));
+  });
+
   test('score histogram: 0-0 7..9 %, 1-1 11..13 %, 1-0 9..12.5 %, '
       '5+ goals 8..13 %', () {
     expect(r.scorePct['0-0'], inInclusiveRange(7, 9));

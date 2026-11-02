@@ -190,6 +190,49 @@ void main() {
       expect(s.away.stats.reds, 1);
     });
 
+    test('a booked fouler draws a further yellow at ×bookedYellowMul', () {
+      final w = uniformWorld();
+      // A card draw between the damped and the full yellow band.
+      final between =
+          EngineTuning.redPerFoul +
+          EngineTuning.yellowPerFoul * (1 + EngineTuning.bookedYellowMul) / 2;
+      final s = startMatch(w);
+      s.away.yellows[101] = 1;
+      s.away.stats.yellows = 1;
+      final booked = homeStep();
+      applySideEffects(s, booked, w, ScriptedRng(foul(card: between)));
+      expect(booked.events, isEmpty);
+      expect(s.away.stats.fouls, 1);
+      expect(s.away.yellows[101], 1);
+      expect(s.away.stats.yellows, 1);
+      expect(s.away.sentOff, isEmpty);
+
+      // The same draw books an unbooked fouler.
+      final t = startMatch(w);
+      final fresh = homeStep();
+      applySideEffects(t, fresh, w, ScriptedRng(foul(card: between)));
+      expect((fresh.events.single as Booking).kind, CardKind.yellow);
+
+      // Inside the damped band the booked fouler gets the second yellow.
+      final u = startMatch(w);
+      u.away.yellows[101] = 1;
+      final inside = homeStep();
+      applySideEffects(
+        u,
+        inside,
+        w,
+        ScriptedRng(
+          foul(
+            card:
+                EngineTuning.redPerFoul +
+                EngineTuning.yellowPerFoul * EngineTuning.bookedYellowMul / 2,
+          ),
+        ),
+      );
+      expect((inside.events.single as Booking).kind, CardKind.secondYellow);
+      expect(u.away.sentOff, {101});
+    });
+
     test('a straight red: reason by share, sent off', () {
       final reasons = {
         0.05: FoulKind.violent,

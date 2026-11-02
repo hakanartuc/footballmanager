@@ -49,15 +49,15 @@ before Task 12 cached the per-player injury and drain constants that
 ### Band notes
 
 - **Goals, home wins and draws in the league** (`long_sim_test`) are
-  gated at goals 2.5..3.0, home wins 41..47 % and draws 21..30 %: spec
+  gated at goals 2.5..3.0, home wins 43..47 % and draws 22..30 %: spec
   §9's 2.5..2.9 / 43..47 / 24..28 are single-match, equal-strength
   targets (`calibration_test` holds them); a league with the generator's
-  strength spread and fatigue scores a little more, draws less and feels
-  the home advantage less (see "Calibration"). Seed 11, 5 seasons, tuned:
-  goals/match 2.62, 2.61, 2.63, 2.60, 2.57; home/draw/away ≈ 43/23/33 %
-  (home 42.4..44.7); yellows ≈ 3.0 and reds ≈ 0.26 per match (second
-  yellows included); injuries 6.5..7.2 per club-season; suspensions
-  ≈ 1 750 a season.
+  strength spread and fatigue scores a little more and draws less (see
+  "Calibration"). Seed 11, 5 seasons, Task 13 constants: goals/match
+  2.67, 2.63, 2.66, 2.63, 2.61; home/draw/away ≈ 44/24/32 % (home
+  43.2..44.4, draws 23.1..24.2); yellows ≈ 3.0 and reds ≈ 0.21 per match
+  (second yellows included); injuries 6.5..6.9 per club-season;
+  suspensions ≈ 1 600 a season.
 - **Population gates are post-transient.** The generated world is not at
   steady state (senior squads 22..26 against the cap of 28, youth cohorts
   fill over three seasons), so the player count at the end of season 5 is
@@ -190,8 +190,21 @@ and a flatter `chanceK2`; counters as a floor for the weaker side were
 tried and rejected (they dilute the small gaps as much as the large
 one).
 
+Task 13 (rows 10–15) reshaped step 1 after the Task 12 review: the
+contested share of possessions is now the style-independent
+`midContestShare` (0.45) less the spec's small style bypass (0.0–0.3),
+`possessionK1` dropped from 1.4 to 1.0 so the contest no longer
+saturates (a one-point mid edge is +9 pp of open-play possession, four
+points +20 pp; before, +8 and +10), and the home advantage is an additive
+log-odds term in the contest (`homeLogOdds` 0.7 at the neutral 1.055,
+scaled by `(homeAdvantage − 1) / 0.055`) instead of ×1.055 on the mid, so
+the home edge is the same size at every strength gap. A booked player
+draws a further yellow at `yellowPerFoul × bookedYellowMul` (0.5), which
+let `redPerFoul` return to 0.007 (spec 0.008): straight reds are 43 % of
+the sendings-off instead of 5 %.
+
 Iterations (equal CA-120 sides; H/D/A in %, gaps = stronger side's
-win %; 2 000–4 000 matches per probe, 10 000 for the final row):
+win %; 2 000–4 000 matches per probe, 10 000 for rows 9, 14 and 15):
 
 | # | Change | Goals | H/D/A | Shots h/a | Yel | Red | Inj | 5+ | +10 / +20 / +40 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -204,19 +217,28 @@ win %; 2 000–4 000 matches per probe, 10 000 for the final row):
 | 6 | possessionK1 1.2, midBypass .5–.8; row 5's counter floor reverted (counterProb .15, counterDefMul .80) | 2.59 | 46/24/30 | 13.0/10.1 | 2.95 | 0.22 | 0.30 | 12.2 | 53 / 64 / 82 |
 | 7 | possessionK1 1.4, chanceK2 .13 | 2.59 | 45/24/30 | 13.1/9.9 | 2.96 | 0.23 | 0.30 | 12.7 | 53 / 65 / 81 |
 | 8 | chanceK2 .14, chanceBase ln(.187/.813), xgBase ×0.95, yellowPerFoul .285 | 2.58 | 46/25/29 | 13.7/10.3 | 3.10 | 0.26 | 0.30 | 12.1 | 53 / 65 / 82 |
-| 9 | xgBase ×0.99, yellowPerFoul .28, redPerFoul .001, shooterForwardMul 4/3/3 (final) | 2.56 | 45.9/25.2/28.9 | 13.7/10.3 | 3.05 | 0.24 | 0.30 | 11.6 | 52.9 / 65.0 / 81.2 |
+| 9 | xgBase ×0.99, yellowPerFoul .28, redPerFoul .001, shooterForwardMul 4/3/3 (Task 12 final) | 2.56 | 45.9/25.2/28.9 | 13.7/10.3 | 3.05 | 0.24 | 0.30 | 11.6 | 52.9 / 65.0 / 81.2 |
+| 10 | midContestShare .5 with the spec midBypass (0–.3), possessionK1 .5, homeLogOdds .35 (mid no longer ×homeAdvantage), bookedYellowMul .5, redPerFoul .007 | 2.53 | 43.0/25.6/31.4 | 13.0/10.9 | 3.06 | 0.19 | 0.30 | 11.6 | 47.7 / 59.6 / 78.9 |
+| 11 | possessionK1 .7, midContestShare .45, homeLogOdds .45, chanceK2 .16 | 2.56 | 43.7/25.9/30.4 | 13.3/10.9 | 3.07 | 0.19 | 0.30 | 12.0 | 49.6 / 62.3 / 82.3 |
+| 12 | possessionK1 1.0, chanceK2 .14 | 2.53 | 43.6/25.6/30.8 | 13.1/10.8 | 3.07 | 0.19 | 0.30 | 11.5 | 51.1 / 63.8 / 81.0 |
+| 13 | homeLogOdds .6, xgBase ×1.03 | 2.62 | 44.7/25.0/30.3 | 13.3/10.6 | 3.07 | 0.19 | 0.30 | 12.7 | 51.2 / 64.0 / 81.7 |
+| 14 | xgBase ×1.015 instead | 2.59 | 44.0/25.2/30.8 | 13.3/10.7 | 3.05 | 0.20 | 0.30 | 12.2 | 51.1 / 63.9 / 81.5 |
+| 15 | homeLogOdds .7 (final) | 2.59 | 44.9/25.1/30.1 | 13.5/10.5 | 3.05 | 0.20 | 0.30 | 12.2 | 50.9 / 63.8 / 81.4 |
 
-Final `cm calibrate --seed 1 --matches 10000`: goals 2.56; home/draw/away
-45.9 / 25.2 / 28.9 %; shots 13.65 / 10.31; on target 4.87 / 3.63; xG
-1.43 / 1.08; possession 56 % home; corners 1.78; fouls 11.72; yellows
-3.05; reds 0.24; injuries 0.30; substitutions 0.30; added time 3.4 per
-half; 5+ goals 11.6 %; scores 1-1 12.0, 1-0 11.5, 2-1 8.8, 0-1 8.5, 2-0
-8.1, 0-0 7.8, 1-2 7.2 %. Gap curve (4 000 matches each): +10 → 52.9 /
-23.4 / 23.7, +20 → 65.0 / 21.3 / 13.7, +40 → 81.2 / 12.7 / 6.1 (spec 55 /
-24 / 21, 65 / 20 / 15, 78 / 14 / 8, ±5). Season check (100 seasons):
-champion 86.8 points (73..101), last 18.9 (5..32), median 52.3, strongest
-three in the top four in 83 % of their club-seasons (all three at once in
-54 seasons), strongest one champion in 66 seasons, top scorer 21.0.
+Final `cm calibrate --seed 1 --matches 10000`: goals 2.59; home/draw/away
+44.9 / 25.1 / 30.1 %; shots 13.46 / 10.51; on target 4.82 / 3.72; xG
+1.43 / 1.12; possession 55.1 % home; corners 1.78; fouls 11.72; yellows
+3.05; reds 0.20 (second yellows 0.11, straight 0.09 — 43 % of the
+sendings-off); injuries 0.30; substitutions 0.30; added time 3.4 per
+half; 5+ goals 12.2 %; scores 1-1 11.8, 1-0 11.0, 2-1 8.8, 0-1 8.7, 2-0
+7.9, 0-0 7.6, 1-2 7.3 %. Gap curve (4 000 matches each): +10 → 50.9 /
+23.9 / 25.2, +20 → 63.8 / 21.3 / 14.9, +40 → 81.4 / 12.5 / 6.1 (spec 55 /
+24 / 21, 65 / 20 / 15, 78 / 14 / 8, ±5); the stronger side's possession
+averaged over home and away is 56.3 / 61.0 / 64.9 %. Season check (100
+seasons): champion 86.0 points (74..102), last 19.7 (6..33), median 52.3,
+strongest three in the top four in 81 % of their club-seasons (all three
+at once in 49 seasons), strongest one champion in 59 seasons, top scorer
+20.9.
 
 Bands that the tuning could not centre, and why:
 
@@ -225,25 +247,21 @@ Bands that the tuning could not centre, and why:
   5+ at 11.6 %; the set-piece clustering adds ~0.5 to each. The spec's
   1-0 ≤ 11 and 5+ ≤ 12 only hold together below 2.5 goals, so the test
   gates them at 12.5 and 13 %.
-- **Yellows vs reds.** Yellows fall evenly over the fouling side, so 3
-  first yellows a match imply ≈ 0.23 second yellows; the straight-red
-  rate had to drop to 0.001 per foul (spec 0.008) to keep sendings-off
-  at 0.24. A second-yellow damper (a booked player draws yellows less
-  often) would restore realistic straight reds; it is an engine change,
-  not a constant.
 - **Strongest three in the top four.** Gated per club (≥ 80 % of
   club-seasons) rather than per season: with sd 13 the third and fourth
   strongest clubs are 2..5 CA apart, worth 1..3 points over 38 matches
   against a points noise of ~8.
-- **Possession** reads 56 / 44 in an equal home match (the steep
-  `possessionK1` on the ×1.055 home mid); real leagues sit nearer 53 /
-  47.
-- **Home advantage in the league** is 42.4..44.7 % home wins against
-  45.9 % for the equal pair: the steep possession logistic is saturated
-  by the strength gap in most league fixtures, so the home mid boost adds
-  little there. Carrying more of the home edge through `chanceK2` would
-  keep it constant in log-odds across gaps but steepens the +40 curve
-  again; left for the review.
+- **The +10 row of the gap curve** sits at 50.9 % (spec 55, gate ≥ 50)
+  while +40 is 81.4 % (spec 78, gate ≤ 83): the chance logistic is
+  exponential in the gap and the contest is bounded, and the two meet the
+  spec's concave curve only inside the tolerance. A steeper
+  `possessionK1` lifts +10 but drifts back toward the saturated contest
+  the Task 12 review rejected; a steeper `chanceK2` lifts +40 faster than
+  +10. Rows 10–12 are that trade-off.
+- **Resolved in Task 13:** straight reds (5 % of sendings-off → 43 %,
+  `bookedYellowMul`), possession in an equal home match (56 / 44 → 55 /
+  45, `homeLogOdds`) and the league's home advantage (42.4..44.7 % →
+  43.2..44.4 % home wins; `long_sim_test` is back on the spec's 43..47).
 
 ## Generator values that differ from the plan
 

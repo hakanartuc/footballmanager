@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import '../../core/ids.dart';
 import '../../core/rng.dart';
 import '../../model/enums.dart';
+import '../../model/match_conditions.dart';
 import '../../model/match_log.dart';
 import '../../model/match_result.dart';
 import '../../model/tactic.dart';
@@ -28,10 +29,12 @@ const _openPlayTypes = [
 ///
 /// Draw order on [rng] (fixed; the session's equivalence relies on it):
 ///  1. owner      — one `nextDouble` against
-///                  `bypass / 2 + (1 − bypass) × logistic(k1 × Δ effectiveMid)`
-///                  where `bypass` is the mean of both sides' `midBypass`;
-///                  skipped when a penalty, corner, free kick or counter is
-///                  pending (that side attacks; priority in that order).
+///                  `(1 − c) / 2 + c × logistic(k1 × Δ effectiveMid + home)`
+///                  where `c = midContestShare × (1 − mean midBypass)` is
+///                  the contested share and `home` the additive home edge
+///                  `homeLogOdds × (homeAdvantage − 1) / 0.055`; skipped
+///                  when a penalty, corner, free kick or counter is pending
+///                  (that side attacks; priority in that order).
 ///  2. duration   — `nextDouble`: `[stepSecondsMin, stepSecondsMax] / tempoMul`.
 ///  3. lane       — `weightedIndex` over the attacker's lane weights, always.
 ///  4. chance     — `nextDouble` against `logistic(k2 × (att − def) + base)`;
@@ -83,10 +86,15 @@ PossessionStep resolvePossession(
   } else {
     final pMid = _logistic(
       EngineTuning.possessionK1 *
-          (s.effectiveMid(s.home) - s.effectiveMid(s.away)),
+              (s.effectiveMid(s.home) - s.effectiveMid(s.away)) +
+          EngineTuning.homeLogOdds *
+              (s.conditions.homeAdvantage - 1) /
+              (MatchConditions.neutral.homeAdvantage - 1),
     );
-    final bypass = (s.home.profile.midBypass + s.away.profile.midBypass) / 2;
-    final pHome = bypass / 2 + (1 - bypass) * pMid;
+    final contest =
+        EngineTuning.midContestShare *
+        (1 - (s.home.profile.midBypass + s.away.profile.midBypass) / 2);
+    final pHome = (1 - contest) / 2 + contest * pMid;
     assert(pHome >= 0 && pHome <= 1, 'pHome $pHome');
     att = rng.nextDouble() < pHome ? s.home : s.away;
   }

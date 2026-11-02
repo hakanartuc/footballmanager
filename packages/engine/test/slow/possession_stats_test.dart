@@ -91,18 +91,20 @@ void main() {
     // ignore: avoid_print
     print(report);
 
-    // Sanity bands around the Task 12 constants on 120 fixed steps per
+    // Sanity bands around the Task 13 constants on 120 fixed steps per
     // match (a real match has ~97, so the per-match counts run ~25 % above
     // `cm calibrate`'s); measured on seed 2026:
     // - open-play chance rate 0.19 = logistic(chanceBase); 0.24 with set
     //   pieces and counters (k2 0.14, counterDefMul 0.8);
-    // - shots 16.8 home / 11.8 away: possession 56/44 from k1 1.4 on the
-    //   ×1.06 home mid, plus corners (2.2), free kicks (3.2), penalties
-    //   (0.3) per match;
-    // - xG per shot 0.10; on-target share = xG + saveBand 0.25 ≈ 0.35;
-    // - fouls 14.6 (foulPerStep 0.12), yellows 2.0 per side
-    //   (yellowPerFoul 0.28), injuries 0.19 per side (injuryPerStep
-    //   0.0025 × mean weight 1.21 × 120 steps / 2).
+    // - shots 16.3 home / 12.1 away: possession 55/45 from homeLogOdds
+    //   0.7 × 1.09 (homeAdvantage 1.06) on the contested 0.405 of the
+    //   possessions, plus corners (2.2), free kicks (3.2), penalties (0.3)
+    //   per match;
+    // - xG per shot 0.105; on-target share = xG + saveBand 0.25 ≈ 0.35;
+    // - fouls 14.6 (foulPerStep 0.12), yellows 1.9 per side
+    //   (yellowPerFoul 0.28, booked players × bookedYellowMul 0.5),
+    //   injuries 0.19 per side (injuryPerStep 0.0025 × mean weight 1.21
+    //   × 120 steps / 2).
     expect(openChances / openSteps, inInclusiveRange(0.17, 0.21));
     expect(chances / steps, inInclusiveRange(0.21, 0.27));
     expect(homeShots / perMatch, inInclusiveRange(15, 19));

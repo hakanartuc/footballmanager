@@ -440,9 +440,10 @@ void main() {
   });
 
   group('conditions', () {
-    test('home scales att and mid by cond.homeAdvantage', () {
+    test('home scales att by cond.homeAdvantage; mid is untouched', () {
+      // The possession draw adds the home edge as log-odds (Task 13).
       final p = _build(w442, t442(), home: true, cond: _dry);
-      _expectStrengths(p, mid: 10.6, attL: 10.6, attC: 10.6, attR: 10.6);
+      _expectStrengths(p, attL: 10.6, attC: 10.6, attR: 10.6);
       final c = MatchConditions(
         weather: Weather.sunny,
         pitch: 8,
@@ -450,7 +451,7 @@ void main() {
         homeAdvantage: 1.04,
       );
       final q = _build(w442, t442(), home: true, cond: c);
-      _expectStrengths(q, mid: 10.4, attL: 10.4, attC: 10.4, attR: 10.4);
+      _expectStrengths(q, attL: 10.4, attC: 10.4, attR: 10.4);
     });
 
     test('rain or a bad pitch: short pass ×0.92, long ball ×1.05', () {
@@ -574,8 +575,12 @@ void main() {
     expect(sw.elapsedMilliseconds, lessThan(50));
   });
 
-  test('tuning constants match the calibrated values (Task 12)', () {
-    expect(EngineTuning.possessionK1, 1.4);
+  test('tuning constants match the calibrated values (Task 13)', () {
+    expect(EngineTuning.possessionK1, 1.0);
+    expect(EngineTuning.midContestShare, 0.45);
+    expect(EngineTuning.homeLogOdds, 0.7);
+    expect(EngineTuning.redPerFoul, 0.007);
+    expect(EngineTuning.bookedYellowMul, 0.5);
     expect(EngineTuning.chanceK2, 0.14);
     expect(EngineTuning.chanceBase, closeTo(math.log(0.187 / 0.813), 1e-4));
     expect(EngineTuning.xgBase[ChanceType.penalty], 0.76);

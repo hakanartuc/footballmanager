@@ -30,9 +30,10 @@ void main() {
       expect(s.home.playing, homeIds);
       expect(s.home.condition[7], 80);
       expect(s.home.condition[1], 100);
+      // The home advantage reaches the possession draw, not the mid.
       expect(
         s.home.profile.mid,
-        closeTo(10 * 1.06 * (80 / 100 * 0.5 + 0.5 + 3) / 4, 1e-9),
+        closeTo(10 * (80 / 100 * 0.5 + 0.5 + 3) / 4, 1e-9),
       );
       expect(s.away.profile.mid, closeTo(10, 1e-9));
       expect(s.minute, 0);
@@ -80,6 +81,74 @@ void main() {
         if (step.attackingId == 1) home++;
       }
       expect(home / 2000, greaterThan(0.6));
+    });
+
+    test('owner: midContestShare × (1 − midBypass) of the possessions go to '
+        'the contest; the home edge is additive log-odds', () {
+      final w = uniformWorld();
+      // Owner draw [r], then duration, lane, no chance, no counter.
+      ClubId owner(MatchState s, double r) => resolvePossession(
+        s,
+        w,
+        ScriptedRng([r, 0.5, 0.5, 0.99, 0.99]),
+        detail: false,
+      ).attackingId;
+      final contest =
+          EngineTuning.midContestShare *
+          (1 - EngineTuning.midBypass[PassingStyle.mixed]!);
+      expect(contest, inExclusiveRange(0, 1));
+
+      // Equal sides, no home advantage: a coin flip.
+      final even = startMatch(w);
+      expect(owner(even, 0.5 - 1e-6), 1);
+      expect(owner(even, 0.5 + 1e-6), 2);
+
+      // Neutral home advantage (1.055): the contest logit is homeLogOdds
+      // and only the contested share feels it.
+      final home = startMatch(w, cond: conditions(homeAdvantage: 1.055));
+      final pHome =
+          (1 - contest) / 2 + contest * _logistic(EngineTuning.homeLogOdds);
+      expect(pHome, greaterThan(0.5));
+      expect(owner(home, pHome - 1e-6), 1);
+      expect(owner(home, pHome + 1e-6), 2);
+
+      // Half the neutral edge at 1.0275; the mid itself is untouched.
+      final half = startMatch(w, cond: conditions(homeAdvantage: 1.0275));
+      expect(half.home.profile.mid, closeTo(half.away.profile.mid, 1e-9));
+      final pHalf =
+          (1 - contest) / 2 + contest * _logistic(EngineTuning.homeLogOdds / 2);
+      expect(owner(half, pHalf - 1e-6), 1);
+      expect(owner(half, pHalf + 1e-6), 2);
+
+      // A stronger home mid without home advantage: k1 × Δ mid.
+      final strong = uniformWorld(homeAttr: 15);
+      final s = startMatch(strong);
+      final pStrong =
+          (1 - contest) / 2 +
+          contest *
+              _logistic(
+                EngineTuning.possessionK1 *
+                    (s.effectiveMid(s.home) - s.effectiveMid(s.away)),
+              );
+      expect(pStrong, greaterThan(pHome));
+      expect(
+        resolvePossession(
+          s,
+          strong,
+          ScriptedRng([pStrong - 1e-6, 0.5, 0.5, 0.99, 0.99]),
+          detail: false,
+        ).attackingId,
+        1,
+      );
+      expect(
+        resolvePossession(
+          s,
+          strong,
+          ScriptedRng([pStrong + 1e-6, 0.5, 0.5, 0.99, 0.99]),
+          detail: false,
+        ).attackingId,
+        2,
+      );
     });
 
     test('equal sides: open-play chance rate is logistic(chanceBase)', () {

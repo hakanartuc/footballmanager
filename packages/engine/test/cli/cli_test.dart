@@ -133,6 +133,8 @@ void main() {
       'fouls',
       'yellows',
       'reds',
+      'secondYellows',
+      'straightReds',
       'injuries',
       'substitutions',
       'scorePct',
@@ -143,6 +145,13 @@ void main() {
       'addedTimePerHalf',
     });
     expect(report['matches'], 50);
+    expect(
+      report['reds'],
+      closeTo(
+        (report['secondYellows'] as num) + (report['straightReds'] as num),
+        1e-9,
+      ),
+    );
     final pct =
         (report['homeWinPct'] as num) +
         (report['drawPct'] as num) +

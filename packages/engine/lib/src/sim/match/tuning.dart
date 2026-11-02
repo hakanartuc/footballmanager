@@ -10,11 +10,28 @@ abstract final class EngineTuning {
   // --- Possession and chances (spec 5.3 steps 1–3) ---
 
   /// Possession logistic slope on `mid_a − mid_b` (5.3 step 1 says
-  /// ≈ 0.25). Task 12: raised to 1.4 together with the [midBypass] floor,
-  /// which caps what the midfield contest can decide, so that the home
-  /// advantage and a +10 CA gap are felt (spec 5.6) without a +40 gap
-  /// becoming a certainty.
-  static const double possessionK1 = 1.4;
+  /// ≈ 0.25). Task 13: 1.0 on the contested share of possessions
+  /// ([midContestShare]); the rest are a coin flip, which is what bends
+  /// the 5.6 gap curve. Task 12 had 1.4 on a 0.2–0.5 share, which
+  /// saturated the contest (a one-point mid edge was worth +8 pp of
+  /// possession, four points only +2 more); at 1.0 on 0.405 one point is
+  /// worth +9 pp and four +20 pp, and 0.5–0.7 left the +10 CA row of the
+  /// 5.6 curve under 50 % (README "Calibration" rows 10–12).
+  static const double possessionK1 = 1.0;
+
+  /// Share of the possessions that the midfield contest decides; the rest
+  /// are a coin flip. Style-independent; the passing style's [midBypass]
+  /// comes on top: a possession is contested with probability
+  /// `midContestShare × (1 − mean midBypass)`.
+  static const double midContestShare = 0.45;
+
+  /// Home advantage in possession: this is added to the contest's logit
+  /// at the neutral `homeAdvantage` 1.055, scaled by
+  /// `(homeAdvantage − 1) / 0.055` otherwise (1.03..1.08 → 0.55..1.45 of
+  /// it). Additive log-odds keep the home edge the same size at every
+  /// strength gap; the spec's ×1.06 on the mid (5.2) was saturated away
+  /// by the gap.
+  static const double homeLogOdds = 0.7;
 
   /// Chance logistic slope on `att_lane − def_lane` (5.3 step 3 says
   /// ≈ 0.20). Task 12: 0.14 flattens the top of the gap curve (a +40 CA
@@ -45,15 +62,15 @@ abstract final class EngineTuning {
   /// cross 0.12, long shot 0.05, dribble 0.20, corner 0.08, free kick
   /// 0.07). Task 12: everything but the penalty is scaled by ≈ 0.63 — the
   /// spec's bases gave 4.2 goals per match on ~24 shots; 2.56 (spec
-  /// 2.5–2.9) needs ≈ 0.10 xG per shot.
+  /// 2.5–2.9) needs ≈ 0.10 xG per shot. Task 13: ×1.015 on top (2.59).
   static const Map<ChanceType, double> xgBase = {
     ChanceType.penalty: 0.76,
-    ChanceType.throughBall: 0.188,
-    ChanceType.cross: 0.075,
-    ChanceType.longShot: 0.032,
-    ChanceType.dribble: 0.127,
-    ChanceType.corner: 0.05,
-    ChanceType.freeKick: 0.045,
+    ChanceType.throughBall: 0.191,
+    ChanceType.cross: 0.076,
+    ChanceType.longShot: 0.0325,
+    ChanceType.dribble: 0.129,
+    ChanceType.corner: 0.0508,
+    ChanceType.freeKick: 0.0457,
   };
 
   /// xG × `(1 + finishingCoef × (finishing + composure − 20))` (5.3 step 6).
@@ -116,15 +133,17 @@ abstract final class EngineTuning {
   /// 0.28 → 3.05 first yellows per match, spec 3–4).
   static const double yellowPerFoul = 0.28;
 
-  /// Straight red probability per foul (5.3 step 8 says ≈ 0.008). Task 12:
-  /// yellows are drawn evenly over the fouling side, so 3 yellows a match
-  /// already give ≈ 0.23 second yellows; the straight reds are cut to
-  /// 0.001 to keep sendings-off inside the spec's 0.15–0.25 (see the
-  /// Task 12 report on second yellows).
-  // TODO(T13): damp yellows for already-booked players (side_effects), then
-  // restore redPerFoul to ≈ 0.006–0.008 so straight reds are ~35 % of
-  // sendings-off instead of ~5 %.
-  static const double redPerFoul = 0.001;
+  /// Straight red probability per foul (5.3 step 8 says ≈ 0.008; Task 13:
+  /// 0.007, with [bookedYellowMul] holding the second yellows down so that
+  /// sendings-off stay inside 0.15–0.25 per match).
+  static const double redPerFoul = 0.007;
+
+  /// A player who already holds a yellow draws a further yellow with
+  /// [yellowPerFoul] × this (applied at the card draw, so foul counts are
+  /// unchanged). Task 13: without it, yellows drawn evenly over the fouling
+  /// side made 3 first yellows a match worth ≈ 0.23 second yellows, which
+  /// forced the straight reds down to 0.001 per foul.
+  static const double bookedYellowMul = 0.5;
 
   /// Share of fouls inside the box; the attacking side's next possession is
   /// a penalty. With ~12 fouls per match this gives the spec's ~0.25
@@ -351,16 +370,14 @@ abstract final class EngineTuning {
   /// Short passing: mid multiplier.
   static const double shortPassMidMul = 1.1;
 
-  /// Share of possessions that skip the midfield contest (a coin flip
-  /// instead of the [possessionK1] logistic), per style. Task 12: 0.5–0.8
-  /// (was 0.0–0.3) — the floor keeps a much stronger side's possession
-  /// below ~70 % and is what bends the 5.6 gap curve; the style order is
-  /// kept, so long ball still leaves the least to the midfield.
+  /// Share of the contested possessions (see [midContestShare]) that the
+  /// passing style takes away from the midfield contest, per style (spec
+  /// 16.1); long ball leaves the least to the midfield.
   static const Map<PassingStyle, double> midBypass = {
-    PassingStyle.short: 0.5,
-    PassingStyle.mixed: 0.6,
-    PassingStyle.direct: 0.7,
-    PassingStyle.longBall: 0.8,
+    PassingStyle.short: 0.0,
+    PassingStyle.mixed: 0.1,
+    PassingStyle.direct: 0.2,
+    PassingStyle.longBall: 0.3,
   };
 
   /// Long ball: chance-type weight shifts.

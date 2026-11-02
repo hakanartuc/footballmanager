@@ -48,7 +48,7 @@ MatchResult _play(World w, ClubId home, ClubId away, SeededRng rng) =>
 /// Aggregates of [matches] matches between a home side of uniform
 /// [homeAttr] and an away side of uniform [awayAttr] (CA = attr × 10).
 /// Rates are per match unless named per side; `yellows` counts first
-/// yellows, `reds` sendings-off (second yellows included).
+/// yellows, `reds` sendings-off (`secondYellows` + `straightReds`).
 class CalibrationReport {
   final int matches;
   final int seed;
@@ -66,6 +66,8 @@ class CalibrationReport {
   final double fouls;
   final double yellows;
   final double reds;
+  final double secondYellows;
+  final double straightReds;
   final double injuries;
   final double substitutions;
 
@@ -94,6 +96,8 @@ class CalibrationReport {
     required this.fouls,
     required this.yellows,
     required this.reds,
+    required this.secondYellows,
+    required this.straightReds,
     required this.injuries,
     required this.substitutions,
     required this.scorePct,
@@ -121,6 +125,8 @@ class CalibrationReport {
     'fouls': fouls,
     'yellows': yellows,
     'reds': reds,
+    'secondYellows': secondYellows,
+    'straightReds': straightReds,
     'injuries': injuries,
     'substitutions': substitutions,
     'scorePct': scorePct,
@@ -152,7 +158,10 @@ class CalibrationReport {
       ..writeln('  corners          ${_num(corners)}')
       ..writeln('  fouls            ${_num(fouls)}')
       ..writeln('  yellows          ${_num(yellows)}')
-      ..writeln('  reds             ${_num(reds)}')
+      ..writeln(
+        '  reds             ${_num(reds)} '
+        '(second yellows ${_num(secondYellows)}, straight ${_num(straightReds)})',
+      )
       ..writeln('  injuries         ${_num(injuries)}')
       ..writeln('  substitutions    ${_num(substitutions)}')
       ..writeln('  added time/half  ${_num(addedTimePerHalf)}')
@@ -185,7 +194,8 @@ CalibrationReport runCalibration({
   var corners = 0;
   var fouls = 0;
   var yellows = 0;
-  var reds = 0;
+  var secondYellows = 0;
+  var straightReds = 0;
   var injuries = 0;
   var subs = 0;
   var fivePlus = 0;
@@ -222,8 +232,10 @@ CalibrationReport runCalibration({
       switch (e) {
         case Booking(kind: CardKind.yellow):
           yellows++;
+        case Booking(kind: CardKind.secondYellow):
+          secondYellows++;
         case Booking():
-          reds++;
+          straightReds++;
         case Injury():
           injuries++;
         case Substitution():
@@ -261,7 +273,9 @@ CalibrationReport runCalibration({
     corners: corners / n,
     fouls: fouls / n,
     yellows: yellows / n,
-    reds: reds / n,
+    reds: (secondYellows + straightReds) / n,
+    secondYellows: secondYellows / n,
+    straightReds: straightReds / n,
     injuries: injuries / n,
     substitutions: subs / n,
     scorePct: {for (final e in ranked.take(12)) e.key: 100 * e.value / n},
