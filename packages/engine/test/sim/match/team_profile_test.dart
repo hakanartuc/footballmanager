@@ -118,9 +118,9 @@ void _expectBalancedKnobs(TeamProfile p) {
   expect(p.injuryMul, 1.0);
   expect(p.keeperErrorMul, 1.0);
   expect(p.throughBallXgMul, 1.0);
-  expect(p.counterProb, 0.15);
+  expect(p.counterProb, EngineTuning.counterProb);
   expect(p.counterAttMul, 1.0);
-  expect(p.midBypass, 0.1);
+  expect(p.midBypass, EngineTuning.midBypass[PassingStyle.mixed]);
   expect(p.laneWeights, {Lane.left: 0.3, Lane.centre: 0.4, Lane.right: 0.3});
   expect(p.chanceWeights, {for (final t in ChanceType.values) t: 1.0});
   expect(p.selectionBoost, isEmpty);
@@ -256,17 +256,21 @@ void main() {
     test('passing: short boosts mid; bypass grows; long ball shifts types', () {
       final short = _build(w442, t442()..passing = PassingStyle.short);
       _expectStrengths(short, mid: 11);
-      expect(short.midBypass, 0.0);
+      expect(short.midBypass, EngineTuning.midBypass[PassingStyle.short]);
       expect(short.chanceWeights, {for (final t in ChanceType.values) t: 1.0});
 
       expect(
         _build(w442, t442()..passing = PassingStyle.direct).midBypass,
-        0.2,
+        EngineTuning.midBypass[PassingStyle.direct],
       );
 
       final long = _build(w442, t442()..passing = PassingStyle.longBall);
       _expectStrengths(long);
-      expect(long.midBypass, 0.3);
+      expect(long.midBypass, EngineTuning.midBypass[PassingStyle.longBall]);
+      expect(
+        EngineTuning.midBypass[PassingStyle.longBall]!,
+        greaterThan(EngineTuning.midBypass[PassingStyle.short]!),
+      );
       expect(long.chanceWeights[ChanceType.cross], 1.5);
       expect(long.chanceWeights[ChanceType.throughBall], 0.7);
       expect(long.chanceWeights[ChanceType.longShot], 1.0);
@@ -570,10 +574,10 @@ void main() {
     expect(sw.elapsedMilliseconds, lessThan(50));
   });
 
-  test('tuning constants match the spec values', () {
-    expect(EngineTuning.possessionK1, 0.25);
-    expect(EngineTuning.chanceK2, 0.20);
-    expect(EngineTuning.chanceBase, closeTo(math.log(0.2 / 0.8), 1e-12));
+  test('tuning constants match the calibrated values (Task 12)', () {
+    expect(EngineTuning.possessionK1, 1.4);
+    expect(EngineTuning.chanceK2, 0.14);
+    expect(EngineTuning.chanceBase, closeTo(math.log(0.187 / 0.813), 1e-4));
     expect(EngineTuning.xgBase[ChanceType.penalty], 0.76);
     expect(EngineTuning.xgBase.length, ChanceType.values.length);
     expect(EngineTuning.tenMenMul, 0.85);

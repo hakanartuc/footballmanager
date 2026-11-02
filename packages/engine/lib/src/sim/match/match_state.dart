@@ -1,13 +1,31 @@
 import '../../core/ids.dart';
 import '../../model/club.dart';
+import '../../model/enums.dart';
 import '../../model/fixture.dart';
 import '../../model/match_conditions.dart';
 import '../../model/match_log.dart';
 import '../../model/match_rules.dart';
+import '../../model/player.dart';
 import '../../model/tactic.dart';
 import '../../model/world.dart';
 import 'team_profile.dart';
 import 'tuning.dart';
+
+/// What `applySideEffects` reads of a player on every step and that does
+/// not change during a match: the spec 6.1 proneness factor, whether the
+/// player is over [EngineTuning.injuryOldAge] on the match date, and the
+/// condition drain per minute of its stamina.
+typedef PlayerMatchConsts = ({double proneness, bool old, double drain});
+
+PlayerMatchConsts playerMatchConsts(World w, Player p) => (
+  proneness:
+      EngineTuning.injuryPronenessMin +
+      (EngineTuning.injuryPronenessMax - EngineTuning.injuryPronenessMin) *
+          (p.hidden.injuryProneness - 1) /
+          19,
+  old: p.ageAt(w.date) > EngineTuning.injuryOldAge,
+  drain: EngineTuning.drainPerMinute(p.attrs[Attr.stamina]),
+);
 
 /// A player's running match rating; `creditRating` moves it and
 /// `finaliseRatings` turns it into the final 1..10 rating.
@@ -25,6 +43,9 @@ class SideState {
   final List<PlayerId?> onPitch;
   final List<PlayerId> bench;
   final Map<PlayerId, double> condition;
+
+  /// [playerMatchConsts] of the starters and the bench.
+  final Map<PlayerId, PlayerMatchConsts> consts;
   final Map<PlayerId, int> yellows = {};
   final Set<PlayerId> sentOff = {};
   final Set<PlayerId> injuredOff = {};
@@ -64,7 +85,8 @@ class SideState {
     required this.bench,
     required this.condition,
     required this.profile,
-  });
+    Map<PlayerId, PlayerMatchConsts>? consts,
+  }) : consts = consts ?? {};
 
   /// The players on the pitch, in slot order.
   List<PlayerId> get playing => [for (final id in onPitch) ?id];
@@ -141,9 +163,9 @@ class MatchState {
     required MatchConditions conditions,
   }) {
     SideState side(ClubId club, Lineup l, Tactic t, Tactic opp, bool home) {
+      final squad = [...l.starters, ...l.bench];
       final condition = {
-        for (final id in [...l.starters, ...l.bench])
-          id: w.players[id]!.state.condition,
+        for (final id in squad) id: w.players[id]!.state.condition,
       };
       return SideState(
         clubId: club,
@@ -151,6 +173,9 @@ class MatchState {
         onPitch: List<PlayerId?>.of(l.starters),
         bench: List.of(l.bench),
         condition: condition,
+        consts: {
+          for (final id in squad) id: playerMatchConsts(w, w.players[id]!),
+        },
         profile: buildProfile(
           w: w,
           tactic: t,

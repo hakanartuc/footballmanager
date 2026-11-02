@@ -3,19 +3,29 @@ import '../../model/match_result.dart';
 import '../../model/tactic.dart';
 
 /// Every calibration number of the match engine (spec 5.2, 5.3, 16.1,
-/// 16.8). Task 12 (calibration) edits only this file.
+/// 16.8). Task 12 (calibration) edits only this file; the values that
+/// differ from the spec's say so and why, and the README's "Calibration"
+/// section has the resulting §9 numbers (`cm calibrate`).
 abstract final class EngineTuning {
   // --- Possession and chances (spec 5.3 steps 1–3) ---
 
-  /// Possession logistic slope on `mid_a − mid_b` (5.3 step 1).
-  static const double possessionK1 = 0.25;
+  /// Possession logistic slope on `mid_a − mid_b` (5.3 step 1 says
+  /// ≈ 0.25). Task 12: raised to 1.4 together with the [midBypass] floor,
+  /// which caps what the midfield contest can decide, so that the home
+  /// advantage and a +10 CA gap are felt (spec 5.6) without a +40 gap
+  /// becoming a certainty.
+  static const double possessionK1 = 1.4;
 
-  /// Chance logistic slope on `att_lane − def_lane` (5.3 step 3).
-  static const double chanceK2 = 0.20;
+  /// Chance logistic slope on `att_lane − def_lane` (5.3 step 3 says
+  /// ≈ 0.20). Task 12: 0.14 flattens the top of the gap curve (a +40 CA
+  /// side was winning 88 % at 0.20).
+  static const double chanceK2 = 0.14;
 
-  /// Chance logistic intercept: `ln(0.2 / 0.8)`, so equal lanes give a
-  /// chance on 20 % of possessions (5.3 step 3).
-  static const double chanceBase = -1.3862943611198906;
+  /// Chance logistic intercept: `ln(0.187 / 0.813)`, so equal lanes give a
+  /// chance on 18.7 % of possessions (5.3 step 3 says 20 %). Task 12: with
+  /// set pieces and counters on top this lands shots at 13.7 home / 10.3
+  /// away per match (spec 10–14 per side).
+  static const double chanceBase = -1.469622492693224;
 
   /// Chance a lost possession is followed by a counter (5.3 step 1).
   static const double counterProb = 0.15;
@@ -31,15 +41,19 @@ abstract final class EngineTuning {
 
   // --- Chance quality and outcome (spec 5.3 steps 6–7) ---
 
-  /// Base xG per chance type (5.3 step 6).
+  /// Base xG per chance type (5.3 step 6: penalty 0.76, through ball 0.30,
+  /// cross 0.12, long shot 0.05, dribble 0.20, corner 0.08, free kick
+  /// 0.07). Task 12: everything but the penalty is scaled by ≈ 0.63 — the
+  /// spec's bases gave 4.2 goals per match on ~24 shots; 2.56 (spec
+  /// 2.5–2.9) needs ≈ 0.10 xG per shot.
   static const Map<ChanceType, double> xgBase = {
     ChanceType.penalty: 0.76,
-    ChanceType.throughBall: 0.30,
-    ChanceType.cross: 0.12,
-    ChanceType.longShot: 0.05,
-    ChanceType.dribble: 0.20,
-    ChanceType.corner: 0.08,
-    ChanceType.freeKick: 0.07,
+    ChanceType.throughBall: 0.188,
+    ChanceType.cross: 0.075,
+    ChanceType.longShot: 0.032,
+    ChanceType.dribble: 0.127,
+    ChanceType.corner: 0.05,
+    ChanceType.freeKick: 0.045,
   };
 
   /// xG × `(1 + finishingCoef × (finishing + composure − 20))` (5.3 step 6).
@@ -75,11 +89,12 @@ abstract final class EngineTuning {
   };
 
   /// Shooter weight multiplier for forwards (st, aml, amc, amr) per chance
-  /// type; absent means 1.0.
+  /// type; absent means 1.0. Task 12: 4 / 3 / 3 (was 3 / 2 / 2) so that a
+  /// top club's striker reaches the spec's 20+ goals a season (§9).
   static const Map<ChanceType, double> shooterForwardMul = {
-    ChanceType.throughBall: 3.0,
-    ChanceType.cross: 2.0,
-    ChanceType.dribble: 2.0,
+    ChanceType.throughBall: 4.0,
+    ChanceType.cross: 3.0,
+    ChanceType.dribble: 3.0,
   };
 
   /// Attribute that weights assister selection per chance type; a type
@@ -93,14 +108,20 @@ abstract final class EngineTuning {
 
   // --- Side effects (spec 5.3 step 8) ---
 
-  /// Foul probability per possession step.
-  static const double foulPerStep = 0.10;
+  /// Foul probability per possession step (5.3 step 8 says ≈ 0.10; Task
+  /// 12: 0.12 → 11.7 fouls per match).
+  static const double foulPerStep = 0.12;
 
-  /// Yellow card probability per foul.
-  static const double yellowPerFoul = 0.12;
+  /// Yellow card probability per foul (5.3 step 8 says ≈ 0.12; Task 12:
+  /// 0.28 → 3.05 first yellows per match, spec 3–4).
+  static const double yellowPerFoul = 0.28;
 
-  /// Straight red probability per foul.
-  static const double redPerFoul = 0.008;
+  /// Straight red probability per foul (5.3 step 8 says ≈ 0.008). Task 12:
+  /// yellows are drawn evenly over the fouling side, so 3 yellows a match
+  /// already give ≈ 0.23 second yellows; the straight reds are cut to
+  /// 0.001 to keep sendings-off inside the spec's 0.15–0.25 (see the
+  /// Task 12 report on second yellows).
+  static const double redPerFoul = 0.001;
 
   /// Share of fouls inside the box; the attacking side's next possession is
   /// a penalty. With ~12 fouls per match this gives the spec's ~0.25
@@ -327,12 +348,16 @@ abstract final class EngineTuning {
   /// Short passing: mid multiplier.
   static const double shortPassMidMul = 1.1;
 
-  /// Share of possessions that skip the midfield contest, per style.
+  /// Share of possessions that skip the midfield contest (a coin flip
+  /// instead of the [possessionK1] logistic), per style. Task 12: 0.5–0.8
+  /// (was 0.0–0.3) — the floor keeps a much stronger side's possession
+  /// below ~70 % and is what bends the 5.6 gap curve; the style order is
+  /// kept, so long ball still leaves the least to the midfield.
   static const Map<PassingStyle, double> midBypass = {
-    PassingStyle.short: 0.0,
-    PassingStyle.mixed: 0.1,
-    PassingStyle.direct: 0.2,
-    PassingStyle.longBall: 0.3,
+    PassingStyle.short: 0.5,
+    PassingStyle.mixed: 0.6,
+    PassingStyle.direct: 0.7,
+    PassingStyle.longBall: 0.8,
   };
 
   /// Long ball: chance-type weight shifts.

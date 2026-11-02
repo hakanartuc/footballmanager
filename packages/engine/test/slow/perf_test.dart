@@ -5,6 +5,8 @@ import 'package:engine/engine.dart';
 import 'package:test/test.dart';
 
 const _days = 400;
+const _fastMatches = 1000;
+const _fastWarmUp = 100;
 
 /// The first match days are JIT warm-up and are left out of the p95.
 const _warmUpMatchDays = 5;
@@ -74,5 +76,40 @@ void main() {
     expect(bytes.length, lessThan(15 * 1024 * 1024));
     expect(saveMs, lessThan(2000));
     expect(loadMs, lessThan(2000));
+  });
+
+  test('$_fastMatches fast-mode matches between large-world clubs < 600 ms', () {
+    final w = createNewGame(
+      NewGameSpec(
+        seed: 1,
+        size: WorldSize.large,
+        managerFirstName: 'Perf',
+        managerLastName: 'Gate',
+        managerCountryCode: 'TR',
+        startClubId: null,
+      ),
+    );
+    final runner = DayRunner();
+    final ids = w.fixtures.keys.toList()..sort();
+    List<MatchContext> contexts(int from, int count) => [
+      for (final id in ids.skip(from).take(count))
+        runner.contextFor(w, w.fixtures[id]!),
+    ];
+    const sim = PossessionMatchSimulator();
+    // JIT warm-up on the next fixtures; only the first ones are timed.
+    for (final c in contexts(_fastMatches, _fastWarmUp)) {
+      sim.simulate(c);
+    }
+    final timed = contexts(0, _fastMatches);
+    final watch = Stopwatch()..start();
+    for (final c in timed) {
+      sim.simulate(c);
+    }
+    watch.stop();
+    print(
+      'perf: $_fastMatches fast-mode matches in ${watch.elapsedMilliseconds} ms '
+      '(${(watch.elapsedMicroseconds / _fastMatches / 1000).toStringAsFixed(3)} ms each)',
+    );
+    expect(watch.elapsedMilliseconds, lessThan(600));
   });
 }

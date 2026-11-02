@@ -13,7 +13,16 @@ List<double> homeThroughBall(double outcome, [List<double> tail = const []]) =>
 List<double> foul(double card) => [0.0, 0.0, 0.0, card, 0.5, 0.99, 0.99];
 
 /// As [foul] with a straight red: the reason draw (normal) follows the card.
-const redFoul = [0.0, 0.0, 0.0, 0.001, 0.5, 0.5, 0.99, 0.99];
+final redFoul = [
+  0.0,
+  0.0,
+  0.0,
+  EngineTuning.redPerFoul / 2,
+  0.5,
+  0.5,
+  0.99,
+  0.99,
+];
 
 PossessionStep homeStep() => PossessionStep(
   minute: 1,
@@ -287,10 +296,14 @@ void main() {
           homeAdvantage: 1.0,
         ),
       );
+      // A draw inside the keeper-error part of the save band.
+      final xg = EngineTuning.xgBase[ChanceType.throughBall]!;
+      final error =
+          EngineTuning.saveBand * (1 - 1 / EngineTuning.wetKeeperErrorMul);
       resolvePossession(
         s,
         w,
-        ScriptedRng(homeThroughBall(0.34)),
+        ScriptedRng(homeThroughBall(xg + error / 2)),
         detail: false,
       );
       expect(rating(s, 2), closeTo(7.0, 1e-9));
@@ -298,7 +311,12 @@ void main() {
 
       // A goal inside xG is not the keeper's error.
       final t = startMatch(w, cond: s.conditions);
-      resolvePossession(t, w, ScriptedRng(homeThroughBall(0.1)), detail: false);
+      resolvePossession(
+        t,
+        w,
+        ScriptedRng(homeThroughBall(xg / 2)),
+        detail: false,
+      );
       expect(rating(t, 101), 6.0);
     });
 

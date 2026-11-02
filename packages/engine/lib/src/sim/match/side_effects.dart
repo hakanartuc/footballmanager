@@ -39,7 +39,9 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   final def = s.opponent(step.attackingId);
 
   PlayerId? fouled;
-  if (rng.nextDouble() < EngineTuning.foulPerStep * def.profile.foulMul) {
+  final pFoul = EngineTuning.foulPerStep * def.profile.foulMul;
+  assert(pFoul >= 0 && pFoul <= 1, 'pFoul $pFoul');
+  if (rng.nextDouble() < pFoul) {
     final defenders = def.playing;
     final fouler =
         defenders[rng.weightedIndex([
@@ -54,6 +56,11 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
 
     final r = rng.nextDouble();
     final cardMul = def.profile.cardMul;
+    assert(
+      EngineTuning.redPerFoul * cardMul >= 0 &&
+          (EngineTuning.redPerFoul + EngineTuning.yellowPerFoul) * cardMul <= 1,
+      'card bands at cardMul $cardMul',
+    );
     if (r < EngineTuning.redPerFoul * cardMul) {
       final q = rng.nextDouble();
       final reason = q < EngineTuning.redViolentShare
@@ -75,6 +82,12 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
         _book(s, step, def, fouler, CardKind.yellow, FoulKind.normal);
       }
     }
+    assert(
+      EngineTuning.boxFoulShare >= 0 &&
+          EngineTuning.boxFoulShare <= 1 &&
+          EngineTuning.freeKickShare >= 0 &&
+          EngineTuning.freeKickShare <= 1,
+    );
     if (rng.nextDouble() < EngineTuning.boxFoulShare) {
       s.pendingPenalty = att.clubId;
       s.pendingCounter = null;
@@ -90,7 +103,8 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   final weights = <double>[];
   for (final side in [s.home, s.away]) {
     final opp = s.opponent(side.clubId);
-    for (final id in side.playing) {
+    for (final id in side.onPitch) {
+      if (id == null) continue;
       ids.add(id);
       sides.add(side);
       weights.add(_injuryWeight(w, side, opp, id, fouled: id == fouled));
@@ -98,7 +112,9 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   }
   if (ids.isNotEmpty) {
     final mean = weights.fold(0.0, (a, b) => a + b) / weights.length;
-    if (rng.nextDouble() < EngineTuning.injuryPerStep * mean) {
+    final pInjury = EngineTuning.injuryPerStep * mean;
+    assert(pInjury >= 0 && pInjury <= 1, 'pInjury $pInjury');
+    if (rng.nextDouble() < pInjury) {
       final i = rng.weightedIndex(weights);
       final id = ids[i];
       final side = sides[i];
@@ -122,16 +138,22 @@ void applySideEffects(MatchState s, PossessionStep step, World w, Rng rng) {
   final minutes = step.seconds / 60;
   final extraTimeMul = s.extraTime ? EngineTuning.extraTimeDrainMul : 1.0;
   for (final side in [s.home, s.away]) {
-    for (final id in side.playing) {
+    for (final id in side.onPitch) {
+      if (id == null) continue;
       final drop =
           minutes *
-          EngineTuning.drainPerMinute(w.players[id]!.attrs[Attr.stamina]) *
+          _consts(w, side, id).drain *
           side.profile.conditionDrain *
           extraTimeMul;
       side.condition[id] = math.max(0.0, (side.condition[id] ?? 100) - drop);
     }
   }
 }
+
+/// [id]'s match constants, computed on the spot for a player who was in
+/// neither the starters nor the bench.
+PlayerMatchConsts _consts(World w, SideState side, PlayerId id) =>
+    side.consts[id] ?? playerMatchConsts(w, w.players[id]!);
 
 /// Spec 6.1 multipliers for [id] of [side] against [opp].
 double _injuryWeight(
@@ -141,23 +163,16 @@ double _injuryWeight(
   PlayerId id, {
   required bool fouled,
 }) {
-  final p = w.players[id]!;
-  final condition = side.condition[id] ?? p.state.condition;
-  final proneness =
-      EngineTuning.injuryPronenessMin +
-      (EngineTuning.injuryPronenessMax - EngineTuning.injuryPronenessMin) *
-          (p.hidden.injuryProneness - 1) /
-          19;
+  final c = _consts(w, side, id);
+  final condition = side.condition[id] ?? w.players[id]!.state.condition;
   final conditionMul = condition < EngineTuning.injuryVeryLowCondition
       ? EngineTuning.injuryVeryLowConditionMul
       : condition < EngineTuning.injuryLowCondition
       ? EngineTuning.injuryLowConditionMul
       : 1.0;
-  return proneness *
+  return c.proneness *
       conditionMul *
-      (p.ageAt(w.date) > EngineTuning.injuryOldAge
-          ? EngineTuning.injuryOldAgeMul
-          : 1.0) *
+      (c.old ? EngineTuning.injuryOldAgeMul : 1.0) *
       (side.tactic.tempo == Tempo.fast
           ? EngineTuning.injuryFastTempoMul
           : 1.0) *

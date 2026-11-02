@@ -1,7 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:engine/engine.dart';
 import 'package:test/test.dart';
 
 import 'match_helpers.dart';
+
+double _logistic(double x) => 1 / (1 + math.exp(-x));
+
+/// Base xG of a through ball by a uniform-10 shooter against a uniform-10
+/// keeper (both spec 5.3 step 6 factors are 1.0).
+final _throughBallXg = EngineTuning.xgBase[ChanceType.throughBall]!;
 
 /// Draw script for a home open-play chance: owner → home, duration 60 s,
 /// centre lane, chance, through ball, shooter = first outfield player (2),
@@ -74,7 +82,7 @@ void main() {
       expect(home / 2000, greaterThan(0.6));
     });
 
-    test('equal sides: open-play chance rate ≈ 0.20', () {
+    test('equal sides: open-play chance rate is logistic(chanceBase)', () {
       final w = uniformWorld();
       final s = startMatch(w);
       final rng = SeededRng(11);
@@ -86,7 +94,7 @@ void main() {
         open++;
         if (step.chance != null) chances++;
       }
-      expect(chances / open, closeTo(0.20, 0.02));
+      expect(chances / open, closeTo(_logistic(EngineTuning.chanceBase), 0.02));
     });
 
     test('step fields, clock and possession seconds', () {
@@ -107,7 +115,7 @@ void main() {
       expect(step.chance, ChanceType.throughBall);
       expect(step.shooter, 2);
       expect(step.assister, 3);
-      expect(step.xg, closeTo(0.30, 1e-9));
+      expect(step.xg, closeTo(_throughBallXg, 1e-9));
       expect(step.outcome, ShotOutcome.off);
       expect(step.micro, isEmpty);
       expect(step.events, isEmpty);
@@ -118,7 +126,7 @@ void main() {
       expect(s.lastPossession, 1);
       expect(s.home.stats.shots, 1);
       expect(s.home.stats.onTarget, 0);
-      expect(s.home.stats.xg, closeTo(0.30, 1e-9));
+      expect(s.home.stats.xg, closeTo(_throughBallXg, 1e-9));
     });
 
     test('fast tempo shortens the step', () {
@@ -150,7 +158,8 @@ void main() {
         ScriptedRng(homeThroughBall(0.99, [0.99])),
         detail: false,
       );
-      expect(a.xg, closeTo(0.30 * 1.2, 1e-9));
+      final finishing = 1 + EngineTuning.finishingCoef * 10;
+      expect(a.xg, closeTo(_throughBallXg * finishing, 1e-9));
 
       for (final attr in [
         Attr.reflexes,
@@ -167,7 +176,13 @@ void main() {
         ScriptedRng(homeThroughBall(0.99, [0.99])),
         detail: false,
       );
-      expect(b.xg, closeTo(0.30 * 1.2 * (1 - 0.015 * 5), 1e-9));
+      expect(
+        b.xg,
+        closeTo(
+          _throughBallXg * finishing * (1 - EngineTuning.keeperCoef * 5),
+          1e-9,
+        ),
+      );
     });
 
     test('xG uses the shooter condition and is capped', () {
@@ -184,7 +199,10 @@ void main() {
         detail: false,
       );
       // Effective 15 + 15 at condition 50.
-      expect(a.xg, closeTo(0.30 * 1.2, 1e-9));
+      expect(
+        a.xg,
+        closeTo(_throughBallXg * (1 + EngineTuning.finishingCoef * 10), 1e-9),
+      );
 
       s.pendingPenalty = 1;
       s.home.condition[2] = 100;
@@ -200,15 +218,19 @@ void main() {
       expect(b.xg, EngineTuning.xgMax);
     });
 
-    test('outcome bands at xG 0.30', () {
+    test('outcome bands at the through-ball xG', () {
+      final xg = _throughBallXg;
+      final saved = xg + EngineTuning.saveBand;
+      final blocked = saved + EngineTuning.blockBand;
+      final post = blocked - EngineTuning.blockBand * EngineTuning.postShare;
       final expected = {
-        0.29: ShotOutcome.goal,
-        0.31: ShotOutcome.saved,
-        0.54: ShotOutcome.saved,
-        0.56: ShotOutcome.blocked,
-        0.71: ShotOutcome.blocked,
-        0.73: ShotOutcome.post,
-        0.76: ShotOutcome.off,
+        xg - 0.01: ShotOutcome.goal,
+        xg + 0.01: ShotOutcome.saved,
+        saved - 0.01: ShotOutcome.saved,
+        saved + 0.01: ShotOutcome.blocked,
+        post - 0.01: ShotOutcome.blocked,
+        post + 0.01: ShotOutcome.post,
+        blocked + 0.01: ShotOutcome.off,
       };
       for (final MapEntry(key: r, value: outcome) in expected.entries) {
         final w = uniformWorld();
@@ -265,12 +287,14 @@ void main() {
           homeAdvantage: 1.0,
         ),
       );
-      // Saved band shrinks by 0.25 × (1 − 1/1.3) ≈ 0.058 above xG; the
-      // away keeper's error multiplier applies to home shots.
+      // The saved band shrinks by saveBand × (1 − 1/wetKeeperErrorMul)
+      // above xG; the away keeper's error multiplier applies to home shots.
+      final error =
+          EngineTuning.saveBand * (1 - 1 / EngineTuning.wetKeeperErrorMul);
       final step = resolvePossession(
         s,
         w,
-        ScriptedRng(homeThroughBall(0.34)),
+        ScriptedRng(homeThroughBall(_throughBallXg + error / 2)),
         detail: false,
       );
       expect(step.outcome, ShotOutcome.goal);
@@ -295,7 +319,7 @@ void main() {
       expect(corner.attackingId, 1);
       expect(corner.chance, ChanceType.corner);
       expect(corner.lane, Lane.left);
-      expect(corner.xg, closeTo(0.08, 1e-9));
+      expect(corner.xg, closeTo(EngineTuning.xgBase[ChanceType.corner]!, 1e-9));
       expect(corner.shooter, 2);
       expect(corner.assister, 3);
       expect(s.pendingCorner, isNull);
@@ -358,16 +382,26 @@ void main() {
         counters++;
         if (step.chance != null) chances++;
       }
-      // logistic(0.2 × (10 − 8) − 1.386) ≈ 0.27.
+      // logistic(k2 × (10 − 10 × counterDefMul) + chanceBase).
       expect(counters, greaterThan(1000));
-      expect(chances / counters, closeTo(0.27, 0.03));
+      expect(
+        chances / counters,
+        closeTo(
+          _logistic(
+            EngineTuning.chanceK2 * 10 * (1 - EngineTuning.counterDefMul) +
+                EngineTuning.chanceBase,
+          ),
+          0.03,
+        ),
+      );
     });
 
     test('long ball bypasses the midfield contest', () {
       final w = uniformWorld(homeAttr: 15);
       Tactic style(PassingStyle p) =>
           Tactic.preset(Formation.f442)..passing = p;
-      // Both long ball: 30 % of possessions are a coin flip; both short: none.
+      // Both long ball: more possessions skip the midfield contest than
+      // with both short (EngineTuning.midBypass).
       final s = startMatch(
         w,
         homeTactic: style(PassingStyle.longBall),
@@ -443,7 +477,7 @@ void main() {
       expect(left.lane, Lane.left);
       expect(left.shooter, 7);
       expect(left.assister, isNull);
-      expect(left.xg, closeTo(0.07, 1e-9));
+      expect(left.xg, closeTo(EngineTuning.xgBase[ChanceType.freeKick]!, 1e-9));
       expect(left.outcome, ShotOutcome.off);
       expect(s.pendingFreeKick, isNull);
       expect(s.home.stats.shots, 1);
@@ -510,14 +544,20 @@ void main() {
         ScriptedRng([0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.5, 0.99, 0.99]),
         detail: false,
       );
-      expect(held.xg, closeTo(0.30 * 0.75, 1e-9));
+      expect(
+        held.xg,
+        closeTo(_throughBallXg * EngineTuning.offsideTrapThroughMul, 1e-9),
+      );
       final beaten = resolvePossession(
         s,
         w,
         ScriptedRng([0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.05, 0.99, 0.99]),
         detail: false,
       );
-      expect(beaten.xg, closeTo(0.30 * 1.6, 1e-9));
+      expect(
+        beaten.xg,
+        closeTo(_throughBallXg * EngineTuning.offsideTrapFailMul, 1e-9),
+      );
     });
 
     test('shooter and assister pools skip the keeper and empty slots', () {
@@ -535,7 +575,7 @@ void main() {
       expect(step.assister, 5);
     });
 
-    test('shooter weights: forwards ×3 on through balls', () {
+    test('shooter weights: forwards × shooterForwardMul on through balls', () {
       final w = uniformWorld();
       final s = startMatch(w);
       final rng = SeededRng(9);
@@ -549,8 +589,9 @@ void main() {
         final slot = s.side(step.attackingId).profile.slotOf[id];
         if (slot == Position.st) forwards++;
       }
-      // Two strikers at ×3 among ten outfield players: 6 / 14.
-      expect(forwards / shots, closeTo(6 / 14, 0.04));
+      // Two strikers at ×mul among ten outfield players: 2 mul / (2 mul + 8).
+      final mul = EngineTuning.shooterForwardMul[ChanceType.throughBall]!;
+      expect(forwards / shots, closeTo(2 * mul / (2 * mul + 8), 0.04));
     });
 
     test('a dribble has no assister', () {

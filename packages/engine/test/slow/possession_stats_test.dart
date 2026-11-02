@@ -91,24 +91,27 @@ void main() {
     // ignore: avoid_print
     print(report);
 
-    // Brief bands hold for the open-play chance rate (k2 / chanceBase),
-    // fouls and injuries. The rest are sanity ranges around what the spec
-    // constants produce before calibration (Task 12); the measured values
-    // and their causes are in the task-5 report:
-    // - shots ≈ 12 open-play + counters (+0.6), corners (+1.1), free kicks
-    //   (+1.5) per side, and ×1.06 home advantage on the home side;
-    // - on-target share = mean xG (0.18) + saveBand 0.25 ≈ 0.43;
-    // - yellows = 12 fouls × yellowPerFoul 0.12 / 2 sides ≈ 0.72;
-    // - penalties = 12 fouls × boxFoulShare 0.02 ≈ 0.24 (spec 0.25);
-    //   free kicks = the other fouls × 0.25 ≈ 2.9.
-    expect(openChances / openSteps, inInclusiveRange(0.17, 0.23));
-    expect(chances / steps, inInclusiveRange(0.17, 0.27));
-    expect(homeShots / perMatch, inInclusiveRange(10, 18));
-    expect(awayShots / perMatch, inInclusiveRange(9, 16));
-    expect(onTarget / shots, inInclusiveRange(0.30, 0.50));
-    expect(fouls / perMatch, inInclusiveRange(9, 15));
-    expect(yellows / perMatch / 2, inInclusiveRange(0.5, 2.2));
-    expect(injuries / perMatch / 2, inInclusiveRange(0.1, 0.25));
-    expect(penalties / perMatch, inInclusiveRange(0.15, 0.4));
+    // Sanity bands around the Task 12 constants on 120 fixed steps per
+    // match (a real match has ~97, so the per-match counts run ~25 % above
+    // `cm calibrate`'s); measured on seed 2026:
+    // - open-play chance rate 0.19 = logistic(chanceBase); 0.24 with set
+    //   pieces and counters (k2 0.14, counterDefMul 0.8);
+    // - shots 16.8 home / 11.8 away: possession 56/44 from k1 1.4 on the
+    //   ×1.06 home mid, plus corners (2.2), free kicks (3.2), penalties
+    //   (0.3) per match;
+    // - xG per shot 0.10; on-target share = xG + saveBand 0.25 ≈ 0.35;
+    // - fouls 14.6 (foulPerStep 0.12), yellows 2.0 per side
+    //   (yellowPerFoul 0.28), injuries 0.19 per side (injuryPerStep
+    //   0.0025 × mean weight 1.21 × 120 steps / 2).
+    expect(openChances / openSteps, inInclusiveRange(0.17, 0.21));
+    expect(chances / steps, inInclusiveRange(0.21, 0.27));
+    expect(homeShots / perMatch, inInclusiveRange(15, 19));
+    expect(awayShots / perMatch, inInclusiveRange(10, 14));
+    expect(xg / shots, inInclusiveRange(0.09, 0.12));
+    expect(onTarget / shots, inInclusiveRange(0.30, 0.40));
+    expect(fouls / perMatch, inInclusiveRange(12, 17));
+    expect(yellows / perMatch / 2, inInclusiveRange(1.7, 2.4));
+    expect(injuries / perMatch / 2, inInclusiveRange(0.12, 0.25));
+    expect(penalties / perMatch, inInclusiveRange(0.2, 0.4));
   });
 }

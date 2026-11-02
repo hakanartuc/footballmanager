@@ -52,55 +52,26 @@ class ScriptedRng implements Rng {
 }
 
 /// Factors all 1.0: familiarity 20 in [slot], condition 100, sharpness 100,
-/// morale 50, form 5.5; age 26 on the fixture date; proneness 10.
-Player uniformPlayer(PlayerId id, Position slot, {int attr = 10}) => Player(
-  id: id,
-  firstName: 'P',
-  lastName: '$id',
-  nationality: 1,
-  birth: GameDate.ymd(2000, 1, 1),
-  heightCm: 180,
-  mainPosition: slot,
-  familiarity: {slot: 20},
-  attrs: Attributes.filled(attr),
-  ca: 100,
-  pa: 100,
-  hidden: HiddenAttrs(
-    injuryProneness: 10,
-    consistency: 10,
-    bigMatches: 10,
-    professionalism: 10,
-  ),
-  state: PlayerState(condition: 100, sharpness: 100, morale: 50, form: 5.5),
-);
+/// morale 50, form 5.5; age 26 on the fixture date; proneness 10
+/// (`syntheticPlayer`; ca is attr × 10).
+Player uniformPlayer(PlayerId id, Position slot, {int attr = 10}) =>
+    syntheticPlayer(id, slot, attr: attr);
 
 /// Home club 1 with players 1..11 and away club 2 with 101..111, both in
-/// [formation] with uniform attributes.
+/// [formation] with uniform attributes; no clubs in the world.
 World uniformWorld({
   Formation formation = Formation.f442,
   int homeAttr = 10,
   int awayAttr = 10,
 }) {
   final slots = formationSlots(formation);
-  return World(
-    schemaVersion: currentSchemaVersion,
-    seed: 1,
-    date: GameDate.ymd(2026, 8, 1),
-    seasonYear: 2026,
-    countries: {},
-    leagues: {},
-    clubs: {},
+  return syntheticWorld(
     players: {
       for (var i = 0; i < 11; i++)
         i + 1: uniformPlayer(i + 1, slots[i], attr: homeAttr),
       for (var i = 0; i < 11; i++)
         101 + i: uniformPlayer(101 + i, slots[i], attr: awayAttr),
     },
-    managers: {},
-    fixtures: {},
-    calendar: buildSeasonCalendar(2026),
-    userManagerId: 1,
-    ids: IdAllocator(),
   );
 }
 

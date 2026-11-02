@@ -87,6 +87,7 @@ PossessionStep resolvePossession(
     );
     final bypass = (s.home.profile.midBypass + s.away.profile.midBypass) / 2;
     final pHome = bypass / 2 + (1 - bypass) * pMid;
+    assert(pHome >= 0 && pHome <= 1, 'pHome $pHome');
     att = rng.nextDouble() < pHome ? s.home : s.away;
   }
   final def = s.opponent(att.clubId);
@@ -124,9 +125,11 @@ PossessionStep resolvePossession(
     final a = att.profile.att(lane) * (counter ? att.profile.counterAttMul : 1);
     final d =
         def.profile.def(lane) * (counter ? EngineTuning.counterDefMul : 1);
-    chance =
-        rng.nextDouble() <
-        _logistic(EngineTuning.chanceK2 * (a - d) + EngineTuning.chanceBase);
+    final pChance = _logistic(
+      EngineTuning.chanceK2 * (a - d) + EngineTuning.chanceBase,
+    );
+    assert(pChance >= 0 && pChance <= 1, 'pChance $pChance');
+    chance = rng.nextDouble() < pChance;
   }
 
   var cornerAwarded = false;
@@ -204,11 +207,16 @@ PossessionStep resolvePossession(
                     20)) *
         (1 - EngineTuning.keeperCoef * (def.profile.gk - 10));
     if (type == ChanceType.throughBall && def.profile.throughBallXgMul < 1) {
+      assert(
+        EngineTuning.offsideTrapFailProb >= 0 &&
+            EngineTuning.offsideTrapFailProb <= 1,
+      );
       xg *= rng.nextDouble() < EngineTuning.offsideTrapFailProb
           ? EngineTuning.offsideTrapFailMul
           : def.profile.throughBallXgMul;
     }
     xg = xg.clamp(0.0, EngineTuning.xgMax);
+    assert(xg >= 0 && xg <= 1, 'xg $xg');
 
     // 9. Outcome: keeper errors move the bottom of the save band into goals.
     final r = rng.nextDouble();
@@ -218,6 +226,15 @@ PossessionStep resolvePossession(
     final blockedBand = savedBand + EngineTuning.blockBand;
     final postFrom =
         blockedBand - EngineTuning.blockBand * EngineTuning.postShare;
+    // The bands may run past 1 (a certain goal or on-target shot); they
+    // must be ordered.
+    assert(
+      goalBand >= 0 &&
+          goalBand <= savedBand &&
+          savedBand <= postFrom &&
+          postFrom <= blockedBand,
+      'bands $goalBand $savedBand $postFrom $blockedBand',
+    );
     final outcome = r < goalBand
         ? ShotOutcome.goal
         : r < savedBand
@@ -266,6 +283,10 @@ PossessionStep resolvePossession(
         final keeper = _keeper(def);
         if (keeper != null) creditRating(s, keeper, RatingEvent.save);
         // 10. Corner.
+        assert(
+          EngineTuning.cornerAfterSave >= 0 &&
+              EngineTuning.cornerAfterSave <= 1,
+        );
         if (rng.nextDouble() < EngineTuning.cornerAfterSave) {
           s.pendingCorner = att.clubId;
           stats.corners++;
@@ -292,6 +313,10 @@ PossessionStep resolvePossession(
   }
 
   // 11. Counter.
+  assert(
+    def.profile.counterProb >= 0 && def.profile.counterProb <= 1,
+    'counterProb ${def.profile.counterProb}',
+  );
   if (step.outcome != ShotOutcome.goal &&
       !cornerAwarded &&
       rng.nextDouble() < def.profile.counterProb) {

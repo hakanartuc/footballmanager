@@ -142,20 +142,33 @@ void main() {
         w,
         awayTactic: Tactic.preset(Formation.f442)..tackling = Tackling.hard,
       );
-      // 0.12 < 0.10 × 1.3 is a foul; 0.15 < 0.128 × 1.4 is a yellow.
+      // A foul only with the hard-tackling ×1.3; a yellow only with the
+      // hard-tackling ×1.4 on the card band.
+      final foulDraw = EngineTuning.foulPerStep * 1.15;
+      final cardDraw =
+          (EngineTuning.redPerFoul + EngineTuning.yellowPerFoul) * 1.2;
       final step = homeStep();
       applySideEffects(
         s,
         step,
         w,
-        ScriptedRng([0.12, 0.0, 0.0, 0.15, 0.5, 0.99, 0.99]),
+        ScriptedRng([foulDraw, 0.0, 0.0, cardDraw, 0.5, 0.99, 0.99]),
       );
       expect(s.away.stats.fouls, 1);
       expect(s.away.stats.yellows, 1);
 
       final t = startMatch(w);
-      applySideEffects(t, homeStep(), w, ScriptedRng([0.12, 0.99]));
+      applySideEffects(t, homeStep(), w, ScriptedRng([foulDraw, 0.99]));
       expect(t.away.stats.fouls, 0);
+      final u = startMatch(w);
+      applySideEffects(
+        u,
+        homeStep(),
+        w,
+        ScriptedRng([0.0, 0.0, 0.0, cardDraw, 0.5, 0.99, 0.99]),
+      );
+      expect(u.away.stats.fouls, 1);
+      expect(u.away.stats.yellows, 0);
     });
 
     test('a second yellow sends the player off and empties the slot', () {
@@ -187,13 +200,22 @@ void main() {
         final w = uniformWorld();
         final s = startMatch(w);
         final step = homeStep();
-        // Foul, fouler, victim, card 0.001 (red), reason, box, free kick,
-        // injury.
+        // Foul, fouler, victim, card below redPerFoul (red), reason, box,
+        // free kick, injury.
         applySideEffects(
           s,
           step,
           w,
-          ScriptedRng([0.0, 0.0, 0.0, 0.001, r, 0.5, 0.99, 0.99]),
+          ScriptedRng([
+            0.0,
+            0.0,
+            0.0,
+            EngineTuning.redPerFoul / 2,
+            r,
+            0.5,
+            0.99,
+            0.99,
+          ]),
         );
         final b = step.events.single as Booking;
         expect(b.kind, CardKind.red);

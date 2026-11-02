@@ -76,16 +76,14 @@ void main() {
       final season = report.single as Map<String, dynamic>;
       expect(season['seasonYear'], 2026);
       expect(season['violations'], 0);
-      // TODO(T12): restore spec band (2.0..3.5) once the engine is calibrated.
-      expect(season['goalsPerMatch'] as num, inInclusiveRange(2.0, 4.0));
+      expect(season['goalsPerMatch'] as num, inInclusiveRange(2.0, 3.5));
       expect(season['matches'] as int, greaterThan(0));
       final matches = season['matches'] as int;
       for (final key in ['yellows', 'reds', 'injuries', 'substitutions']) {
         expect(season[key], isA<int>(), reason: key);
       }
-      // TODO(T12): tighten to the spec bands once calibrated.
-      expect(season['yellows'] as int, greaterThan(matches));
-      expect(season['reds'] as int, greaterThan(0));
+      expect(season['yellows'] as int, greaterThanOrEqualTo(2.5 * matches));
+      expect(season['reds'] as int, greaterThanOrEqualTo(0.1 * matches));
       expect(season['injuries'] as int, greaterThan(0));
       expect(season['substitutions'] as int, greaterThan(matches));
       final pct =
@@ -101,6 +99,101 @@ void main() {
       expect(season['days'] as int, greaterThan(300));
     },
   );
+
+  test('calibrate prints the table and writes the JSON report', () async {
+    final reportPath = '${tmp.path}/c.json';
+    final (code, out, err) = await _run([
+      'calibrate',
+      '--seed',
+      '3',
+      '--matches',
+      '50',
+      '--report',
+      reportPath,
+    ]);
+    expect(code, 0, reason: err);
+    expect(out, contains('calibration: 50 matches, seed 3'));
+    expect(out, contains('goals/match'));
+    final report =
+        jsonDecode(File(reportPath).readAsStringSync()) as Map<String, dynamic>;
+    expect(report.keys, {
+      'matches',
+      'seed',
+      'homeAttr',
+      'awayAttr',
+      'goalsPerMatch',
+      'homeWinPct',
+      'drawPct',
+      'awayWinPct',
+      'homeShots',
+      'awayShots',
+      'homeOnTarget',
+      'awayOnTarget',
+      'corners',
+      'fouls',
+      'yellows',
+      'reds',
+      'injuries',
+      'substitutions',
+      'scorePct',
+      'fivePlusGoalsPct',
+      'homePossessionPct',
+      'homeXg',
+      'awayXg',
+      'addedTimePerHalf',
+    });
+    expect(report['matches'], 50);
+    final pct =
+        (report['homeWinPct'] as num) +
+        (report['drawPct'] as num) +
+        (report['awayWinPct'] as num);
+    expect(pct, closeTo(100, 1e-6));
+    expect(report['scorePct'], isA<Map<String, dynamic>>());
+  });
+
+  test('calibrate --gap and --season write their reports', () async {
+    final gapPath = '${tmp.path}/g.json';
+    final (gapCode, gapOut, gapErr) = await _run([
+      'calibrate',
+      '--seed',
+      '3',
+      '--matches',
+      '20',
+      '--gap',
+      '20',
+      '--report',
+      gapPath,
+    ]);
+    expect(gapCode, 0, reason: gapErr);
+    expect(gapOut, contains('gap +20 CA'));
+    final gap = jsonDecode(File(gapPath).readAsStringSync()) as Map;
+    expect(gap['gap'], 20);
+    expect(gap['matches'], 20);
+    expect(
+      (gap['strongWinPct'] as num) +
+          (gap['drawPct'] as num) +
+          (gap['weakWinPct'] as num),
+      closeTo(100, 1e-6),
+    );
+
+    final seasonPath = '${tmp.path}/s.json';
+    final (seasonCode, seasonOut, seasonErr) = await _run([
+      'calibrate',
+      '--seed',
+      '3',
+      '--season',
+      '--seasons',
+      '1',
+      '--report',
+      seasonPath,
+    ]);
+    expect(seasonCode, 0, reason: seasonErr);
+    expect(seasonOut, contains('season calibration: 1 seasons'));
+    final season = jsonDecode(File(seasonPath).readAsStringSync()) as Map;
+    expect(season['seasons'], 1);
+    expect(season['perSeason'], hasLength(1));
+    expect((await _run(['calibrate', '--gap', '15'])).$1, 64);
+  });
 
   test('bench writes a report with every key', () async {
     final reportPath = '${tmp.path}/b.json';
