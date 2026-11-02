@@ -296,9 +296,12 @@ void _checkFixtures(World w, List<Violation> out) {
           ),
         );
       }
-      if (r.homeStats == null ||
-          r.awayStats == null ||
-          !r.events.any((e) => e is FullTime)) {
+      // Only results the possession engine produced carry events; results
+      // migrated from schema 2 (Poisson era) have none and are exempt.
+      if (r.events.isNotEmpty &&
+          (r.homeStats == null ||
+              r.awayStats == null ||
+              !r.events.any((e) => e is FullTime))) {
         out.add(
           Violation(
             'result.extended',

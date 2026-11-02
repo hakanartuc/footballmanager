@@ -679,7 +679,6 @@ void main() {
         'homeShootout': null,
         'awayShootout': null,
         'abandoned': false,
-        'finalCondition': <String, Object>{},
       });
     });
 
@@ -710,7 +709,8 @@ void main() {
       expect(injury.injury.type, 'hamstring');
       expect(back.homeShootout, 4);
       expect(back.abandoned, isTrue);
-      expect(back.finalCondition, {9: 61.5, 10: 70.0});
+      // finalCondition is in-memory only (consumed before any save).
+      expect(back.finalCondition, isEmpty);
     });
 
     test('ratings are keyed by ascending player id, events by type', () {

@@ -222,6 +222,8 @@ class MatchResult {
 
   /// Condition at the final whistle of every player in either match squad
   /// (starters and bench); the day loop writes it back to the players.
+  /// In-memory only: not part of the result's JSON, since it is consumed
+  /// before any save.
   Map<PlayerId, double> finalCondition;
 
   MatchResult({

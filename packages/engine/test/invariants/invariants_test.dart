@@ -316,8 +316,17 @@ void main() {
     });
 
     test('no FullTime event', () {
-      f.result!.events.clear();
+      f.result!.events
+        ..clear()
+        ..add(HalfTime(minute: 45, half: 1, clubId: f.homeId));
       expect(_rules(w), contains('result.extended'));
+    });
+
+    test('a migrated result without events is exempt', () {
+      f.result!.events.clear();
+      f.result!.homeStats = null;
+      f.result!.awayStats = null;
+      expect(_rules(w), isNot(contains('result.extended')));
     });
   });
 

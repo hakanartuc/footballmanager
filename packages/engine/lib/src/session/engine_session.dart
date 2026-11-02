@@ -82,7 +82,8 @@ class EngineSession {
   /// built exactly as the day loop builds it (`DayRunner.contextFor`) at
   /// [detail]. With [userManaged] the user's side gets no AI decisions:
   /// the caller steps the session and issues its commands. The world
-  /// stays at the day's start until [finishUserMatch].
+  /// stays at the state after `startOfDay` (recovery, injury countdown,
+  /// lineups) until [finishUserMatch].
   ///
   /// Throws [StateError] unless today is the user's next match day
   /// ([nextUserMatchDate]) and no user match is in progress.
@@ -117,14 +118,22 @@ class EngineSession {
         _userMatch ?? (throw StateError('no user match in progress'));
     final watch = Stopwatch()..start();
     final date = _world.date;
-    final played = {
-      f.id: _runner.settleMatch(_world, f, session.finish()),
-      ..._runner.playMatches(_world),
-    };
-    final ids = played.keys.toList()..sort();
-    final matchEvents = [for (final id in ids) ...played[id]!];
-    final rolled = _runner.endOfDay(_world, dayEvents: matchEvents);
-    _userMatch = null;
+    final Map<FixtureId, List<GameEvent>> played;
+    final List<GameEvent> rolled;
+    final List<GameEvent> matchEvents;
+    final List<FixtureId> ids;
+    try {
+      played = {
+        f.id: _runner.settleMatch(_world, f, session.finish()),
+        ..._runner.playMatches(_world),
+      };
+      ids = played.keys.toList()..sort();
+      matchEvents = [for (final id in ids) ...played[id]!];
+      rolled = _runner.endOfDay(_world, dayEvents: matchEvents);
+    } finally {
+      // A failure must not leave the session locked in "match in progress".
+      _userMatch = null;
+    }
     return DaySummary(
       date: date,
       events: [...matchEvents, ...rolled],

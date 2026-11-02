@@ -83,6 +83,7 @@ void main() {
       for (final key in ['yellows', 'reds', 'injuries', 'substitutions']) {
         expect(season[key], isA<int>(), reason: key);
       }
+      // TODO(T12): tighten to the spec bands once calibrated.
       expect(season['yellows'] as int, greaterThan(matches));
       expect(season['reds'] as int, greaterThan(0));
       expect(season['injuries'] as int, greaterThan(0));
