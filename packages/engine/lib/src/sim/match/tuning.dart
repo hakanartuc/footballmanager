@@ -197,6 +197,16 @@ abstract final class EngineTuning {
   /// Goals awarded to the other side when a match is abandoned.
   static const int abandonScore = 3;
 
+  // --- Added time (spec 5.3 step 10) ---
+
+  /// Minutes added to every half before the event count and the die:
+  /// `base + (goals + substitutions + bookings + injuries + 1) ~/ 2 +
+  /// nextInt(dieSides)`, clamped to [addedTimeMin]..[addedTimeMax].
+  static const int addedTimeBase = 1;
+  static const int addedTimeMin = 1;
+  static const int addedTimeMax = 6;
+  static const int addedTimeDieSides = 2;
+
   // --- Extra time and shootout (spec ruling 14-4) ---
 
   /// Condition drain multiplier in extra time.

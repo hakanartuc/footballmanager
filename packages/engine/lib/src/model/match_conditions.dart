@@ -17,4 +17,14 @@ class MatchConditions {
     required this.attendance,
     required this.homeAdvantage,
   });
+
+  /// Fine weather, a good pitch, nobody counted in the crowd and the
+  /// midpoint of the [homeAdvantage] range; what a match plays under when
+  /// its context carries no conditions.
+  static const neutral = MatchConditions(
+    weather: Weather.sunny,
+    pitch: 8,
+    attendance: 0,
+    homeAdvantage: 1.055,
+  );
 }
