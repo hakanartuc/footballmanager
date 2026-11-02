@@ -2,7 +2,8 @@
 
 Pure-Dart football-manager simulation engine (Faz 0A + Faz 1a match
 engine). Hosts (the Flutter app, the CLI in `bin/cm.dart`) talk to it only
-through `EngineSession`.
+through `EngineSession`. Engine version 0.2.0 (`pubspec.yaml`; 0.1.x was
+the Faz 0 Poisson placeholder), save schema 3.
 
 ## Running the tests
 
@@ -36,13 +37,13 @@ All gates are real assertions. Thresholds are Faz 0 bounds; the spec's
 | `test/slow/tactic_stress_test.dart` | 10 000 synthetic matches, random tactics | Every tactic setting, formation (custom included) and strength 80..160 drawn at random on both sides: every match finishes, no NaN in statistics, ratings or condition, 1.5..4.5 goals per match; the engine's probability `assert`s hold. |
 | `test/slow/perf_test.dart` (added) | large world, first 1 000 fixtures | 1 000 fast-mode `simulate` calls (contexts built outside the timing, 100 warm-up matches) < 600 ms. |
 
-Measured on an Apple Silicon Mac (JIT, `dart test`) with the possession
-engine: large world generates in ~125 ms; match day p50 191 ms / p95 215
-ms (up to ~250 matches a day), other day p50 1.8 ms / p95 2.4 ms; save
-7.5 MB in ~1.2 s, load ~0.9 s (results now carry events, statistics and
-ratings). Small world, 5 seasons with daily invariant checks: ~19 s. One
-fast-mode match ≈ 0.42 ms (1 000 large-world matches in 420 ms; 779 ms
-before Task 12 cached the per-player injury and drain constants that
+Measured on an Apple Silicon Mac (JIT, `dart test`, Task 13 constants):
+large world generates in ~160 ms; match day p50 119 ms / p95 133 ms (up
+to ~250 matches a day), other day p50 2.2 ms / p95 2.9 ms; save 4.96 MB
+in ~1.0 s, load ~0.76 s (results carry events, statistics and ratings).
+Small world, 5 seasons with daily invariant checks: ~14 s. One fast-mode
+match ≈ 0.41 ms (1 000 large-world matches in 413 ms; 779 ms before Task
+12 cached the per-player injury and drain constants that
 `applySideEffects` read on every step — `PlayerMatchConsts` on
 `SideState`).
 
@@ -141,14 +142,47 @@ condition recovery: injuries count down and heal with sharpness 40,
 everyone else gains 1 sharpness per day. The season rollover resets the
 yellow-card totals with the season statistics; bans carry over.
 
-The user's match can be played interactively through
-`EngineSession.startUserMatch` / `finishUserMatch`: the first starts the
-day and returns the `MatchSession` of the user's fixture (built with the
-same `contextFor`), the second takes its result and plays the rest of
-the day. With the AI left on (`userManaged: false`) and no commands the
-pair is identical to `advanceDay` (world JSON equal). `save()` during a
-match throws `StateError` (the world is saved only between days; hosts
-guard their autosave with `userMatchInProgress`).
+### Interactive session API
+
+The user's match is played step by step through the session pair; with
+the AI left on (`userManaged: false`) and no commands the pair is
+identical to `advanceDay` (world JSON equal).
+
+- `MatchSession EngineSession.startUserMatch({List<Command> commands,
+  MatchDetail detail = MatchDetail.events, bool userManaged = true})` —
+  runs `startOfDay` with [commands] (recovery, injury countdown, lineups)
+  and returns the session of the user club's fixture, built with the same
+  `contextFor` as the day loop; with [userManaged] the user's side gets no
+  AI decisions. Throws `StateError` unless today is `nextUserMatchDate()`
+  and no user match is in progress.
+- `DaySummary EngineSession.finishUserMatch()` — `finish()`es the session,
+  settles its fixture, plays the day's other fixtures and ends the day as
+  `advanceDay` would. Throws `StateError` when no user match is in
+  progress.
+- `bool EngineSession.userMatchInProgress` — true between the two calls.
+  `advanceDay`, `advanceUntil` and `save()` throw `StateError` while it is
+  true: the world is saved only between days, so hosts guard their
+  autosave with it.
+- `MatchDetail { result, events, full }` — how much of the match is kept:
+  the `MatchResult` with its events and statistics, or (`full`) also every
+  `PossessionStep` with its `MicroEvent`s in `MatchSession.log`. The
+  result is identical in all three (the micro events draw only from the
+  `visual` fork).
+- `List<PossessionStep> MatchSession.step({int count = 1})` — up to
+  [count] steps, fewer when the match ends; nothing on a finished match.
+- `List<PossessionStep> MatchSession.runUntil({int? minute, bool
+  stopOnEvent = true})` — steps until the end, until the clock reaches
+  [minute], or right after a step that produced a `Goal`, `Booking`,
+  `Injury`, `PenaltyMissed`, `HalfTime`, `FullTime`, `ExtraTimeStart` or
+  `ShootoutStart`.
+- `void MatchSession.apply(MatchCommand c)` — `Substitute`, `SetMentality`
+  or `SetTactic` between steps; validated, throws `CommandError` and
+  leaves the state untouched on error; `StateError` once finished.
+- `void MatchSession.setUserManaged(ClubId side, bool managed)` — the AI
+  makes no decisions for a managed side from the next step on.
+- `MatchResult MatchSession.finish()` — runs the rest without stopping,
+  finalises the ratings and returns the result (the same object on later
+  calls). `finished`, `minute` and `state` are readable throughout.
 
 ## CLI
 
@@ -262,6 +296,26 @@ Bands that the tuning could not centre, and why:
   `bookedYellowMul`), possession in an equal home match (56 / 44 → 55 /
   45, `homeLogOdds`) and the league's home advantage (42.4..44.7 % →
   43.2..44.4 % home wins; `long_sim_test` is back on the spec's 43..47).
+
+### Tuning constants that differ from the spec
+
+`lib/src/sim/match/tuning.dart` after Tasks 12–13; everything not listed
+is at the spec's value.
+
+| Constant | Spec | Final | Why |
+| --- | --- | --- | --- |
+| `possessionK1` | 0.25 on every possession | 1.0 on the contested share | With the coin-flip share capping what the contest decides, 0.5–0.7 left the +10 CA row of the 5.6 curve under 50 % (rows 10–12). |
+| `midContestShare` | — (new) | 0.45 | The share of possessions the midfield decides; bounds a +40 CA side's possession at ~65 % and is what makes the gap curve concave. |
+| `midBypass` | 0.0 / 0.1 / 0.2 / 0.3 | unchanged (Task 12's 0.5–0.8 reverted) | The style bypass is back to the spec now that `midContestShare` carries the floor. |
+| `homeLogOdds` | ×1.06 on home att and mid (5.2) | 0.7 added to the contest logit at `homeAdvantage` 1.055 (att keeps ×homeAdvantage) | A multiplier on the mid was saturated away by the strength gap; additive log-odds keep the home edge constant across gaps (league home wins 42.4..44.7 → 43.2..44.4 %). |
+| `chanceK2` | 0.20 | 0.14 | A +40 CA side won 88 % at 0.20. |
+| `chanceBase` | ln(0.20 / 0.80) | ln(0.187 / 0.813) | Shots 10–14 per side with set pieces and counters on top. |
+| `xgBase` (all but penalty) | 0.30 / 0.12 / 0.05 / 0.20 / 0.08 / 0.07 | ×0.64 (0.191 / 0.076 / 0.0325 / 0.129 / 0.0508 / 0.0457) | The spec's bases gave 4.2 goals a match; 2.5–2.9 needs ≈ 0.10 xG per shot. |
+| `foulPerStep` | 0.10 | 0.12 | 11.7 fouls a match (penalties 0.25, free kicks). |
+| `yellowPerFoul` | 0.12 | 0.28 | 3.05 first yellows a match (spec 3–4). |
+| `bookedYellowMul` | — (new) | 0.5 | A booked player draws yellows at half rate, so 3 yellows a match give 0.11 second yellows instead of 0.23. |
+| `redPerFoul` | 0.008 | 0.007 | Straight reds 0.085 a match, 43 % of the sendings-off; total 0.20. |
+| `shooterForwardMul` | 3 / 2 / 2 | 4 / 3 / 3 | A top club's striker reaches the spec's 20+ goals a season. |
 
 ## Generator values that differ from the plan
 

@@ -492,13 +492,13 @@ Motor başsız çalıştığı için şu testler otomatik koşar:
 - Şut 10-14 / takım, isabetli 3.5-5
 - Sarı kart 3-4 / maç, kırmızı 0.15-0.25
 - Sakatlık 0.25-0.4 / maç
-- Skor dağılımı: 0-0 %7-9, 1-1 %11-13, 1-0 %9-11; 5+ gollü maç %8-12
+- Skor dağılımı: 0-0 %7-9, 1-1 %11-13, 1-0 %9-12.5; 5+ gollü maç %8-13 (2.56 gol/maç Poisson'da 1-0 zaten %11.6, 5+ %11.7; Faz 1a kararı)
 
 **Güç farkı eğrisi:** Bölüm 5.6 tablosu ±5 puan toleransla.
 
 **Sezon simülasyonu (20 takım, 38 maç, 100 sezon):**
 - Şampiyon puanı 78-95, sonuncu 18-32, ortanca ~50
-- En güçlü 3 takım, 100 sezonun en az 80'inde ilk 4'te
+- En güçlü 3 takımın her biri, kulüp-sezonlarının en az %80'inde ilk 4'te (sd 13'lük Gauss ligde "üçü birden" kriteri 3.–4. takım arası 2–5 CA farkı yüzünden ölçülemez; Faz 1a kararı)
 - Ama en güçlü takım, 100 sezonun en fazla 70'inde şampiyon (sürpriz payı)
 - Gol kralı 20-32 gol
 

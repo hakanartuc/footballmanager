@@ -316,14 +316,14 @@ packages/engine/lib/src/
 - Slow tests assert every Global-Constraint band. Tuning loop: adjust only `tuning.dart`; record each iteration's numbers in the report; stop when all bands pass with ≥ 1 pp margin where possible.
 - Tactic stress (Review Focus 5): 10k matches with uniformly random tactic settings on both sides → goals/match within 1.5–4.5, no NaN, no probability assertion failures (add `assert` guards in possession for [0,1] ranges), condition ≥ 0, every match finishes.
 - Performance: 1000 fast-mode matches on the large world's clubs < 600 ms total (≤ 0.6 ms each) — if missed, profile and optimise `buildProfile` caching (profiles rebuilt only on sub/card/tactic change) before touching gameplay.
-- [ ] **Step 1:** Write the harness and tests; run; tune; re-run `tool/check.sh --slow` (the Faz 0 long-sim and perf gates must still pass with the new engine — update their goals/home bands to the spec's if the Poisson-era widening is no longer needed).
-- [ ] **Step 2:** Commit `feat(engine): calibration harness; tuned possession engine`.
+- [x] **Step 1:** Write the harness and tests; run; tune; re-run `tool/check.sh --slow` (the Faz 0 long-sim and perf gates must still pass with the new engine — update their goals/home bands to the spec's if the Poisson-era widening is no longer needed).
+- [x] **Step 2:** Commit `feat(engine): calibration harness; tuned possession engine`.
 
 ---
 
 ### Task 13: Acceptance `[Model: Fable]`
 
-- [ ] `tool/check.sh --slow` from a clean checkout green; `cm simulate --size medium --seasons 3 --invariants` 0 violations; `cm calibrate` report pasted into this plan's Results section with the final tuning table; README updated (engine v0.2.0, schema 3, tuning table, interactive session API).
+- [x] `tool/check.sh --slow` from a clean checkout green; `cm simulate --size medium --seasons 3 --invariants` 0 violations; `cm calibrate` report pasted into this plan's Results section with the final tuning table; README updated (engine v0.2.0, schema 3, tuning table, interactive session API).
 - [ ] Final whole-branch review (Fable), one fix wave, finishing (merge to `main` only after Hakan's approval, then push). Hand off to the Faz 1a app plan (narration TR/EN, tactics screen, live match screen) which consumes `MatchSession`, `MatchDetail`, `MatchCommand`, `PossessionStep`/`MicroEvent`, `MatchEvent`, `TeamStats`, `Tactic` exactly as named here.
 
 ---
@@ -333,3 +333,116 @@ packages/engine/lib/src/
 - Spec coverage (Faz 1a row): Bölüm 5.2 (T4), 5.3 steps 1–7 (T5), 8 (T5), 9 (T6), 10 (T9 added time), 11 (T10), ratings (T7), 5.4 modes (T9 `MatchDetail`), 5.6 curve (T12), 6.1 in-match injuries (T5/T11), 16.1 tactic set (T1/T4/T5), 16.3 rules (T2/T11), 16.8 weather/attendance/cards/subs (T2/T11), 14-3/14-4 ET+pens (T8), 14-3 AI default (T6/T9), 9 calibration (T12), 17 tests throughout. Spec 5.5/5.7 (screens, 2D) and narration are the app plan.
 - Names consistent: `Tactic`, `MatchRules`, `MatchConditions`, `TeamProfile`, `MatchState`/`SideState`, `PossessionStep`, `MicroEvent`, `MatchEvent`, `MatchCommand`/`CommandError`, `MatchSession`, `MatchDetail`, `PossessionMatchSimulator`, `applyPostMatch`, `startUserMatch`/`finishUserMatch`.
 - Review Focus pins: 1 → T6; 2 → T9 (and T6 validation); 3 → T4; 4 → T1/T3; 5 → T12.
+
+---
+
+## Results
+
+Task 13 acceptance (branch `faz1a-engine`, engine 0.2.0, schema 3,
+commits `47e70ae` engine + the docs commit after it). Measured on an
+Apple Silicon Mac, Dart 3.12.2, JIT.
+
+### `cm calibrate --seed 1 --matches 10000`
+
+```
+calibration: 10000 matches, seed 1, home CA 120 vs away CA 120
+  goals/match       2.59
+  home/draw/away    44.9 / 25.1 / 30.1 %
+  shots h/a        13.46 /10.51
+  on target h/a     4.82 / 3.72
+  xG h/a            1.43 / 1.11
+  possession home   55.1 %
+  corners           1.78
+  fouls            11.72
+  yellows           3.05
+  reds              0.20 (second yellows  0.11, straight  0.08)
+  injuries          0.30
+  substitutions     0.30
+  added time/half   3.37
+  5+ goals          12.2 %
+  scores           1-1 11.8% 1-0 11.0% 2-1 8.8% 0-1 8.7% 2-0 7.9% 0-0 7.6% 1-2 7.3% 2-2 4.9% 0-2 4.7% 3-0 4.4% 3-1 4.3% 1-3 2.8%
+```
+
+Straight reds are 42.8 % of the sendings-off (0.085 of 0.199 per match).
+
+### Gap curve (`--gap`, 4 000 matches each; spec ±5)
+
+```
+gap +10 CA: 4000 matches, stronger side win/draw/loss  50.9 / 23.9 / 25.2 % (at home  59.8 / 21.8 / 18.4, away  42.0 / 25.9 / 32.0); goals  2.68 / 2.57
+gap +20 CA: 4000 matches, stronger side win/draw/loss  63.8 / 21.3 / 14.9 % (at home  69.7 / 18.9 / 11.4, away  57.9 / 23.8 / 18.4); goals  2.89 / 2.71
+gap +40 CA: 4000 matches, stronger side win/draw/loss  81.4 / 12.5 /  6.1 % (at home  83.8 / 11.3 /  5.0, away  79.1 / 13.7 /  7.3); goals  3.43 / 3.19
+```
+
+Spec 55 / 24 / 21, 65 / 20 / 15, 78 / 14 / 8. The stronger side's possession
+(home and away averaged) is 56.3 / 61.0 / 64.9 %; equal sides 50 / 50 before
+the home edge, 55 / 45 with it.
+
+### `cm calibrate --seed 1 --season --seasons 100`
+
+```
+season calibration: 100 seasons, seed 1
+  champion points  85.97 (min 74, max 102)
+  last points      19.71 (min 6, max 33)
+  median points    52.33
+  top-3 by CA in top 4   49 / 100 ( 81.3 % of the clubs)
+  top-1 by CA champion   59 / 100
+  top scorer goals 20.94
+```
+
+### Final tuning (constant → spec → final → reason)
+
+| Constant | Spec | Final | Why |
+| --- | --- | --- | --- |
+| `possessionK1` | 0.25 on every possession | 1.0 on the contested share | With the coin-flip share capping the contest, 0.5–0.7 left the +10 CA row under 50 % (README rows 10–12). |
+| `midContestShare` | — (new, Task 13) | 0.45 | Share of possessions the midfield decides; bounds a +40 side near 65 % possession and makes the gap curve concave. |
+| `midBypass` | 0.0 / 0.1 / 0.2 / 0.3 | spec (Task 12's 0.5–0.8 reverted) | `midContestShare` now carries the floor. |
+| `homeLogOdds` | ×1.06 on home att and mid (5.2) | 0.7 added to the contest logit at `homeAdvantage` 1.055, scaled by `(homeAdvantage − 1) / 0.055`; att keeps ×homeAdvantage | A mid multiplier was saturated away by the strength gap; additive log-odds keep the home edge constant across gaps (league home wins 42.4..44.7 → 43.2..44.4 %). |
+| `chanceK2` | 0.20 | 0.14 | +40 CA won 88 % at 0.20. |
+| `chanceBase` | ln(0.20 / 0.80) | ln(0.187 / 0.813) | Shots 10–14 per side with set pieces and counters on top. |
+| `xgBase` (all but penalty) | 0.30 / 0.12 / 0.05 / 0.20 / 0.08 / 0.07 | ×0.64 | The spec's bases gave 4.2 goals a match; 2.5–2.9 needs ≈ 0.10 xG per shot. |
+| `foulPerStep` | 0.10 | 0.12 | 11.7 fouls a match. |
+| `yellowPerFoul` | 0.12 | 0.28 | 3.05 first yellows a match. |
+| `bookedYellowMul` | — (new, Task 13) | 0.5 | A booked player draws yellows at half rate: 0.11 second yellows instead of 0.23. |
+| `redPerFoul` | 0.008 | 0.007 | Straight reds 0.085 a match, 43 % of sendings-off; total 0.20. |
+| `shooterForwardMul` | 3 / 2 / 2 | 4 / 3 / 3 | Top-club striker reaches 20+ goals a season. |
+
+### Performance (`test/slow/perf_test.dart`, large world, seed 1)
+
+- 1 000 fast-mode matches: 413 ms (0.413 ms each; gate < 600 ms).
+- 400 days: match day p50 118.9 ms / p95 133.0 ms / max 147.5 ms (n = 54;
+  gate p95 < 300 ms); other day p50 2.2 ms / p95 2.9 ms.
+- Save 4 958 064 bytes in 1 016 ms, load 763 ms (gates 15 MB, 2 s, 2 s).
+- Large world generation 158–174 ms; one invariant pass 33 ms.
+
+### Acceptance runs (clean checkout, `git worktree add --detach /tmp/cm-accept faz1a-engine`)
+
+`tool/check.sh --slow` (format, analyze, fast suite, slow suite) — final lines:
+
+```
+Formatted 107 files (0 changed) in 0.19 seconds.
+No issues found!
+00:16 +605: All tests passed!
+...
+long sim: 5 seasons, 1779 days, 15036 ms, 0 violations
+00:15 +22: test/slow/long_sim_test.dart: home win percentage stays in 43.0..47.0
+00:15 +23: test/slow/long_sim_test.dart: draw percentage stays in 22.0..30.0
+00:15 +29: All tests passed!
+```
+
+`dart run bin/cm.dart simulate --size medium --seasons 3 --invariants`
+(16 leagues, 5 742 matches a season, exit 0, 0 violations):
+
+```
+season 2026: 2.722 goals/match, H/D/A 44.22/22.68/33.11 %, yellows 17361 (3.02/match), reds 1238 (0.216/match), injuries 2019 (0.352/match), violations 0, 316 days, 4923 ms
+season 2027: 2.647 goals/match, H/D/A 42.15/24.47/33.39 %, yellows 17491 (3.05/match), reds 1165 (0.203/match), injuries 2002 (0.349/match), violations 0, 364 days, 5325 ms
+season 2028: 2.669 goals/match, H/D/A 43.14/24.33/32.53 %, yellows 17323 (3.02/match), reds 1209 (0.211/match), injuries 2089 (0.364/match), violations 0, 364 days, 5612 ms
+```
+
+App (`apps/cm_app`, untouched): `flutter analyze` no issues, `flutter test`
+305 tests passed.
+
+### Test counts
+
+Engine: 605 fast (`dart test -x slow`) + 29 slow (`dart test -t slow`) =
+634. App: 305.
+
