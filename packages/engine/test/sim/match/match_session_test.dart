@@ -239,6 +239,8 @@ void main() {
       expect(r.homeGoals, 0);
       expect(r.awayGoals, 3);
       expect(r.events.whereType<FullTime>(), hasLength(1));
+      // Goals scored before the abandonment are not credited.
+      expect(r.goals, isEmpty);
     });
   });
 
@@ -433,11 +435,12 @@ void main() {
       final w = uniformWorld();
       final s = MatchSession(_uniformCtx(w));
       while (!s.finished) {
+        final before = s.state.events.length;
         final steps = s.runUntil();
-        final last = s.state.events.length;
         if (!s.finished) {
-          // Every stop but the last is explained by an event of its step.
-          final stop = s.state.events.sublist(last - 1);
+          // Every stop but the last is explained by an event of its step
+          // (an AI command may follow it in the same step).
+          final stop = s.state.events.sublist(before);
           expect(
             stop.any(
               (e) =>
@@ -453,6 +456,16 @@ void main() {
         }
       }
       expect(s.state.events.last, isA<FullTime>());
+    });
+
+    test('profiles follow the condition drain at the AI cadence', () {
+      final w = uniformWorld();
+      final s = MatchSession(_uniformCtx(w));
+      final attC0 = s.state.home.profile.attC;
+      final defC0 = s.state.away.profile.defC;
+      s.runUntil(minute: 70, stopOnEvent: false);
+      expect(s.state.home.profile.attC, lessThan(attC0));
+      expect(s.state.away.profile.defC, lessThan(defC0));
     });
 
     test('runUntil a minute stops there without an event', () {

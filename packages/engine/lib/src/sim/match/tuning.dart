@@ -252,9 +252,6 @@ abstract final class EngineTuning {
   /// Longest possession step in seconds at normal tempo.
   static const int stepSecondsMax = 90;
 
-  /// Home advantage when match conditions carry none (5.2).
-  static const double homeAdvantageDefault = 1.06;
-
   // --- Player effectiveness (spec 5.2) ---
 
   /// Familiarity factor at familiarity 1; linear to 1.0 at 20.

@@ -92,6 +92,7 @@ class MatchSession {
   /// The possession steps so far; non-null only in `MatchDetail.full`.
   late final MatchLog? log;
   late final Map<ClubId, int> _lastAiMinute;
+  int _lastRefreshMinute = 0;
   bool _finished = false;
   MatchResult? _result;
 
@@ -157,10 +158,17 @@ class MatchSession {
     return _result = MatchResult(
       homeGoals: s.home.goals,
       awayGoals: s.away.goals,
+      // An abandoned match is awarded 0–3 (or 0–0); the real goals stay in
+      // [events] but are not credited.
       goals: [
-        for (final e in s.events)
-          if (e is Goal)
-            GoalEvent(minute: e.minute, scorerId: e.scorerId, clubId: e.clubId),
+        if (!s.abandoned)
+          for (final e in s.events)
+            if (e is Goal)
+              GoalEvent(
+                minute: e.minute,
+                scorerId: e.scorerId,
+                clubId: e.clubId,
+              ),
       ],
       matchSeed: matchSeed,
       homeStats: s.home.stats,
@@ -213,10 +221,22 @@ class MatchSession {
       for (final side in [s.home, s.away]) {
         _aiCheck(side, injured: injured.contains(side.clubId));
       }
+      _refreshProfiles();
       _boundary();
     }
     log?.steps.add(step);
     return step;
+  }
+
+  /// Rebuilds both profiles every [EngineTuning.aiCheckInterval] minutes so
+  /// the condition drain reaches lane strengths (spec 5.3 step 8); draws
+  /// nothing. User-managed sides are refreshed too.
+  void _refreshProfiles() {
+    final s = state;
+    if (s.minute < _lastRefreshMinute + EngineTuning.aiCheckInterval) return;
+    _lastRefreshMinute = s.minute;
+    s.rebuildProfile(_ctx.world, s.home.clubId);
+    s.rebuildProfile(_ctx.world, s.away.clubId);
   }
 
   void _aiCheck(SideState side, {required bool injured}) {
