@@ -45,7 +45,6 @@ class _Snapshot {
 class _SeasonRun {
   _SeasonRun(this.w) {
     final runner = DayRunner(
-      const PoissonMatchSimulator(),
       rollover: (w, rng) {
         before = _Snapshot(w);
         events = rolloverSeason(w, rng);
@@ -306,6 +305,18 @@ void main() {
       expect(inbox[inbox.length - 2], same(tail[0]));
       expect(inbox.last, same(tail[1]));
     });
+  });
+
+  test('resets yellow-card totals, bans carry over', () {
+    final w3 = _world();
+    w3.date = w3.calendar.seasonEnd;
+    final p = w3.players[w3.squadOf(w3.clubs.keys.first).first]!;
+    p.state
+      ..yellowCards = 7
+      ..suspensionMatches = 2;
+    rolloverSeason(w3, SeededRng(w3.seed).fork('rollover:${w3.seasonYear}'));
+    expect(p.state.yellowCards, 0);
+    expect(p.state.suspensionMatches, 2);
   });
 
   group('rollover edge cases', () {

@@ -11,21 +11,29 @@ import '../model/world.dart';
 import '../persistence/save_codec.dart';
 import '../sim/commands.dart';
 import '../sim/day_loop.dart';
+import '../sim/match/match_session.dart';
+import '../sim/match/possession_match_simulator.dart';
 import '../sim/match_simulator.dart';
 import '../sim/new_game.dart';
-import '../sim/poisson_match.dart';
 import '../sim/season_rollover.dart';
 
 /// The engine's only entry point for hosts: the Flutter app's isolate and
 /// the CLI. Owns one [World] and one [DayRunner] and holds no static state,
 /// so any number of sessions can live side by side.
 ///
-/// [sim] defaults to [PoissonMatchSimulator], [codec] to [JsonGzipSaveCodec].
+/// [sim] defaults to [PossessionMatchSimulator], [codec] to
+/// [JsonGzipSaveCodec].
+///
+/// The user's match can be played interactively: [startUserMatch] begins
+/// the day and hands out a [MatchSession] on the user's fixture;
+/// [finishUserMatch] takes its result and runs the rest of the day.
+/// Without commands to the session (and the AI left on with
+/// `userManaged: false`) the pair gives the same world as [advanceDay].
 class EngineSession {
   EngineSession._(this._world, MatchSimulator? sim, SaveCodec? codec)
     : _codec = codec ?? const JsonGzipSaveCodec(),
       _runner = DayRunner(
-        sim ?? const PoissonMatchSimulator(),
+        sim: sim ?? const PossessionMatchSimulator(),
         rollover: rolloverSeason,
       );
 
@@ -52,19 +60,97 @@ class EngineSession {
   final World _world;
   final SaveCodec _codec;
   final DayRunner _runner;
+  (Fixture, MatchSession)? _userMatch;
 
   /// The live world. Callers must treat it as read-only; mutate it only
-  /// through [advanceDay], [advanceUntil], [markRead] and [markReadById].
+  /// through [advanceDay], [advanceUntil], [startUserMatch],
+  /// [finishUserMatch], [markRead] and [markReadById].
   World get world => _world;
 
+  /// Whether a [startUserMatch] awaits its [finishUserMatch].
+  bool get userMatchInProgress => _userMatch != null;
+
   /// Processes the current day with [commands] (see [DayRunner.advanceDay]).
-  DaySummary advanceDay([List<Command> commands = const []]) =>
-      _runner.advanceDay(_world, commands);
+  /// Throws [StateError] while a user match is in progress.
+  DaySummary advanceDay([List<Command> commands = const []]) {
+    _noUserMatch();
+    return _runner.advanceDay(_world, commands);
+  }
+
+  /// Starts today as [advanceDay] would (`DayRunner.startOfDay` with
+  /// [commands]) and returns a [MatchSession] on the user club's fixture,
+  /// built exactly as the day loop builds it (`DayRunner.contextFor`) at
+  /// [detail]. With [userManaged] the user's side gets no AI decisions:
+  /// the caller steps the session and issues its commands. The world
+  /// stays at the state after `startOfDay` (recovery, injury countdown,
+  /// lineups) until [finishUserMatch].
+  ///
+  /// Throws [StateError] unless today is the user's next match day
+  /// ([nextUserMatchDate]) and no user match is in progress.
+  MatchSession startUserMatch({
+    List<Command> commands = const [],
+    MatchDetail detail = MatchDetail.events,
+    bool userManaged = true,
+  }) {
+    _noUserMatch();
+    final club = _world.userClub;
+    if (club == null || nextUserMatchDate() != _world.date) {
+      throw StateError('no user match on ${_world.date.iso}');
+    }
+    _runner.startOfDay(_world, commands);
+    final f = _world
+        .fixturesOn(_world.date)
+        .map((id) => _world.fixtures[id]!)
+        .firstWhere((f) => f.homeId == club.id || f.awayId == club.id);
+    final session = MatchSession(_runner.contextFor(_world, f, detail: detail));
+    if (userManaged) session.setUserManaged(club.id, true);
+    _userMatch = (f, session);
+    return session;
+  }
+
+  /// Finishes the session of [startUserMatch] (`MatchSession.finish`),
+  /// settles its fixture, plays the day's other fixtures and ends the day
+  /// as [advanceDay] would; the summary lists the day's fixtures in id
+  /// order, the user's among them. Throws [StateError] when no user match
+  /// is in progress.
+  DaySummary finishUserMatch() {
+    final (f, session) =
+        _userMatch ?? (throw StateError('no user match in progress'));
+    final watch = Stopwatch()..start();
+    final date = _world.date;
+    final Map<FixtureId, List<GameEvent>> played;
+    final List<GameEvent> rolled;
+    final List<GameEvent> matchEvents;
+    final List<FixtureId> ids;
+    try {
+      played = {
+        f.id: _runner.settleMatch(_world, f, session.finish()),
+        ..._runner.playMatches(_world),
+      };
+      ids = played.keys.toList()..sort();
+      matchEvents = [for (final id in ids) ...played[id]!];
+      rolled = _runner.endOfDay(_world, dayEvents: matchEvents);
+    } finally {
+      // A failure must not leave the session locked in "match in progress".
+      _userMatch = null;
+    }
+    return DaySummary(
+      date: date,
+      events: [...matchEvents, ...rolled],
+      playedFixtures: ids,
+      elapsed: watch.elapsed,
+    );
+  }
+
+  void _noUserMatch() {
+    if (_userMatch != null) throw StateError('a user match is in progress');
+  }
 
   /// Advances day by day while `world.date` is before [date], stopping
   /// early on the morning of a user match day (before it is played, so a
-  /// lineup can still be set; the caller plays it with [advanceDay]) and
-  /// right after the day whose summary contains a [SeasonEnded].
+  /// lineup can still be set; the caller plays it with [advanceDay] or
+  /// [startUserMatch]) and right after the day whose summary contains a
+  /// [SeasonEnded]. Throws [StateError] while a user match is in progress.
   ///
   /// [commands] apply to the first processed day only. When the loop stops
   /// before processing any day (today is already a user match day, or
@@ -75,6 +161,7 @@ class EngineSession {
     GameDate date, {
     List<Command> commands = const [],
   }) {
+    _noUserMatch();
     final out = <DaySummary>[];
     var pending = commands;
     while (_world.date.isBefore(date)) {
@@ -100,8 +187,14 @@ class EngineSession {
     return null;
   }
 
-  /// The world encoded by the session's codec.
-  Uint8List save() => _codec.encode(_world);
+  /// The world encoded by the session's codec. The world is saved only
+  /// between days: throws [StateError] while a user match is in progress
+  /// (hosts guard their autosave with [userMatchInProgress]), so a quit
+  /// mid-match resumes from that morning.
+  Uint8List save() {
+    _noUserMatch();
+    return _codec.encode(_world);
+  }
 
   /// [computeTable] of [l] for the current season.
   List<TableRow> table(LeagueId l) =>

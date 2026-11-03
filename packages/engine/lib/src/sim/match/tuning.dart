@@ -1,0 +1,503 @@
+import '../../model/enums.dart';
+import '../../model/match_result.dart';
+import '../../model/tactic.dart';
+
+/// Every calibration number of the match engine (spec 5.2, 5.3, 16.1,
+/// 16.8). Task 12 (calibration) edits only this file; the values that
+/// differ from the spec's say so and why, and the README's "Calibration"
+/// section has the resulting §9 numbers (`cm calibrate`).
+abstract final class EngineTuning {
+  // --- Possession and chances (spec 5.3 steps 1–3) ---
+
+  /// Possession logistic slope on `mid_a − mid_b` (5.3 step 1 says
+  /// ≈ 0.25). Task 13: 1.0 on the contested share of possessions
+  /// ([midContestShare]); the rest are a coin flip, which is what bends
+  /// the 5.6 gap curve. Task 12 had 1.4 on a 0.2–0.5 share, which
+  /// saturated the contest (a one-point mid edge was worth +8 pp of
+  /// possession, four points only +2 more); at 1.0 on 0.405 one point is
+  /// worth +9 pp and four +20 pp, and 0.5–0.7 left the +10 CA row of the
+  /// 5.6 curve under 50 % (README "Calibration" rows 10–12).
+  static const double possessionK1 = 1.0;
+
+  /// Share of the possessions that the midfield contest decides; the rest
+  /// are a coin flip. Style-independent; the passing style's [midBypass]
+  /// comes on top: a possession is contested with probability
+  /// `midContestShare × (1 − mean midBypass)`.
+  static const double midContestShare = 0.45;
+
+  /// Home advantage in possession: this is added to the contest's logit
+  /// at the neutral `homeAdvantage` 1.055, scaled by
+  /// `(homeAdvantage − 1) / 0.055` otherwise (1.03..1.08 → 0.55..1.45 of
+  /// it). Additive log-odds keep the home edge the same size at every
+  /// strength gap; the spec's ×1.06 on the mid (5.2) was saturated away
+  /// by the gap.
+  static const double homeLogOdds = 0.7;
+
+  /// Chance logistic slope on `att_lane − def_lane` (5.3 step 3 says
+  /// ≈ 0.20). Task 12: 0.14 flattens the top of the gap curve (a +40 CA
+  /// side was winning 88 % at 0.20).
+  static const double chanceK2 = 0.14;
+
+  /// Chance logistic intercept: `ln(0.187 / 0.813)`, so equal lanes give a
+  /// chance on 18.7 % of possessions (5.3 step 3 says 20 %). Task 12: with
+  /// set pieces and counters on top this lands shots at 13.7 home / 10.3
+  /// away per match (spec 10–14 per side).
+  static const double chanceBase = -1.469622492693224;
+
+  /// Chance a lost possession is followed by a counter (5.3 step 1).
+  static const double counterProb = 0.15;
+
+  /// [counterProb] with the counter-attack setting on (16.1).
+  static const double counterProbTactic = 0.28;
+
+  /// Defending lane multiplier on a counter (5.3 step 1).
+  static const double counterDefMul = 0.80;
+
+  /// Attacking lane multiplier on a counter with the setting on (16.1).
+  static const double counterAttMul = 1.15;
+
+  // --- Chance quality and outcome (spec 5.3 steps 6–7) ---
+
+  /// Base xG per chance type (5.3 step 6: penalty 0.76, through ball 0.30,
+  /// cross 0.12, long shot 0.05, dribble 0.20, corner 0.08, free kick
+  /// 0.07). Task 12: everything but the penalty is scaled by ≈ 0.63 — the
+  /// spec's bases gave 4.2 goals per match on ~24 shots; 2.56 (spec
+  /// 2.5–2.9) needs ≈ 0.10 xG per shot. Task 13: ×1.015 on top (2.59).
+  static const Map<ChanceType, double> xgBase = {
+    ChanceType.penalty: 0.76,
+    ChanceType.throughBall: 0.191,
+    ChanceType.cross: 0.076,
+    ChanceType.longShot: 0.0325,
+    ChanceType.dribble: 0.129,
+    ChanceType.corner: 0.0508,
+    ChanceType.freeKick: 0.0457,
+  };
+
+  /// xG × `(1 + finishingCoef × (finishing + composure − 20))` (5.3 step 6).
+  static const double finishingCoef = 0.02;
+
+  /// xG × `(1 − keeperCoef × (gk − 10))` (5.3 step 6).
+  static const double keeperCoef = 0.015;
+
+  /// Width of the "saved" band above xG (5.3 step 7).
+  static const double saveBand = 0.25;
+
+  /// Width of the "blocked / post" band above the save band (5.3 step 7).
+  static const double blockBand = 0.20;
+
+  /// Share of saves that give a corner (5.3 step 7).
+  static const double cornerAfterSave = 0.30;
+
+  /// Share of the blocked band (its top) that is the post instead.
+  static const double postShare = 0.15;
+
+  /// xG ceiling after the finishing and keeper factors.
+  static const double xgMax = 0.95;
+
+  /// Attribute that weights shooter selection per chance type (5.3 step 5).
+  static const Map<ChanceType, Attr> shooterAttr = {
+    ChanceType.throughBall: Attr.finishing,
+    ChanceType.cross: Attr.heading,
+    ChanceType.longShot: Attr.longShots,
+    ChanceType.dribble: Attr.dribbling,
+    ChanceType.corner: Attr.heading,
+    ChanceType.freeKick: Attr.longShots,
+    ChanceType.penalty: Attr.finishing,
+  };
+
+  /// Shooter weight multiplier for forwards (st, aml, amc, amr) per chance
+  /// type; absent means 1.0. Task 12: 4 / 3 / 3 (was 3 / 2 / 2) so that a
+  /// top club's striker reaches the spec's 20+ goals a season (§9).
+  static const Map<ChanceType, double> shooterForwardMul = {
+    ChanceType.throughBall: 4.0,
+    ChanceType.cross: 3.0,
+    ChanceType.dribble: 3.0,
+  };
+
+  /// Attribute that weights assister selection per chance type; a type
+  /// absent here has no assister (5.3 step 5).
+  static const Map<ChanceType, Attr> assistAttr = {
+    ChanceType.throughBall: Attr.passing,
+    ChanceType.longShot: Attr.passing,
+    ChanceType.cross: Attr.crossing,
+    ChanceType.corner: Attr.crossing,
+  };
+
+  // --- Side effects (spec 5.3 step 8) ---
+
+  /// Foul probability per possession step (5.3 step 8 says ≈ 0.10; Task
+  /// 12: 0.12 → 11.7 fouls per match).
+  static const double foulPerStep = 0.12;
+
+  /// Yellow card probability per foul (5.3 step 8 says ≈ 0.12; Task 12:
+  /// 0.28 → 3.05 first yellows per match, spec 3–4).
+  static const double yellowPerFoul = 0.28;
+
+  /// Straight red probability per foul (5.3 step 8 says ≈ 0.008; Task 13:
+  /// 0.007, with [bookedYellowMul] holding the second yellows down so that
+  /// sendings-off stay inside 0.15–0.25 per match).
+  static const double redPerFoul = 0.007;
+
+  /// A player who already holds a yellow draws a further yellow with
+  /// [yellowPerFoul] × this (applied at the card draw, so foul counts are
+  /// unchanged). Task 13: without it, yellows drawn evenly over the fouling
+  /// side made 3 first yellows a match worth ≈ 0.23 second yellows, which
+  /// forced the straight reds down to 0.001 per foul.
+  static const double bookedYellowMul = 0.5;
+
+  /// Share of fouls inside the box; the attacking side's next possession is
+  /// a penalty. With ~12 fouls per match this gives the spec's ~0.25
+  /// penalties per match (5.3 step 4).
+  static const double boxFoulShare = 0.02;
+
+  /// Share of the other fouls that give the attacking side a free-kick
+  /// chance as its next possession.
+  static const double freeKickShare = 0.25;
+
+  /// Straight red reasons: this share is violent conduct, the next
+  /// [redLastManShare] a last-man foul, the rest a normal foul.
+  static const double redViolentShare = 0.10;
+  static const double redLastManShare = 0.20;
+
+  /// Injury probability per step (spec 6.1: 0.0025 per step per
+  /// player-exposure → ~0.3 per match). One exposure per step, independent
+  /// of how many players are on the pitch: the probability is this × the
+  /// mean of the per-player multipliers below, and the victim is drawn
+  /// weighted by them.
+  static const double injuryPerStep = 0.0025;
+
+  /// Injury proneness 1 → ×[injuryPronenessMin], 20 → ×[injuryPronenessMax].
+  static const double injuryPronenessMin = 0.5;
+  static const double injuryPronenessMax = 2.0;
+
+  /// Condition below [injuryLowCondition] ×[injuryLowConditionMul]; below
+  /// [injuryVeryLowCondition] ×[injuryVeryLowConditionMul] instead.
+  static const double injuryLowCondition = 70;
+  static const double injuryLowConditionMul = 1.5;
+  static const double injuryVeryLowCondition = 50;
+  static const double injuryVeryLowConditionMul = 2.5;
+
+  /// Age above [injuryOldAge] ×[injuryOldAgeMul].
+  static const int injuryOldAge = 31;
+  static const double injuryOldAgeMul = 1.3;
+
+  /// Own side on fast tempo ×[injuryFastTempoMul].
+  static const double injuryFastTempoMul = 1.2;
+
+  /// The player fouled this step ×[injuryFoulVictimMul].
+  static const double injuryFoulVictimMul = 4.0;
+
+  /// Injury severity bands (spec 6.2): inclusive day ranges and their
+  /// weights, normally and when caused by a foul (shifted toward serious).
+  static const List<(int, int)> injuryBandDays = [
+    (1, 7),
+    (8, 21),
+    (22, 56),
+    (57, 150),
+    (151, 360),
+  ];
+  static const List<double> injuryBandWeights = [45, 30, 15, 8, 2];
+  static const List<double> injuryBandWeightsFoul = [35, 32, 18, 12, 3];
+
+  /// Condition lost per minute at stamina 20 and at stamina 5 (5.3 step 8);
+  /// linear between and beyond.
+  static const double drainAtStamina20 = 0.18;
+  static const double drainAtStamina5 = 0.35;
+
+  /// Condition lost per minute by a player with [stamina], before the
+  /// side's `conditionDrain`.
+  static double drainPerMinute(int stamina) =>
+      drainAtStamina5 +
+      (drainAtStamina20 - drainAtStamina5) * (stamina - 5) / 15;
+
+  /// Mid and def multiplier per missing player below eleven.
+  static const double tenMenMul = 0.85;
+
+  /// Extra att multiplier with nine or fewer players (Task 4 resolution).
+  static const double nineMenAttMul = 0.9;
+
+  // --- In-match AI (spec 5.3 step 9) ---
+
+  /// Match minutes between AI checks.
+  static const int aiCheckInterval = 5;
+
+  /// From this minute a side that is behind raises its mentality one step.
+  static const int aiBehindMinute = 60;
+
+  /// From this minute a side that is ahead lowers its mentality one step.
+  static const int aiAheadMinute = 75;
+
+  /// An outfield player below this condition is substituted.
+  static const double aiFatigueCondition = 65;
+
+  /// Familiarity in the slot that makes a bench player a fit for it when
+  /// nobody on the bench has that main position.
+  static const int aiFamiliarityMin = 12;
+
+  /// A side with fewer players than this on the pitch forfeits.
+  static const int abandonBelow = 7;
+
+  /// Goals awarded to the other side when a match is abandoned.
+  static const int abandonScore = 3;
+
+  // --- Added time (spec 5.3 step 10) ---
+
+  /// Minutes added to every half before the event count and the die:
+  /// `base + (goals + substitutions + bookings + injuries + 1) ~/ 2 +
+  /// nextInt(dieSides)`, clamped to [addedTimeMin]..[addedTimeMax].
+  static const int addedTimeBase = 1;
+  static const int addedTimeMin = 1;
+  static const int addedTimeMax = 6;
+  static const int addedTimeDieSides = 2;
+
+  // --- Extra time and shootout (spec ruling 14-4) ---
+
+  /// Condition drain multiplier in extra time.
+  static const double extraTimeDrainMul = 1.2;
+
+  /// A shootout kick scores with `xgBase[penalty]` times the 5.3 step 6
+  /// [finishingCoef] and [keeperCoef] factors, clamped to
+  /// [shootoutMin]..[shootoutMax].
+  static const double shootoutMin = 0.40;
+  static const double shootoutMax = 0.95;
+
+  // --- Ratings (spec 5.3, player match rating) ---
+
+  /// Every player's rating at kick-off.
+  static const double ratingBase = 6.0;
+
+  /// Rating deltas per event (`RatingEvent`).
+  static const double ratingGoal = 1.0;
+  static const double ratingAssist = 0.5;
+  static const double ratingSave = 0.1;
+  static const double ratingPossessionLost = -0.05;
+  static const double ratingCriticalError = -0.5;
+  static const double ratingYellow = -0.3;
+  static const double ratingRed = -1.0;
+
+  /// Full-time bonuses: every player of the winning side; keeper and
+  /// defence slots of a side that conceded nothing.
+  static const double ratingWinBonus = 0.3;
+  static const double ratingCleanSheetBonus = 0.5;
+
+  /// Final ratings are clamped to [ratingMin]..[ratingMax].
+  static const double ratingMin = 1.0;
+  static const double ratingMax = 10.0;
+
+  /// Players with fewer minutes than this get no rating.
+  static const int ratingMinMinutes = 10;
+
+  // --- Clock and venue (spec 5.3, 5.2) ---
+
+  /// Shortest possession step in seconds at normal tempo.
+  static const int stepSecondsMin = 30;
+
+  /// Longest possession step in seconds at normal tempo.
+  static const int stepSecondsMax = 90;
+
+  // --- Player effectiveness (spec 5.2) ---
+
+  /// Familiarity factor at familiarity 1; linear to 1.0 at 20.
+  static const double familiarityMin = 0.6;
+
+  /// Condition factor: `conditionBase + conditionSpan × condition / 100`
+  /// (5.2: 100 → 1.0, 50 → 0.75). Only the match engine uses this curve;
+  /// `lineup.dart` keeps its own for auto-lineup ordering.
+  static const double conditionBase = 0.5;
+  static const double conditionSpan = 0.5;
+
+  /// The 5.2 condition curve for [condition] in 0..100.
+  static double conditionFactor(double condition) =>
+      conditionBase + conditionSpan * condition / 100;
+
+  /// Sharpness factor: `sharpnessBase + sharpnessSpan × sharpness / 100`.
+  static const double sharpnessBase = 0.9;
+  static const double sharpnessSpan = 0.1;
+
+  /// Morale factor: `moraleBase + moraleSpan × morale / 100`.
+  static const double moraleBase = 0.95;
+  static const double moraleSpan = 0.10;
+
+  /// Form factor: `formBase + formSpan × clamp((form − 1) / 9, 0, 1)`.
+  static const double formBase = 0.95;
+  static const double formSpan = 0.10;
+
+  // --- Profile aggregation (spec 5.2, Task 4 resolution) ---
+
+  /// Mid bonus per midfielder above [midCountBase].
+  static const double midCountBonus = 0.3;
+  static const double midCountBase = 4.0;
+
+  /// Weight of aml/amc/amr in the mid mean and midfielder count.
+  static const double attackingMidWeight = 0.5;
+
+  /// Weight of a striker in the left and right attack lanes.
+  static const double strikerWingWeight = 0.5;
+
+  /// Weight of a dm in the centre defence lane.
+  static const double dmDefWeight = 0.7;
+
+  /// Weight of ml/mr in their defence lane.
+  static const double wideMidDefWeight = 0.3;
+
+  /// An empty lane is this × the mean of the occupied lanes.
+  static const double emptyLaneMul = 0.8;
+
+  /// Value of a group nobody on the pitch belongs to (gk, mid, all lanes).
+  static const double missingGroupValue = 5.0;
+
+  /// Players whose mean counts for set-piece attack.
+  static const int setPieceTopN = 5;
+
+  // --- Tactic multipliers (spec 16.1 table) ---
+
+  /// Mentality: att multiplier; def is [mentalityDefMul].
+  static const Map<Mentality, double> mentalityAttMul = {
+    Mentality.veryDefensive: 0.85,
+    Mentality.defensive: 0.92,
+    Mentality.balanced: 1.0,
+    Mentality.attacking: 1.08,
+    Mentality.veryAttacking: 1.15,
+  };
+  static const Map<Mentality, double> mentalityDefMul = {
+    Mentality.veryDefensive: 1.15,
+    Mentality.defensive: 1.08,
+    Mentality.balanced: 1.0,
+    Mentality.attacking: 0.92,
+    Mentality.veryAttacking: 0.85,
+  };
+
+  /// Short passing: mid multiplier.
+  static const double shortPassMidMul = 1.1;
+
+  /// Share of the contested possessions (see [midContestShare]) that the
+  /// passing style takes away from the midfield contest, per style (spec
+  /// 16.1); long ball leaves the least to the midfield. Step 1 decides who
+  /// owns the ball, so the two sides' values are averaged into one share.
+  static const Map<PassingStyle, double> midBypass = {
+    PassingStyle.short: 0.0,
+    PassingStyle.mixed: 0.1,
+    PassingStyle.direct: 0.2,
+    PassingStyle.longBall: 0.3,
+  };
+
+  /// Long ball: chance-type weight shifts.
+  static const double longBallCrossMul = 1.5;
+  static const double longBallThroughMul = 0.7;
+
+  /// Tempo: condition drain and `1 / tempoMul` on step seconds.
+  static const Map<Tempo, double> tempoMul = {
+    Tempo.slow: 0.85,
+    Tempo.normal: 1.0,
+    Tempo.fast: 1.3,
+  };
+
+  /// Width: lane weights left / centre / right.
+  static const Map<Width, Map<Lane, double>> widthLaneWeights = {
+    Width.narrow: {Lane.left: 0.25, Lane.centre: 0.5, Lane.right: 0.25},
+    Width.normal: {Lane.left: 0.3, Lane.centre: 0.4, Lane.right: 0.3},
+    Width.wide: {Lane.left: 0.4, Lane.centre: 0.2, Lane.right: 0.4},
+  };
+
+  /// High pressing: opponent mid multiplier (applied by the caller).
+  static const double pressHighOpponentMidMul = 0.92;
+
+  /// Pressing: own condition drain multiplier.
+  static const Map<Pressing, double> pressDrainMul = {
+    Pressing.low: 0.9,
+    Pressing.normal: 1.0,
+    Pressing.high: 1.25,
+  };
+
+  /// Tackling: foul, card, injury-to-opponent and ball-winning (def).
+  static const Map<Tackling, double> tacklingFoulMul = {
+    Tackling.soft: 0.8,
+    Tackling.normal: 1.0,
+    Tackling.hard: 1.3,
+  };
+  static const Map<Tackling, double> tacklingCardMul = {
+    Tackling.soft: 0.8,
+    Tackling.normal: 1.0,
+    Tackling.hard: 1.4,
+  };
+  static const Map<Tackling, double> tacklingInjuryMul = {
+    Tackling.soft: 0.9,
+    Tackling.normal: 1.0,
+    Tackling.hard: 1.4,
+  };
+  static const Map<Tackling, double> tacklingDefMul = {
+    Tackling.soft: 0.95,
+    Tackling.normal: 1.0,
+    Tackling.hard: 1.1,
+  };
+
+  /// Man marking: own att multiplier per marked opponent (at most two).
+  static const double manMarkerAttMul = 0.8;
+
+  /// Man marking: effectiveness of the marked playmaker / target man.
+  static const double manMarkedEffMul = 0.85;
+
+  /// Offside trap: opponent through-ball xG multiplier.
+  static const double offsideTrapThroughMul = 0.75;
+
+  /// Offside trap: share of trapped through balls that beat the trap, and
+  /// their xG multiplier (applied per chance in Task 5).
+  static const double offsideTrapFailProb = 0.12;
+  static const double offsideTrapFailMul = 1.6;
+
+  /// Arrows: forward att / def multipliers; back swaps them.
+  static const double arrowAttMul = 1.25;
+  static const double arrowDefMul = 0.85;
+
+  /// Playmaker / target man selection weight.
+  static const double playmakerBoost = 2.0;
+
+  /// Selection weight per matching instruction (long shots, through balls,
+  /// forward runs), multiplicative.
+  static const double instructionBoost = 1.5;
+
+  // --- Chance-type weights (spec 5.3 step 4) ---
+
+  /// Open-play chance-type weights per attacking lane; the profile's
+  /// `chanceWeights` multiplies these.
+  static const Map<Lane, Map<ChanceType, double>> laneChanceWeights = {
+    Lane.left: {
+      ChanceType.cross: 1.5,
+      ChanceType.dribble: 1.2,
+      ChanceType.throughBall: 0.7,
+      ChanceType.longShot: 0.6,
+    },
+    Lane.centre: {
+      ChanceType.cross: 0.5,
+      ChanceType.dribble: 0.9,
+      ChanceType.throughBall: 1.4,
+      ChanceType.longShot: 1.3,
+    },
+    Lane.right: {
+      ChanceType.cross: 1.5,
+      ChanceType.dribble: 1.2,
+      ChanceType.throughBall: 0.7,
+      ChanceType.longShot: 0.6,
+    },
+  };
+
+  // --- Weather and pitch (spec 16.8) ---
+
+  /// Pitch quality at or below this plays like rain.
+  static const int wetPitchMax = 4;
+
+  /// Wet: mid multiplier with short / mixed passing.
+  static const double wetShortPassMul = 0.92;
+
+  /// Wet: mid multiplier with direct / long-ball passing.
+  static const double wetLongBallMul = 1.05;
+
+  /// Wet: keeper error multiplier (Task 5 shrinks the save band).
+  static const double wetKeeperErrorMul = 1.3;
+
+  /// Wet: injury multiplier.
+  static const double wetInjuryMul = 1.15;
+
+  /// Hot: condition drain multiplier.
+  static const double hotDrainMul = 1.15;
+}

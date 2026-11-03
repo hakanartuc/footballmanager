@@ -1,6 +1,8 @@
 /// Pure-Dart football manager game engine.
 library;
 
+export 'src/calibration/calibration.dart';
+export 'src/calibration/synthetic.dart';
 export 'src/competition/fixtures.dart';
 export 'src/competition/promotion.dart';
 export 'src/competition/season_calendar_builder.dart';
@@ -22,7 +24,12 @@ export 'src/model/events.dart';
 export 'src/model/fixture.dart';
 export 'src/model/json.dart';
 export 'src/model/manager.dart';
+export 'src/model/match_conditions.dart';
+export 'src/model/match_log.dart';
+export 'src/model/match_result.dart';
+export 'src/model/match_rules.dart';
 export 'src/model/player.dart';
+export 'src/model/tactic.dart';
 export 'src/model/world.dart';
 export 'src/persistence/migrations.dart';
 export 'src/persistence/save_codec.dart';
@@ -30,10 +37,23 @@ export 'src/persistence/save_store.dart';
 export 'src/session/engine_session.dart';
 export 'src/sim/commands.dart';
 export 'src/sim/day_loop.dart';
+export 'src/sim/discipline.dart';
 export 'src/sim/lineup.dart';
+export 'src/sim/match/ai_manager.dart';
+export 'src/sim/match/conditions.dart';
+export 'src/sim/match/extra_time.dart';
+export 'src/sim/match/injury_table.dart';
+export 'src/sim/match/match_session.dart';
+export 'src/sim/match/match_state.dart';
+export 'src/sim/match/micro_events.dart';
+export 'src/sim/match/possession.dart';
+export 'src/sim/match/possession_match_simulator.dart';
+export 'src/sim/match/ratings.dart';
+export 'src/sim/match/side_effects.dart';
+export 'src/sim/match/team_profile.dart';
+export 'src/sim/match/tuning.dart';
 export 'src/sim/match_simulator.dart';
 export 'src/sim/new_game.dart';
-export 'src/sim/poisson_match.dart';
 export 'src/sim/season_rollover.dart';
 
-const engineVersion = '0.0.1';
+const engineVersion = '0.2.0';

@@ -149,6 +149,13 @@ void main() {
     var lastId = 0;
     for (final c in clubs) {
       expect(c.formation, Formation.f442);
+      expect(c.activeTactic, 0);
+      expect(c.tactics.map((t) => t.name), ['1', '2', '3']);
+      expect(c.tactics.map((t) => t.formation), [
+        Formation.f442,
+        Formation.f433,
+        Formation.f532,
+      ]);
       expect(c.managerId, isNull);
       expect(c.lineup, isNull);
       expect(c.boardConfidence, 50);

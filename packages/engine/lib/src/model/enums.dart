@@ -54,9 +54,11 @@ enum Attr {
   commandOfArea,
 }
 
-enum Formation { f442, f433, f451, f352, f4231, f532 }
+/// [custom] has no fixed slots: a custom `Tactic` carries its own list.
+enum Formation { f442, f433, f451, f352, f4231, f532, custom }
 
-/// The 11 positions of [f]; index 0 is always the goalkeeper.
+/// The 11 positions of [f]; index 0 is always the goalkeeper. Throws
+/// [ArgumentError] for [Formation.custom]; read the tactic's `slots` instead.
 List<Position> formationSlots(Formation f) => switch (f) {
   Formation.f442 => const [
     Position.gk,
@@ -136,6 +138,11 @@ List<Position> formationSlots(Formation f) => switch (f) {
     Position.st,
     Position.st,
   ],
+  Formation.custom => throw ArgumentError.value(
+    f,
+    'f',
+    'custom formations have no preset slots',
+  ),
 };
 
 enum PlayerStatus { keyPlayer, firstTeam, rotation, backup, hotProspect, youth }

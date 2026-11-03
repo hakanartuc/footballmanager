@@ -174,7 +174,7 @@ class _LineupScreenState extends State<LineupScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
                   child: Text(
-                    formationLabel(formation),
+                    formationLabel(formation, l),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),

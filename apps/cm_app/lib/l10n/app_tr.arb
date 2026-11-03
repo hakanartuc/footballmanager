@@ -122,6 +122,13 @@
   "eventRetiredTitleUnnamed": "Bir oyuncu futbolu bıraktı",
   "eventRetiredBodyClub": "Kariyerini {club} formasıyla noktaladı.",
   "eventRetiredBodyFree": "Kariyerini serbest oyuncu olarak noktaladı.",
+  "eventPlayerUnnamed": "Bir oyuncu",
+  "eventInjuredTitle": "{player} sakatlandı",
+  "eventInjuredBody": "Yaklaşık {days} gün sahalardan uzak kalacak.",
+  "eventSentOffTitle": "{player} kırmızı kart gördü",
+  "eventSentOffBody": "{home} - {away} maçında oyundan atıldı.",
+  "eventSuspendedTitle": "{player} cezalı",
+  "eventSuspendedBody": "{matches} maç ceza aldı.",
   "eventYouthIntakeTitle": "{count} genç oyuncu altyapıya katıldı",
   "eventYouthIntakeBody": "{club} altyapısının yeni oyuncuları: {names}",
   "eventYouthIntakeBodyUnnamed": "{club} altyapısına yeni oyuncular katıldı.",
@@ -197,5 +204,6 @@
   "heightCm": "{cm} cm",
   "morale": "Moral",
   "form": "Form",
+  "formationCustom": "Özel",
   "roundLabel": "{round}. hafta"
 }

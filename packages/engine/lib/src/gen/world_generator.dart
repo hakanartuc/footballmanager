@@ -76,6 +76,8 @@ World generateWorld({
       continent: t.continent,
       namePool: t.namePool,
       tiers: [],
+      climate: t.climate,
+      southernHemisphere: t.southernHemisphere,
     );
     countries[country.id] = country;
     poolOf[country.id] = data.pools[t.namePool]!;

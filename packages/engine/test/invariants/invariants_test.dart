@@ -113,6 +113,37 @@ void main() {
     expect(_rules(w), contains('lineup.valid'));
   });
 
+  test('lineup.valid covers a banned or injured player on the bench', () {
+    final w = _world();
+    final c = _firstClub(w);
+    c.lineup = autoLineup(w, c.id);
+    expect(_rules(w), isNot(contains('lineup.valid')));
+    final bench = w.players[c.lineup!.bench.first]!;
+    bench.state.suspensionMatches = 1;
+    expect(
+      checkInvariants(w).map((v) => v.toString()),
+      contains('lineup.valid: club ${c.id}: ineligible'),
+    );
+    bench.state.suspensionMatches = 0;
+    bench.state.injury = InjuryStub(daysLeft: 3, type: 'sprain');
+    expect(_rules(w), contains('lineup.valid'));
+    bench.state.injury = null;
+    expect(_rules(w), isNot(contains('lineup.valid')));
+  });
+
+  test('stats.consistent', () {
+    final w = _world();
+    final p = w.players[w.squadOf(_firstClub(w).id).first]!;
+    p.season.goals = 1;
+    expect(_rules(w), contains('stats.consistent'));
+    p.season.goals = 0;
+    p.season.apps = 1;
+    p.season.ratingSum = 10.5;
+    expect(_rules(w), contains('stats.consistent'));
+    p.season.ratingSum = 10;
+    expect(_rules(w), isNot(contains('stats.consistent')));
+  });
+
   test('player.ranges', () {
     final w = _world();
     final p = w.players[w.squadOf(_firstClub(w).id).first]!;
@@ -189,6 +220,113 @@ void main() {
     test('a scorer who does not exist', () {
       f.result!.goals.single.scorerId = 999999;
       expect(_rules(w), contains('fixture.goals'));
+    });
+
+    Goal goal(ClubId club) => Goal(
+      minute: 10,
+      half: 1,
+      clubId: club,
+      scorerId: w.squadOf(f.homeId).first,
+      assistId: null,
+      type: ChanceType.dribble,
+      isPenalty: false,
+    );
+
+    test('consistent match events pass', () {
+      f.result!.events.addAll([
+        goal(f.homeId),
+        HalfTime(minute: 45, half: 1, clubId: f.homeId),
+        FullTime(minute: 90, half: 2, clubId: f.homeId),
+      ]);
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+
+    test('an own goal counts for the club it is credited to', () {
+      f.result!.events.add(
+        Goal(
+          minute: 10,
+          half: 1,
+          clubId: f.homeId,
+          scorerId: w.squadOf(f.awayId).first,
+          assistId: null,
+          type: ChanceType.cross,
+          isPenalty: false,
+          isOwnGoal: true,
+        ),
+      );
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+
+    test('Goal events disagreeing with the score', () {
+      f.result!.events.addAll([goal(f.homeId), goal(f.awayId)]);
+      expect(_rules(w), contains('fixture.goals'));
+    });
+
+    test('Goal events credited to the wrong club', () {
+      f.result!.events.add(goal(f.awayId));
+      expect(_rules(w), contains('fixture.goals'));
+    });
+
+    test('an awarded abandoned result is not held to its Goal events', () {
+      f.result!
+        ..abandoned = true
+        ..homeGoals = 3
+        ..goals.clear()
+        ..events.add(goal(f.awayId));
+      expect(_rules(w), isNot(contains('fixture.goals')));
+    });
+  });
+
+  group('result.extended', () {
+    late World w;
+    late Fixture f;
+
+    TeamStats stats() => TeamStats(
+      shots: 0,
+      onTarget: 0,
+      blocked: 0,
+      corners: 0,
+      fouls: 0,
+      yellows: 0,
+      reds: 0,
+      offsides: 0,
+      possessionPct: 50,
+      xg: 0,
+    );
+
+    setUp(() {
+      w = _world();
+      f = _fixtureAt(w, 0);
+      w.date = f.date.addDays(1);
+      f.result = MatchResult(
+        homeGoals: 0,
+        awayGoals: 0,
+        goals: [],
+        matchSeed: 0,
+        homeStats: stats(),
+        awayStats: stats(),
+        events: [FullTime(minute: 90, half: 2, clubId: f.homeId)],
+      );
+      expect(_rules(w), isNot(contains('result.extended')));
+    });
+
+    test('missing statistics', () {
+      f.result!.awayStats = null;
+      expect(_rules(w), contains('result.extended'));
+    });
+
+    test('no FullTime event', () {
+      f.result!.events
+        ..clear()
+        ..add(HalfTime(minute: 45, half: 1, clubId: f.homeId));
+      expect(_rules(w), contains('result.extended'));
+    });
+
+    test('a migrated result without events is exempt', () {
+      f.result!.events.clear();
+      f.result!.homeStats = null;
+      f.result!.awayStats = null;
+      expect(_rules(w), isNot(contains('result.extended')));
     });
   });
 
@@ -297,6 +435,122 @@ void main() {
       expect(_rules(w), isNot(contains('inbox.refs')));
     });
 
+    test('injury, sending-off and suspension refs pass', () {
+      final w = _world();
+      final club = _firstClub(w).id;
+      final player = w.squadOf(club).first;
+      final fixture = w.fixturesOfClub(club, w.seasonYear).first;
+      w.inbox.addAll([
+        for (final e in <GameEvent>[
+          PlayerInjured(date: w.date, playerId: player, clubId: club, days: 9),
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            fixtureId: fixture,
+          ),
+          PlayerSuspended(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            matches: 1,
+          ),
+        ])
+          InboxMessage(id: w.ids.next('inbox'), date: w.date, event: e),
+      ]);
+      expect(_rules(w), isNot(contains('inbox.refs')));
+    });
+
+    group('injury, sending-off and suspension', () {
+      late World w;
+      late ClubId club;
+      late PlayerId player;
+      late FixtureId fixture;
+
+      setUp(() {
+        w = _world();
+        club = _firstClub(w).id;
+        player = w.squadOf(club).first;
+        fixture = w.fixturesOfClub(club, w.seasonYear).first;
+      });
+
+      void add(GameEvent e) => w.inbox.add(
+        InboxMessage(id: w.ids.next('inbox'), date: w.date, event: e),
+      );
+
+      test('an injury at a missing club', () {
+        add(
+          PlayerInjured(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            days: 3,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('player ids are exempt', () {
+        // The players may have retired or been released since.
+        add(
+          PlayerInjured(date: w.date, playerId: 999999, clubId: club, days: 3),
+        );
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: 999998,
+            clubId: club,
+            fixtureId: fixture,
+          ),
+        );
+        add(
+          PlayerSuspended(
+            date: w.date,
+            playerId: 999997,
+            clubId: club,
+            matches: 1,
+          ),
+        );
+        expect(_rules(w), isNot(contains('inbox.refs')));
+      });
+
+      test('a sending-off in a missing fixture', () {
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: club,
+            fixtureId: 999999,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('a sending-off at a missing club', () {
+        add(
+          PlayerSentOff(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            fixtureId: fixture,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+
+      test('a suspension at a missing club', () {
+        add(
+          PlayerSuspended(
+            date: w.date,
+            playerId: player,
+            clubId: 999999,
+            matches: 1,
+          ),
+        );
+        expect(_rules(w), contains('inbox.refs'));
+      });
+    });
+
     test('a youth release at a missing club', () {
       final w = _world();
       w.inbox.add(
@@ -346,7 +600,6 @@ void main() {
       daily = [];
       tableMismatches = [];
       final runner = DayRunner(
-        const PoissonMatchSimulator(),
         rollover: (w, rng) {
           tableMismatches = _tableMismatches(w);
           return rolloverSeason(w, rng);

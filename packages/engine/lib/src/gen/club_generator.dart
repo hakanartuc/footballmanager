@@ -3,6 +3,7 @@ import '../core/rng.dart';
 import '../data/country_data.dart';
 import '../model/club.dart';
 import '../model/enums.dart';
+import '../model/tactic.dart';
 import 'player_generator.dart';
 
 /// Kit palette (ARGB). It contains both white and black, so every colour
@@ -105,6 +106,7 @@ class ClubGenerator {
         <= 13 => BoardExpectation.mid,
         _ => BoardExpectation.avoidRelegation,
       },
+      tactics: defaultTactics(Formation.f442),
     );
   }
 

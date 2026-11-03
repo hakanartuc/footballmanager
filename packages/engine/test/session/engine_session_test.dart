@@ -151,7 +151,7 @@ void main() {
       final stored = s.world.inbox;
       expect(stored.length, greaterThanOrEqualTo(2));
       expect(stored.first.event, isA<NewSeasonStarted>());
-      expect(stored.last.event, isA<MatchPlayed>());
+      expect(stored.map((m) => m.event), contains(isA<MatchPlayed>()));
 
       final all = s.inbox();
       expect(all, stored.reversed.toList());
@@ -241,6 +241,129 @@ void main() {
       );
 
       expect(s.checkInvariants(), isEmpty);
+    });
+  });
+
+  group('user match', () {
+    /// A session advanced to the morning of the user's first match day.
+    EngineSession atMatchDay({int seed = 1}) {
+      final s = EngineSession.newGame(_spec(seed: seed, startClubId: club));
+      s.advanceUntil(s.world.calendar.seasonStart.addDays(60));
+      expect(s.nextUserMatchDate(), s.world.date);
+      return s;
+    }
+
+    Fixture userFixture(EngineSession s) => s.world
+        .fixturesOn(s.world.date)
+        .map((id) => s.world.fixtures[id]!)
+        .firstWhere((f) => f.homeId == club || f.awayId == club);
+
+    String resultJson(Fixture f) => jsonEncode(matchResultToJson(f.result!));
+
+    test('startUserMatch needs a user match day and no match in progress', () {
+      final s = EngineSession.newGame(_spec(startClubId: club));
+      expect(s.nextUserMatchDate(), isNot(s.world.date));
+      expect(s.startUserMatch, throwsStateError);
+      expect(s.finishUserMatch, throwsStateError);
+      expect(s.userMatchInProgress, isFalse);
+
+      final unemployed = EngineSession.newGame(_spec());
+      expect(unemployed.startUserMatch, throwsStateError);
+
+      final m = atMatchDay();
+      m.startUserMatch();
+      expect(m.userMatchInProgress, isTrue);
+      expect(m.startUserMatch, throwsStateError);
+      expect(m.advanceDay, throwsStateError);
+      expect(() => m.advanceUntil(m.world.date.addDays(3)), throwsStateError);
+      m.finishUserMatch();
+      expect(m.userMatchInProgress, isFalse);
+      expect(m.finishUserMatch, throwsStateError);
+      expect(m.world.date, isNot(m.nextUserMatchDate()));
+    });
+
+    test('with the AI on, start + finish equals advanceDay (5 seeds)', () {
+      for (var seed = 1; seed <= 5; seed++) {
+        final a = atMatchDay(seed: seed);
+        final b = atMatchDay(seed: seed);
+        expect(_json(b), _json(a));
+
+        final da = a.advanceDay();
+        final session = b.startUserMatch(userManaged: false);
+        expect(session.finished, isFalse);
+        final db = b.finishUserMatch();
+
+        expect(_json(b), _json(a), reason: 'seed $seed');
+        expect(db.date, da.date);
+        expect(db.playedFixtures, da.playedFixtures);
+        expect(
+          db.events.map((e) => e.runtimeType).toList(),
+          da.events.map((e) => e.runtimeType).toList(),
+        );
+        expect(
+          db.events.whereType<MatchPlayed>().map((e) => e.fixtureId),
+          da.events.whereType<MatchPlayed>().map((e) => e.fixtureId),
+        );
+      }
+    });
+
+    test('user-managed: only the user side\'s AI decisions differ', () {
+      final a = atMatchDay();
+      final b = atMatchDay();
+      final fa = userFixture(a);
+      final fb = userFixture(b);
+      expect(fb.id, fa.id);
+
+      a.advanceDay();
+      final session = b.startUserMatch();
+      expect(session.state.side(club).userManaged, isTrue);
+      final db = b.finishUserMatch();
+
+      bool aiDecision(MatchEvent e) =>
+          e.clubId == club && (e is Substitution || e is TacticChange);
+      expect(fb.result!.events.where(aiDecision), isEmpty);
+      final aDecided = fa.result!.events.where(aiDecision).isNotEmpty;
+      expect(resultJson(fb) == resultJson(fa), !aDecided);
+      // Every other fixture of the day is untouched by the user's choice.
+      for (final id in db.playedFixtures) {
+        if (id == fb.id) continue;
+        expect(
+          jsonEncode(matchResultToJson(b.world.fixtures[id]!.result!)),
+          jsonEncode(matchResultToJson(a.world.fixtures[id]!.result!)),
+        );
+      }
+    });
+
+    test('a substitution changes the result; the day still completes', () {
+      final a = atMatchDay();
+      final b = atMatchDay();
+      final fa = userFixture(a);
+      final fb = userFixture(b);
+      final da = a.advanceDay();
+
+      final session = b.startUserMatch(userManaged: false);
+      session.runUntil(minute: 50, stopOnEvent: false);
+      final side = session.state.side(club);
+      session.apply(
+        Substitute(club, outId: side.playing.last, inId: side.bench.first),
+      );
+      final db = b.finishUserMatch();
+
+      expect(resultJson(fb), isNot(resultJson(fa)));
+      expect(fb.result!.events.whereType<Substitution>(), isNotEmpty);
+      expect(db.playedFixtures, da.playedFixtures);
+      expect(b.world.date, a.world.date);
+      expect(b.checkInvariants(), isEmpty);
+      expect(_json(b), isNot(_json(a)));
+    });
+
+    test('save throws during a match and works again after it', () {
+      final s = atMatchDay();
+      final before = s.save();
+      s.startUserMatch();
+      expect(s.save, throwsStateError);
+      s.finishUserMatch();
+      expect(s.save(), isNot(before));
     });
   });
 

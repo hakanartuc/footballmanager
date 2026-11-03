@@ -81,10 +81,16 @@ void main() {
       Position.st,
     ]);
     for (final f in Formation.values) {
+      if (f == Formation.custom) continue;
       final slots = formationSlots(f);
       expect(slots, hasLength(11), reason: '$f');
       expect(slots.first, Position.gk, reason: '$f');
       expect(slots.where((p) => p == Position.gk), hasLength(1), reason: '$f');
     }
+  });
+
+  test('formationSlots rejects custom, which is listed last', () {
+    expect(Formation.values.last, Formation.custom);
+    expect(() => formationSlots(Formation.custom), throwsArgumentError);
   });
 }

@@ -4,11 +4,13 @@ import 'dart:typed_data';
 
 import 'package:args/command_runner.dart';
 
+import '../calibration/calibration.dart';
 import '../core/game_date.dart';
 import '../gen/world_generator.dart';
 import '../invariants/invariants.dart';
 import '../model/events.dart';
 import '../model/json.dart';
+import '../model/match_result.dart';
 import '../session/engine_session.dart';
 import '../sim/new_game.dart';
 
@@ -28,7 +30,8 @@ Future<int> runCli(
     ..addCommand(_GenerateCommand(o))
     ..addCommand(_SimulateCommand(o, e))
     ..addCommand(_BenchCommand(o))
-    ..addCommand(_InspectCommand(o));
+    ..addCommand(_InspectCommand(o))
+    ..addCommand(_CalibrateCommand(o));
   try {
     return await runner.run(args) ?? 0;
   } on UsageException catch (x) {
@@ -176,6 +179,8 @@ class _SimulateCommand extends _NewGameCommand {
       double pct(bool Function(int h, int a) p) => n == 0
           ? 0
           : 100 * played.where((r) => p(r.homeGoals, r.awayGoals)).length / n;
+      int count(bool Function(MatchEvent e) p) =>
+          played.fold(0, (s, r) => s + r.events.where(p).length);
       report.add({
         'seasonYear': year,
         'champions': {
@@ -188,6 +193,10 @@ class _SimulateCommand extends _NewGameCommand {
         'homeWinPct': pct((h, a) => h > a),
         'drawPct': pct((h, a) => h == a),
         'awayWinPct': pct((h, a) => h < a),
+        'yellows': count((e) => e is Booking && e.kind == CardKind.yellow),
+        'reds': count((e) => e is Booking && e.kind != CardKind.yellow),
+        'injuries': count((e) => e is Injury),
+        'substitutions': count((e) => e is Substitution),
         'violations': 0,
         'days': days,
         'msTotal': watch.elapsedMilliseconds,
@@ -351,6 +360,60 @@ class _InspectCommand extends Command<int> {
       };
     }
     out.writeln(_pretty.convert(json));
+    return 0;
+  }
+}
+
+class _CalibrateCommand extends Command<int> {
+  _CalibrateCommand(this.out) {
+    argParser
+      ..addOption('seed', defaultsTo: '1', help: 'Harness seed.')
+      ..addOption('matches', defaultsTo: '20000')
+      ..addOption(
+        'gap',
+        allowed: ['10', '20', '40'],
+        help: 'Play the spec 5.6 gap curve at this CA gap instead.',
+      )
+      ..addFlag(
+        'season',
+        negatable: false,
+        help: 'Run the 20-club season check instead.',
+      )
+      ..addOption('seasons', defaultsTo: '100')
+      ..addOption('report', help: 'Also write the JSON report here.');
+  }
+
+  final StringSink out;
+
+  @override
+  String get name => 'calibrate';
+  @override
+  String get description =>
+      'Play synthetic matches and print the spec 9 distributions.';
+
+  @override
+  int run() {
+    final a = argResults!;
+    int intOption(String name) =>
+        int.tryParse(a.option(name)!) ??
+        usageException('--$name must be an integer.');
+    final seed = intOption('seed');
+    final gap = a.option('gap');
+    final Object report;
+    if (a.flag('season')) {
+      report = runSeasonCalibration(seasons: intOption('seasons'), seed: seed);
+    } else if (gap != null) {
+      report = runGapCurve(
+        matches: intOption('matches'),
+        seed: seed,
+        gap: int.parse(gap),
+      );
+    } else {
+      report = runCalibration(matches: intOption('matches'), seed: seed);
+    }
+    out.writeln(report);
+    final path = a.option('report');
+    if (path != null) File(path).writeAsStringSync(_pretty.convert(report));
     return 0;
   }
 }

@@ -36,7 +36,9 @@ String positionName(Position p, AppLocalizations l) => switch (p) {
 };
 
 /// "4-4-2", "4-2-3-1", …
-String formationLabel(Formation f) => f.name.substring(1).split('').join('-');
+String formationLabel(Formation f, AppLocalizations l) => f == Formation.custom
+    ? l.formationCustom
+    : f.name.substring(1).split('').join('-');
 
 /// Abstract money unit with thousands separators and no symbol.
 String money(int v, Locale locale) =>

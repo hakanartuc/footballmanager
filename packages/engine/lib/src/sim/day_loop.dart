@@ -5,9 +5,13 @@ import '../core/ids.dart';
 import '../core/rng.dart';
 import '../model/club.dart';
 import '../model/events.dart';
+import '../model/fixture.dart';
 import '../model/world.dart';
 import 'commands.dart';
+import 'discipline.dart';
 import 'lineup.dart';
+import 'match/conditions.dart';
+import 'match/possession_match_simulator.dart';
 import 'match_simulator.dart';
 
 /// Daily condition recovery applied to every player in [DayRunner.startOfDay].
@@ -43,16 +47,18 @@ class DaySummary {
 /// `SeededRng(seed).fork('rollover:<seasonYear>')` and appends its events;
 /// when null, nothing happens at season end.
 class DayRunner {
-  DayRunner(this.sim, {this.rollover});
+  DayRunner({this.sim = const PossessionMatchSimulator(), this.rollover});
 
   final MatchSimulator sim;
   final List<GameEvent> Function(World w, SeededRng rng)? rollover;
 
   /// Applies [commands] in order (an invalid `SetLineup` is ignored
   /// silently; a valid one is stored as a copy, so the caller's `Lineup`
-  /// stays its own), recovers every player's condition, then gives each
-  /// club with a fixture today a valid lineup, picking one automatically
-  /// when the stored one is missing or no longer valid.
+  /// stays its own), recovers every player's condition, runs
+  /// [dailyRecovery], then gives each club with a fixture today a valid
+  /// lineup on its active tactic's formation, picking one automatically
+  /// when the stored one is missing, on another formation or no longer
+  /// valid.
   void startOfDay(World w, List<Command> commands) {
     for (final cmd in commands) {
       switch (cmd) {
@@ -76,6 +82,7 @@ class DayRunner {
         state.condition + conditionRecoveryPerDay,
       );
     }
+    dailyRecovery(w);
 
     final playing = <ClubId>{};
     for (final id in w.fixturesOn(w.date)) {
@@ -87,39 +94,83 @@ class DayRunner {
     for (final clubId in playing.toList()..sort()) {
       final club = w.clubs[clubId]!;
       final lineup = club.lineup;
-      if (lineup == null || validateLineup(w, clubId, lineup).isNotEmpty) {
+      if (lineup == null ||
+          lineup.formation != club.tactic.formation ||
+          validateLineup(w, clubId, lineup).isNotEmpty) {
         club.lineup = autoLineup(w, clubId);
       }
     }
   }
 
-  /// Simulates every unplayed fixture dated today, sorted by id, storing
-  /// the result and crediting appearances and goals. Each match draws from
+  /// The context [f] is played with: the clubs' stored lineups (picked
+  /// automatically when missing), the league's rules, conditions sampled
+  /// from `SeededRng(seed).fork('conditions:<fixtureId>:<seasonYear>')`,
+  /// both clubs' active tactics and the match stream
   /// `SeededRng(seed).fork('match:<fixtureId>:<seasonYear>')`.
-  List<FixtureId> playMatches(World w) {
-    final played = <FixtureId>[];
+  MatchContext contextFor(
+    World w,
+    Fixture f, {
+    MatchDetail detail = MatchDetail.result,
+  }) {
+    final home = w.clubs[f.homeId]!;
+    final away = w.clubs[f.awayId]!;
+    return MatchContext(
+      world: w,
+      fixture: f,
+      home: home.lineup ??= autoLineup(w, f.homeId),
+      away: away.lineup ??= autoLineup(w, f.awayId),
+      rng: SeededRng(w.seed).fork('match:${f.id}:${w.seasonYear}'),
+      rules: w.leagues[f.leagueId]!.rules,
+      conditions: sampleConditions(
+        w: w,
+        f: f,
+        rng: SeededRng(w.seed).fork('conditions:${f.id}:${w.seasonYear}'),
+      ),
+      homeTactic: home.tactic,
+      awayTactic: away.tactic,
+      detail: detail,
+    );
+  }
+
+  /// Stores [r] as [f]'s result, serves a match of every ban of a player
+  /// of either club (seniors and youth) who was in neither the starters
+  /// nor the bench of the stored lineup, runs [applyPostMatch] under the
+  /// league's rules (bans issued by this match are served from the next
+  /// one) and drops a stored lineup the match made invalid (an injured or
+  /// banned player in it). Returns a [MatchPlayed] followed by the
+  /// post-match events.
+  List<GameEvent> settleMatch(World w, Fixture f, MatchResult r) {
+    f.result = r;
+    for (final clubId in [f.homeId, f.awayId]) {
+      final lineup = w.clubs[clubId]!.lineup;
+      final named = {...?lineup?.starters, ...?lineup?.bench};
+      for (final id in [...w.squadOf(clubId), ...w.youthOf(clubId)]) {
+        final state = w.players[id]!.state;
+        if (state.suspensionMatches > 0 && !named.contains(id)) {
+          state.suspensionMatches--;
+        }
+      }
+    }
+    final events = applyPostMatch(w, f, r, w.leagues[f.leagueId]!.rules);
+    for (final clubId in [f.homeId, f.awayId]) {
+      final club = w.clubs[clubId]!;
+      final lineup = club.lineup;
+      if (lineup != null && validateLineup(w, clubId, lineup).isNotEmpty) {
+        club.lineup = null;
+      }
+    }
+    return [MatchPlayed(date: w.date, fixtureId: f.id), ...events];
+  }
+
+  /// Simulates every unplayed fixture dated today, sorted by id, with
+  /// [contextFor] and settles each with [settleMatch]. Returns the day
+  /// events per fixture, in fixture id order.
+  Map<FixtureId, List<GameEvent>> playMatches(World w) {
+    final played = <FixtureId, List<GameEvent>>{};
     for (final id in w.fixturesOn(w.date)) {
       final f = w.fixtures[id]!;
       if (f.result != null) continue;
-      final home = w.clubs[f.homeId]!.lineup ??= autoLineup(w, f.homeId);
-      final away = w.clubs[f.awayId]!.lineup ??= autoLineup(w, f.awayId);
-      final result = sim.simulate(
-        MatchContext(
-          world: w,
-          fixture: f,
-          home: home,
-          away: away,
-          rng: SeededRng(w.seed).fork('match:${f.id}:${w.seasonYear}'),
-        ),
-      );
-      f.result = result;
-      for (final p in [...home.starters, ...away.starters]) {
-        w.players[p]!.season.apps += 1;
-      }
-      for (final g in result.goals) {
-        w.players[g.scorerId]!.season.goals += 1;
-      }
-      played.add(id);
+      played[id] = settleMatch(w, f, sim.simulate(contextFor(w, f)));
     }
     return played;
   }
@@ -160,14 +211,12 @@ class DayRunner {
     final date = w.date;
     startOfDay(w, commands);
     final played = playMatches(w);
-    final matchEvents = <GameEvent>[
-      for (final id in played) MatchPlayed(date: date, fixtureId: id),
-    ];
+    final matchEvents = [for (final events in played.values) ...events];
     final rolled = endOfDay(w, dayEvents: matchEvents);
     return DaySummary(
       date: date,
       events: [...matchEvents, ...rolled],
-      playedFixtures: played,
+      playedFixtures: played.keys.toList(),
       elapsed: watch.elapsed,
     );
   }
@@ -193,5 +242,8 @@ bool isUserRelevant(World w, GameEvent e, {LeagueId? userLeagueId}) {
     PlayerRetired(:final clubId) => clubId == club.id,
     YouthIntake(:final clubId) => clubId == club.id,
     YouthReleased(:final clubId) => clubId == club.id,
+    PlayerInjured(:final clubId) => clubId == club.id,
+    PlayerSentOff(:final clubId) => clubId == club.id,
+    PlayerSuspended(:final clubId) => clubId == club.id,
   };
 }

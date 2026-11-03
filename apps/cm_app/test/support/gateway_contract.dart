@@ -283,17 +283,18 @@ void runGatewayContract(Future<EngineGateway> Function() make) {
     expect((await g.inbox()).single.read, isTrue);
     expect((await g.home()).unreadCount, 0);
 
-    // Play the first match: the MatchPlayed message comes first.
+    // Play the first match: a MatchPlayed message arrives (injuries and
+    // bans of the match may come with it), newest first.
     await g.advanceToNext();
     await g.playToday(const []);
     final after = await g.inbox();
-    expect(after, hasLength(2));
-    expect(after.first.event, isA<MatchPlayed>());
+    expect(after.length, greaterThanOrEqualTo(2));
     expect(after.first.id, greaterThan(after.last.id));
-    expect(after.first.labels.homeGoals, isNotNull);
-    expect(after.first.labels.awayGoals, isNotNull);
-    expect(after.first.labels.homeName, isNotEmpty);
-    expect(after.first.labels.awayName, isNotEmpty);
+    final played = after.singleWhere((i) => i.event is MatchPlayed);
+    expect(played.labels.homeGoals, isNotNull);
+    expect(played.labels.awayGoals, isNotNull);
+    expect(played.labels.homeName, isNotEmpty);
+    expect(played.labels.awayName, isNotEmpty);
   });
 
   test(
@@ -329,7 +330,7 @@ void runGatewayContract(Future<EngineGateway> Function() make) {
     expect(out.reason, StopReason.played);
     expect(out.daysAdvanced, 1);
     expect(out.date, matchDate.addDays(1));
-    expect(out.newInboxCount, 1);
+    expect(out.newInboxCount, greaterThanOrEqualTo(1));
     final m = out.userMatch!;
     expect(m.date, matchDate);
     expect(m.homeGoals, isNotNull);

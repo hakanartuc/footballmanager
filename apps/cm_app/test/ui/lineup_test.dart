@@ -85,7 +85,7 @@ Future<(FakeGateway, GameController)> _open(
 void main() {
   testWidgets('shows the formation and the 11 slots', (t) async {
     final (g, _) = await _open(t, _valid);
-    expect(find.text(formationLabel(Formation.f442)), findsOneWidget);
+    expect(find.text('4-4-2'), findsOneWidget);
     for (final r in _rows.take(11)) {
       expect(find.text(r.name), findsOneWidget);
     }

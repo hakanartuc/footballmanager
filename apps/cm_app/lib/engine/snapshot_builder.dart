@@ -239,6 +239,9 @@ class SnapshotBuilder {
     String leagueCountry(LeagueId id) =>
         _w.countries[_w.leagues[id]!.countryId]!.code;
     int leagueTier(LeagueId id) => _w.leagues[id]!.tier;
+    List<String> playerName(PlayerId id) => [
+      if (_w.players[id] case final p?) _name(p),
+    ];
     return switch (e) {
       MatchPlayed(:final fixtureId) => () {
         final f = _w.fixtures[fixtureId]!;
@@ -280,6 +283,20 @@ class SnapshotBuilder {
         ],
       ),
       YouthReleased(:final clubId) => InboxLabels(clubName: clubName(clubId)),
+      PlayerInjured(:final clubId, :final playerId) ||
+      PlayerSuspended(:final clubId, :final playerId) => InboxLabels(
+        clubName: clubName(clubId),
+        playerNames: playerName(playerId),
+      ),
+      PlayerSentOff(:final clubId, :final playerId, :final fixtureId) => () {
+        final f = _w.fixtures[fixtureId]!;
+        return InboxLabels(
+          clubName: clubName(clubId),
+          playerNames: playerName(playerId),
+          homeName: clubName(f.homeId),
+          awayName: clubName(f.awayId),
+        );
+      }(),
       SeasonEnded() || NewSeasonStarted() => const InboxLabels(),
     };
   }

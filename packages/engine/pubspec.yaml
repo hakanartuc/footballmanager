@@ -1,5 +1,6 @@
 name: engine
 description: Pure-Dart football manager game engine.
+version: 0.2.0
 publish_to: none
 
 environment:

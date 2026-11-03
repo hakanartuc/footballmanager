@@ -26,6 +26,9 @@ abstract final class EventText {
       x.toLeagueTier ?? 0,
       l,
     );
+    final player = x.playerNames.isEmpty
+        ? l.eventPlayerUnnamed
+        : x.playerNames.first;
     return switch (item.event) {
       MatchPlayed() => EventTextResult(
         l.eventMatchTitle(
@@ -65,6 +68,18 @@ abstract final class EventText {
       YouthReleased(:final playerIds) => EventTextResult(
         l.eventYouthReleasedTitle(playerIds.length),
         l.eventYouthReleasedBody(club),
+      ),
+      PlayerInjured(:final days) => EventTextResult(
+        l.eventInjuredTitle(player),
+        l.eventInjuredBody(days),
+      ),
+      PlayerSentOff() => EventTextResult(
+        l.eventSentOffTitle(player),
+        l.eventSentOffBody(x.homeName ?? '', x.awayName ?? ''),
+      ),
+      PlayerSuspended(:final matches) => EventTextResult(
+        l.eventSuspendedTitle(player),
+        l.eventSuspendedBody(matches),
       ),
       SeasonEnded(:final seasonYear) => EventTextResult(
         l.eventSeasonEndedTitle(seasonLabel(seasonYear)),

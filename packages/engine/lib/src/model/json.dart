@@ -8,7 +8,10 @@ import 'enums.dart';
 import 'events.dart';
 import 'fixture.dart';
 import 'manager.dart';
+import 'match_conditions.dart';
+import 'match_rules.dart';
 import 'player.dart';
+import 'tactic.dart';
 import 'world.dart';
 
 // Hand-written JSON codec for the whole model: the save format and the
@@ -94,6 +97,8 @@ Map<String, dynamic> countryToJson(Country c) => {
   'continent': c.continent.name,
   'namePool': c.namePool,
   'tiers': List.of(c.tiers),
+  'climate': c.climate,
+  'south': c.southernHemisphere,
 };
 
 Country countryFromJson(Map<String, dynamic> j) => Country(
@@ -103,6 +108,8 @@ Country countryFromJson(Map<String, dynamic> j) => Country(
   continent: Continent.values.byName(j['continent'] as String),
   namePool: j['namePool'] as String,
   tiers: _ints(j['tiers']),
+  climate: j['climate'] as String,
+  southernHemisphere: j['south'] as bool,
 );
 
 Map<String, dynamic> leagueToJson(League l) => {
@@ -114,6 +121,7 @@ Map<String, dynamic> leagueToJson(League l) => {
   'promotedCount': l.promotedCount,
   'relegatedCount': l.relegatedCount,
   'reputation': l.reputation,
+  'rules': matchRulesToJson(l.rules),
 };
 
 League leagueFromJson(Map<String, dynamic> j) => League(
@@ -125,6 +133,29 @@ League leagueFromJson(Map<String, dynamic> j) => League(
   promotedCount: j['promotedCount'] as int,
   relegatedCount: j['relegatedCount'] as int,
   reputation: j['reputation'] as int,
+  rules: matchRulesFromJson(_obj(j['rules'])),
+);
+
+Map<String, dynamic> matchRulesToJson(MatchRules r) => {
+  'substitutions': r.substitutions,
+  'benchSize': r.benchSize,
+  'extraTime': r.extraTime,
+  'penalties': r.penalties,
+  'yellowThresholds': List.of(r.yellowThresholds),
+  'redBanSecondYellow': r.redBanSecondYellow,
+  'redBanFoul': r.redBanFoul,
+  'redBanViolent': r.redBanViolent,
+};
+
+MatchRules matchRulesFromJson(Map<String, dynamic> j) => MatchRules(
+  substitutions: j['substitutions'] as int,
+  benchSize: j['benchSize'] as int,
+  extraTime: j['extraTime'] as bool,
+  penalties: j['penalties'] as bool,
+  yellowThresholds: _ints(j['yellowThresholds']),
+  redBanSecondYellow: j['redBanSecondYellow'] as int,
+  redBanFoul: j['redBanFoul'] as int,
+  redBanViolent: j['redBanViolent'] as int,
 );
 
 // ---- club ----
@@ -193,7 +224,8 @@ Map<String, dynamic> clubToJson(Club c) => {
   'expectation': c.expectation.name,
   'boardConfidence': c.boardConfidence,
   'lineup': c.lineup == null ? null : lineupToJson(c.lineup!),
-  'formation': c.formation.name,
+  'tactics': [for (final t in c.tactics) tacticToJson(t)],
+  'activeTactic': c.activeTactic,
 };
 
 Club clubFromJson(Map<String, dynamic> j) => Club(
@@ -216,7 +248,98 @@ Club clubFromJson(Map<String, dynamic> j) => Club(
   expectation: BoardExpectation.values.byName(j['expectation'] as String),
   boardConfidence: _double(j['boardConfidence']),
   lineup: j['lineup'] == null ? null : lineupFromJson(_obj(j['lineup'])),
+  tactics: [for (final t in j['tactics'] as List) tacticFromJson(_obj(t))],
+  activeTactic: j['activeTactic'] as int,
+);
+
+// ---- tactic ----
+
+Map<String, dynamic> playerInstructionsToJson(PlayerInstructions i) => {
+  'forwardRuns': i.forwardRuns,
+  'runWithBall': i.runWithBall,
+  'longShots': i.longShots,
+  'throughBalls': i.throughBalls,
+  'holdUpBall': i.holdUpBall,
+  'freeRole': i.freeRole,
+  'crossFrom': i.crossFrom.name,
+};
+
+PlayerInstructions playerInstructionsFromJson(Map<String, dynamic> j) =>
+    PlayerInstructions(
+      forwardRuns: j['forwardRuns'] as bool,
+      runWithBall: j['runWithBall'] as bool,
+      longShots: j['longShots'] as bool,
+      throughBalls: j['throughBalls'] as bool,
+      holdUpBall: j['holdUpBall'] as bool,
+      freeRole: j['freeRole'] as bool,
+      crossFrom: CrossTarget.values.byName(j['crossFrom'] as String),
+    );
+
+Map<String, dynamic> setPieceTakersToJson(SetPieceTakers s) => {
+  'cornerLeft': s.cornerLeft,
+  'cornerRight': s.cornerRight,
+  'freeKickLeft': s.freeKickLeft,
+  'freeKickRight': s.freeKickRight,
+  'penalty': s.penalty,
+  'longThrow': s.longThrow,
+};
+
+SetPieceTakers setPieceTakersFromJson(Map<String, dynamic> j) => SetPieceTakers(
+  cornerLeft: j['cornerLeft'] as int?,
+  cornerRight: j['cornerRight'] as int?,
+  freeKickLeft: j['freeKickLeft'] as int?,
+  freeKickRight: j['freeKickRight'] as int?,
+  penalty: j['penalty'] as int?,
+  longThrow: j['longThrow'] as int?,
+);
+
+Map<String, dynamic> tacticToJson(Tactic t) => {
+  'name': t.name,
+  'formation': t.formation.name,
+  'slots': [for (final p in t.slots) p.name],
+  'mentality': t.mentality.name,
+  'passing': t.passing.name,
+  'tempo': t.tempo.name,
+  'width': t.width.name,
+  'pressing': t.pressing.name,
+  'tackling': t.tackling.name,
+  'marking': t.marking.name,
+  'offsideTrap': t.offsideTrap,
+  'counterAttack': t.counterAttack,
+  'playmaker': t.playmaker,
+  'targetMan': t.targetMan,
+  'captain': t.captain,
+  'viceCaptain': t.viceCaptain,
+  'setPieces': setPieceTakersToJson(t.setPieces),
+  'instructions': _idMapToJson(t.instructions, playerInstructionsToJson),
+  'arrows': _idMapToJson(t.arrows, (a) => a.name),
+};
+
+Tactic tacticFromJson(Map<String, dynamic> j) => Tactic(
+  name: j['name'] as String,
   formation: Formation.values.byName(j['formation'] as String),
+  slots: [
+    for (final p in j['slots'] as List) Position.values.byName(p as String),
+  ],
+  mentality: Mentality.values.byName(j['mentality'] as String),
+  passing: PassingStyle.values.byName(j['passing'] as String),
+  tempo: Tempo.values.byName(j['tempo'] as String),
+  width: Width.values.byName(j['width'] as String),
+  pressing: Pressing.values.byName(j['pressing'] as String),
+  tackling: Tackling.values.byName(j['tackling'] as String),
+  marking: Marking.values.byName(j['marking'] as String),
+  offsideTrap: j['offsideTrap'] as bool,
+  counterAttack: j['counterAttack'] as bool,
+  playmaker: j['playmaker'] as int?,
+  targetMan: j['targetMan'] as int?,
+  captain: j['captain'] as int?,
+  viceCaptain: j['viceCaptain'] as int?,
+  setPieces: setPieceTakersFromJson(_obj(j['setPieces'])),
+  instructions: _idMapFromJson(
+    j['instructions'],
+    (v) => playerInstructionsFromJson(_obj(v)),
+  ),
+  arrows: _idMapFromJson(j['arrows'], (v) => Arrow.values.byName(v as String)),
 );
 
 // ---- player ----
@@ -419,11 +542,186 @@ GoalEvent goalEventFromJson(Map<String, dynamic> j) => GoalEvent(
   clubId: j['clubId'] as int,
 );
 
+Map<String, dynamic> teamStatsToJson(TeamStats s) => {
+  'shots': s.shots,
+  'onTarget': s.onTarget,
+  'blocked': s.blocked,
+  'corners': s.corners,
+  'fouls': s.fouls,
+  'yellows': s.yellows,
+  'reds': s.reds,
+  'offsides': s.offsides,
+  'possessionPct': s.possessionPct,
+  'xg': s.xg,
+};
+
+TeamStats teamStatsFromJson(Map<String, dynamic> j) => TeamStats(
+  shots: j['shots'] as int,
+  onTarget: j['onTarget'] as int,
+  blocked: j['blocked'] as int,
+  corners: j['corners'] as int,
+  fouls: j['fouls'] as int,
+  yellows: j['yellows'] as int,
+  reds: j['reds'] as int,
+  offsides: j['offsides'] as int,
+  possessionPct: j['possessionPct'] as int,
+  xg: _double(j['xg']),
+);
+
+Map<String, dynamic> matchConditionsToJson(MatchConditions c) => {
+  'weather': c.weather.name,
+  'pitch': c.pitch,
+  'attendance': c.attendance,
+  'homeAdvantage': c.homeAdvantage,
+};
+
+MatchConditions matchConditionsFromJson(Map<String, dynamic> j) =>
+    MatchConditions(
+      weather: Weather.values.byName(j['weather'] as String),
+      pitch: j['pitch'] as int,
+      attendance: j['attendance'] as int,
+      homeAdvantage: _double(j['homeAdvantage']),
+    );
+
+/// `{"t": <type name>, minute, half, clubId, ...fields}`.
+Map<String, dynamic> matchEventToJson(MatchEvent e) => {
+  't': switch (e) {
+    Goal() => 'Goal',
+    Booking() => 'Booking',
+    Injury() => 'Injury',
+    Substitution() => 'Substitution',
+    PenaltyMissed() => 'PenaltyMissed',
+    TacticChange() => 'TacticChange',
+    HalfTime() => 'HalfTime',
+    FullTime() => 'FullTime',
+    ExtraTimeStart() => 'ExtraTimeStart',
+    ShootoutStart() => 'ShootoutStart',
+    ShootoutKick() => 'ShootoutKick',
+  },
+  'minute': e.minute,
+  'half': e.half,
+  'clubId': e.clubId,
+  ...switch (e) {
+    Goal() => {
+      'scorerId': e.scorerId,
+      'assistId': e.assistId,
+      'type': e.type.name,
+      'isPenalty': e.isPenalty,
+      'isOwnGoal': e.isOwnGoal,
+    },
+    Booking() => {
+      'playerId': e.playerId,
+      'kind': e.kind.name,
+      'reason': e.reason.name,
+    },
+    Injury() => {'playerId': e.playerId, 'injury': injuryStubToJson(e.injury)},
+    Substitution() => {
+      'outId': e.outId,
+      'inId': e.inId,
+      'reason': e.reason.name,
+    },
+    PenaltyMissed() => {'playerId': e.playerId, 'outcome': e.outcome.name},
+    TacticChange() => {'mentality': e.mentality.name},
+    HalfTime() ||
+    FullTime() ||
+    ExtraTimeStart() ||
+    ShootoutStart() => const <String, dynamic>{},
+    ShootoutKick() => {'playerId': e.playerId, 'scored': e.scored},
+  },
+};
+
+MatchEvent matchEventFromJson(Map<String, dynamic> j) {
+  final minute = j['minute'] as int;
+  final half = j['half'] as int;
+  final clubId = j['clubId'] as int;
+  return switch (j['t']) {
+    'Goal' => Goal(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      scorerId: j['scorerId'] as int,
+      assistId: j['assistId'] as int?,
+      type: ChanceType.values.byName(j['type'] as String),
+      isPenalty: j['isPenalty'] as bool,
+      isOwnGoal: j['isOwnGoal'] as bool,
+    ),
+    'Booking' => Booking(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      playerId: j['playerId'] as int,
+      kind: CardKind.values.byName(j['kind'] as String),
+      reason: FoulKind.values.byName(j['reason'] as String),
+    ),
+    'Injury' => Injury(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      playerId: j['playerId'] as int,
+      injury: injuryStubFromJson(_obj(j['injury'])),
+    ),
+    'Substitution' => Substitution(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      outId: j['outId'] as int,
+      inId: j['inId'] as int,
+      reason: SubReason.values.byName(j['reason'] as String),
+    ),
+    'PenaltyMissed' => PenaltyMissed(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      playerId: j['playerId'] as int,
+      outcome: ShotOutcome.values.byName(j['outcome'] as String),
+    ),
+    'TacticChange' => TacticChange(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      mentality: Mentality.values.byName(j['mentality'] as String),
+    ),
+    'HalfTime' => HalfTime(minute: minute, half: half, clubId: clubId),
+    'FullTime' => FullTime(minute: minute, half: half, clubId: clubId),
+    'ExtraTimeStart' => ExtraTimeStart(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+    ),
+    'ShootoutStart' => ShootoutStart(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+    ),
+    'ShootoutKick' => ShootoutKick(
+      minute: minute,
+      half: half,
+      clubId: clubId,
+      playerId: j['playerId'] as int,
+      scored: j['scored'] as bool,
+    ),
+    final t => throw FormatException('Unknown match event type: $t'),
+  };
+}
+
+/// Every key is always written; keys added after schema v2 (everything
+/// after `matchSeed`) decode to their defaults when absent.
 Map<String, dynamic> matchResultToJson(MatchResult r) => {
   'homeGoals': r.homeGoals,
   'awayGoals': r.awayGoals,
   'goals': [for (final g in r.goals) goalEventToJson(g)],
   'matchSeed': r.matchSeed,
+  'homeStats': r.homeStats == null ? null : teamStatsToJson(r.homeStats!),
+  'awayStats': r.awayStats == null ? null : teamStatsToJson(r.awayStats!),
+  'events': [for (final e in r.events) matchEventToJson(e)],
+  'ratings': _idMapToJson(r.ratings, (v) => v),
+  'manOfTheMatch': r.manOfTheMatch,
+  'conditions': r.conditions == null
+      ? null
+      : matchConditionsToJson(r.conditions!),
+  'homeShootout': r.homeShootout,
+  'awayShootout': r.awayShootout,
+  'abandoned': r.abandoned,
 };
 
 MatchResult matchResultFromJson(Map<String, dynamic> j) => MatchResult(
@@ -431,6 +729,25 @@ MatchResult matchResultFromJson(Map<String, dynamic> j) => MatchResult(
   awayGoals: j['awayGoals'] as int,
   goals: [for (final g in j['goals'] as List) goalEventFromJson(_obj(g))],
   matchSeed: j['matchSeed'] as int,
+  homeStats: j['homeStats'] == null
+      ? null
+      : teamStatsFromJson(_obj(j['homeStats'])),
+  awayStats: j['awayStats'] == null
+      ? null
+      : teamStatsFromJson(_obj(j['awayStats'])),
+  events: [
+    for (final e in (j['events'] ?? const []) as List)
+      matchEventFromJson(_obj(e)),
+  ],
+  ratings: j['ratings'] == null ? {} : _idMapFromJson(j['ratings'], _double),
+  manOfTheMatch: j['manOfTheMatch'] as int?,
+  conditions: j['conditions'] == null
+      ? null
+      : matchConditionsFromJson(_obj(j['conditions'])),
+  homeShootout: j['homeShootout'] as int?,
+  awayShootout: j['awayShootout'] as int?,
+  abandoned: (j['abandoned'] ?? false) as bool,
+  // finalCondition is consumed by settleMatch before any save; not stored.
 );
 
 Map<String, dynamic> fixtureToJson(Fixture f) => {
@@ -509,6 +826,9 @@ Map<String, dynamic> eventToJson(GameEvent e) => {
     YouthIntake() => 'YouthIntake',
     YouthReleased() => 'YouthReleased',
     NewSeasonStarted() => 'NewSeasonStarted',
+    PlayerInjured() => 'PlayerInjured',
+    PlayerSentOff() => 'PlayerSentOff',
+    PlayerSuspended() => 'PlayerSuspended',
   },
   'date': e.date.dayIndex,
   ...switch (e) {
@@ -529,6 +849,21 @@ Map<String, dynamic> eventToJson(GameEvent e) => {
     YouthIntake() => {'clubId': e.clubId, 'playerIds': List.of(e.playerIds)},
     YouthReleased() => {'clubId': e.clubId, 'playerIds': List.of(e.playerIds)},
     NewSeasonStarted() => {'seasonYear': e.seasonYear},
+    PlayerInjured() => {
+      'playerId': e.playerId,
+      'clubId': e.clubId,
+      'days': e.days,
+    },
+    PlayerSentOff() => {
+      'playerId': e.playerId,
+      'clubId': e.clubId,
+      'fixtureId': e.fixtureId,
+    },
+    PlayerSuspended() => {
+      'playerId': e.playerId,
+      'clubId': e.clubId,
+      'matches': e.matches,
+    },
   },
 };
 
@@ -575,6 +910,24 @@ GameEvent eventFromJson(Map<String, dynamic> j) {
     'NewSeasonStarted' => NewSeasonStarted(
       date: date,
       seasonYear: j['seasonYear'] as int,
+    ),
+    'PlayerInjured' => PlayerInjured(
+      date: date,
+      playerId: j['playerId'] as int,
+      clubId: j['clubId'] as int,
+      days: j['days'] as int,
+    ),
+    'PlayerSentOff' => PlayerSentOff(
+      date: date,
+      playerId: j['playerId'] as int,
+      clubId: j['clubId'] as int,
+      fixtureId: j['fixtureId'] as int,
+    ),
+    'PlayerSuspended' => PlayerSuspended(
+      date: date,
+      playerId: j['playerId'] as int,
+      clubId: j['clubId'] as int,
+      matches: j['matches'] as int,
     ),
     final t => throw FormatException('Unknown event type: $t'),
   };

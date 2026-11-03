@@ -60,6 +60,45 @@ void main() {
       expect(slots[l.starters.indexOf(st)], Position.st);
     });
 
+    test('fills the slots of a custom active tactic', () {
+      const slots = [
+        Position.gk,
+        Position.dc,
+        Position.dc,
+        Position.dc,
+        Position.ml,
+        Position.mc,
+        Position.mc,
+        Position.mr,
+        Position.aml,
+        Position.amr,
+        Position.st,
+      ];
+      final club = w.clubs[c]!;
+      club.tactics[club.activeTactic] = Tactic.custom(slots, name: '343');
+      final seniors = w.squadOf(c);
+      for (final id in seniors) {
+        p(id).ca = 50;
+      }
+      final winger = seniors[5];
+      final wideMid = seniors[6];
+      p(winger)
+        ..ca = 120
+        ..familiarity = {Position.aml: 20};
+      p(wideMid)
+        ..ca = 120
+        ..familiarity = {Position.mr: 20};
+
+      final l = autoLineup(w, c);
+      expect(l.formation, Formation.custom);
+      expect(l.starters, hasLength(11));
+      expect(l.starters.toSet(), hasLength(11));
+      expect(p(l.starters[0]).mainPosition, Position.gk);
+      expect(slots[l.starters.indexOf(winger)], Position.aml);
+      expect(slots[l.starters.indexOf(wideMid)], Position.mr);
+      expect(validateLineup(w, c, l), isEmpty);
+    });
+
     test('lower condition lowers the pick', () {
       final l = autoLineup(w, c);
       final keeper = l.starters[0];

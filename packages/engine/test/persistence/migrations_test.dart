@@ -13,9 +13,9 @@ Map<String, dynamic> _renameOldToNew(Map<String, dynamic> env) {
 Map<String, dynamic> _identity(Map<String, dynamic> env) => env;
 
 void main() {
-  test('schema v2 registers the single 1 -> 2 step', () {
-    expect(currentSchemaVersion, 2);
-    expect(migrations.map((m) => m.from), [1]);
+  test('schema v3 registers the 1 -> 2 and 2 -> 3 steps', () {
+    expect(currentSchemaVersion, 3);
+    expect(migrations.map((m) => m.from), [1, 2]);
   });
 
   group('1 -> 2', () {
@@ -31,10 +31,13 @@ void main() {
         'world': <String, dynamic>{
           'inbox': [entry(1), entry(2), entry(3)],
           'ids': <String, dynamic>{'player': 40},
+          'clubs': <String, dynamic>{},
+          'leagues': <String, dynamic>{},
+          'countries': <String, dynamic>{},
         },
       };
       final out = migrate(env);
-      expect(out['schemaVersion'], 2);
+      expect(out['schemaVersion'], currentSchemaVersion);
       final w = out['world'] as Map<String, dynamic>;
       final inbox = w['inbox'] as List;
       expect([
@@ -48,9 +51,112 @@ void main() {
     test('creates ids when it is missing', () {
       final out = migrate({
         'schemaVersion': 1,
-        'world': <String, dynamic>{'inbox': <Object?>[]},
+        'world': <String, dynamic>{
+          'inbox': <Object?>[],
+          'clubs': <String, dynamic>{},
+          'leagues': <String, dynamic>{},
+          'countries': <String, dynamic>{},
+        },
       });
       expect((out['world'] as Map)['ids'], {'inbox': 0});
+    });
+  });
+
+  group('2 -> 3', () {
+    /// A v2 envelope built from a current world by downgrading every club:
+    /// `tactics`/`activeTactic` removed, `formation` restored.
+    Map<String, dynamic> v2Envelope() {
+      final world = worldToJson(
+        createNewGame(
+          NewGameSpec(
+            seed: 5,
+            size: WorldSize.small,
+            managerFirstName: 'A',
+            managerLastName: 'B',
+            managerCountryCode: 'TR',
+            startClubId: null,
+          ),
+        ),
+      );
+      final clubs = world['clubs'] as Map<String, dynamic>;
+      for (final c in clubs.values) {
+        final club = c as Map<String, dynamic>;
+        club.remove('tactics');
+        club.remove('activeTactic');
+        club['formation'] = Formation.values[(club['id'] as int) % 6].name;
+      }
+      for (final l in (world['leagues'] as Map<String, dynamic>).values) {
+        (l as Map<String, dynamic>).remove('rules');
+      }
+      for (final c in (world['countries'] as Map<String, dynamic>).values) {
+        (c as Map<String, dynamic>).remove('climate');
+        c.remove('south');
+      }
+      world['schemaVersion'] = 2;
+      return {'schemaVersion': 2, 'world': world};
+    }
+
+    test('gives every club three preset tactics with the first active', () {
+      final env = v2Envelope();
+      final before = {
+        for (final c in (env['world'] as Map)['clubs'].values)
+          c['id'] as int: c['formation'] as String,
+      };
+      final out = migrate(env);
+      expect(out['schemaVersion'], 3);
+      final clubs = (out['world'] as Map)['clubs'] as Map<String, dynamic>;
+      expect(clubs, isNotEmpty);
+      for (final c in clubs.values) {
+        final club = c as Map<String, dynamic>;
+        expect(club.containsKey('formation'), isFalse);
+        expect(club['activeTactic'], 0);
+        final tactics = club['tactics'] as List;
+        expect(tactics, hasLength(3));
+        expect([for (final t in tactics) (t as Map)['name']], ['1', '2', '3']);
+        expect(
+          [for (final t in tactics) (t as Map)['formation']],
+          [before[club['id'] as int], 'f433', 'f532'],
+        );
+      }
+    });
+
+    test('gives every league the default rules as its last key', () {
+      final out = migrate(v2Envelope());
+      final leagues = (out['world'] as Map)['leagues'] as Map<String, dynamic>;
+      expect(leagues, isNotEmpty);
+      for (final l in leagues.values) {
+        expect((l as Map).keys.last, 'rules');
+        expect(l['rules'], matchRulesToJson(MatchRules.league));
+      }
+    });
+
+    test('gives every country a temperate northern climate as last keys', () {
+      final out = migrate(v2Envelope());
+      final countries =
+          (out['world'] as Map)['countries'] as Map<String, dynamic>;
+      expect(countries, isNotEmpty);
+      for (final c in countries.values) {
+        final keys = (c as Map).keys.toList();
+        expect(keys.sublist(keys.length - 2), ['climate', 'south']);
+        expect(c['climate'], 'temperate');
+        expect(c['south'], isFalse);
+      }
+    });
+
+    test('the migrated envelope decodes with the migrated formations', () {
+      final env = v2Envelope();
+      final before = {
+        for (final c in (env['world'] as Map)['clubs'].values)
+          c['id'] as int: Formation.values.byName(c['formation'] as String),
+      };
+      final w = worldFromJson(migrate(env)['world'] as Map<String, dynamic>);
+      for (final c in w.clubs.values) {
+        expect(c.formation, before[c.id]);
+        expect(c.tactic.slots, formationSlots(before[c.id]!));
+        expect(c.tactics[1].slots, formationSlots(Formation.f433));
+        expect(c.tactics[2].slots, formationSlots(Formation.f532));
+        expect(c.tactic.mentality, Mentality.balanced);
+      }
     });
   });
 
@@ -75,6 +181,7 @@ void main() {
       registry: const [
         Migration(from: 0, apply: _renameOldToNew),
         Migration(from: 1, apply: _identity),
+        Migration(from: 2, apply: _identity),
       ],
     );
     expect(out, {
@@ -95,9 +202,9 @@ void main() {
     // Registered out of order on purpose: lookup is by `from`.
     final out = migrate(
       {'schemaVersion': -1, 'world': <String, dynamic>{}},
-      registry: [step(1), step(0), step(-1)],
+      registry: [step(2), step(1), step(0), step(-1)],
     );
-    expect(applied, [-1, 0, 1]);
+    expect(applied, [-1, 0, 1, 2]);
     expect(out['schemaVersion'], currentSchemaVersion);
   });
 
